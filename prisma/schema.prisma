@@ -1,0 +1,299 @@
+// Complete Production-Ready Prisma Schema for DriveSuccess Academy
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum PackageType {
+  LICENSE_2W
+  LICENSE_4W
+  COMBO
+  IDL_TRANSFER
+  RENEWAL
+  REGISTRATION
+}
+
+enum VehicleTier {
+  TIER_A_COMPACT
+  TIER_B_PREMIUM
+  SUV
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  IN_SERVICE
+  MAINTENANCE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+  FAILED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+// ==========================================
+// MODELS
+// ==========================================
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  PAYMENT_RECEIVED
+  PAYMENT_FAILED
+  REFUND_PROCESSED
+  SESSION_SCHEDULED
+  SYSTEM_ALERT
+}
+
+model Student {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String
+  phone        String?        @unique
+  avatarUrl    String?
+  address      String?
+  city         String?        @default("New York")
+  state        String?        @default("NY")
+  zipCode      String?
+  licenseNo    String?
+  role         Role           @default(STUDENT)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  bookings      Booking[]
+  sessions      Session[]
+  notifications Notification[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([role])
+  @@map("students")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType @default(BOOKING_CONFIRMED)
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+
+  @@index([studentId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+model Instructor {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  name            String
+  phone           String         @unique
+  avatarUrl       String?
+  bio             String?
+  experienceYears Int            @default(5)
+  rating          Float          @default(5.0)
+  specialties     String[]
+  role            Role           @default(INSTRUCTOR)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  bookings        Booking[]
+  sessions        Session[]
+  availabilities  Availability[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([rating])
+  @@map("instructors")
+}
+
+model OtpVerification {
+  id         String   @id @default(cuid())
+  phone      String   @unique
+  otpHash    String
+  attempts   Int      @default(0)
+  expiresAt  DateTime
+  lastSentAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([phone])
+  @@map("otp_verifications")
+}
+
+model Vehicle {
+  id                 String        @id @default(cuid())
+  name               String        // WagonR, Swift, Dzire, Polo, Verna, Venue, Fronx
+  modelYear          Int           @default(2024)
+  plateNumber        String        @unique
+  tier               VehicleTier   @default(TIER_A_COMPACT)
+  transmission       Transmission  @default(MANUAL)
+  ratePerSession     Float
+  description        String
+  imageUrl           String?
+  hasDualControl     Boolean       @default(true)
+  hasAirConditioning Boolean       @default(true)
+  hasSmartAssist     Boolean       @default(false)
+  status             VehicleStatus @default(AVAILABLE)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  bookings           Booking[]
+  sessions           Session[]
+
+  @@index([tier])
+  @@index([status])
+  @@map("vehicles")
+}
+
+model Package {
+  id            String      @id @default(cuid())
+  name          String      // e.g. 2 Wheeler License, 4 Wheeler License, Combo, IDL Transfer, Renewal, Registration
+  slug          String      @unique
+  type          PackageType
+  description   String
+  price         Float
+  sessionsCount Int
+  badge         String?
+  isPopular     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  bookings      Booking[]
+
+  @@index([type])
+  @@index([slug])
+  @@map("packages")
+}
+
+model Booking {
+  id                String        @id @default(cuid())
+  studentId         String
+  student           Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  packageId         String
+  package           Package       @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  vehicleId         String?
+  vehicle           Vehicle?      @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  instructorId      String?
+  instructor        Instructor?   @relation(fields: [instructorId], references: [id], onDelete: SetNull)
+  
+  status            BookingStatus @default(PENDING)
+  paymentStatus     PaymentStatus @default(PENDING)
+  totalAmount       Float
+  notes             String?
+
+  // Razorpay Integration Fields
+  razorpayOrderId   String?       @unique
+  razorpayPaymentId String?       @unique
+  razorpaySignature String?
+  refundId          String?
+  refundAmount      Float?
+  refundedAt        DateTime?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  sessions          Session[]
+
+  @@index([studentId])
+  @@index([packageId])
+  @@index([vehicleId])
+  @@index([instructorId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([razorpayOrderId])
+  @@map("bookings")
+}
+
+model Session {
+  id           String        @id @default(cuid())
+  bookingId    String
+  booking      Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  instructorId String
+  instructor   Instructor    @relation(fields: [instructorId], references: [id], onDelete: Restrict)
+  vehicleId    String
+  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  scheduledAt  DateTime
+  durationMins Int           @default(60)
+  status       SessionStatus @default(SCHEDULED)
+  location     String        @default("Main Training Track")
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([bookingId])
+  @@index([studentId])
+  @@index([instructorId])
+  @@index([vehicleId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@map("sessions")
+}
+
+model Availability {
+  id           String      @id @default(cuid())
+  instructorId String
+  instructor   Instructor  @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  dayOfWeek    DayOfWeek
+  startTime    String      // e.g. "09:00"
+  endTime      String      // e.g. "17:00"
+  isBooked     Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([instructorId])
+  @@index([dayOfWeek])
+  @@map("availabilities")
+}
