@@ -122,7 +122,7 @@ export async function sendOtpAction(phoneInput: string) {
 
     return {
       success: true,
-      message: `OTP sent to ${phone}. (Demo / Test OTP: 123456). Valid for 5 minutes.`,
+      message: `OTP sent successfully to ${phone}. Valid for 5 minutes.`,
     };
   } catch (error) {
     console.error('sendOtpAction Error:', error);
