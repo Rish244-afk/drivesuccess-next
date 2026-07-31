@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ShieldCheck, Phone, KeyRound, ArrowRight, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
-import { sendOtpAction, verifyOtpAction } from '@/actions/auth';
+import { ShieldCheck, Phone, KeyRound, ArrowRight, RefreshCw, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/actions/auth';
+import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
 
 function LoginFormContent() {
   const router = useRouter();
@@ -17,6 +18,7 @@ function LoginFormContent() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -25,7 +27,23 @@ function LoginFormContent() {
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  // Handle Send OTP
+  // Setup Invisible Firebase reCAPTCHA Verifier
+  const setupRecaptcha = () => {
+    if (typeof window === 'undefined') return null;
+    if ((window as any).recaptchaVerifier) {
+      return (window as any).recaptchaVerifier;
+    }
+    const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible',
+      callback: () => {
+        // reCAPTCHA solved
+      },
+    });
+    (window as any).recaptchaVerifier = verifier;
+    return verifier;
+  };
+
+  // Handle Send Real SMS OTP via Firebase Auth (or fallback)
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone || phone.length < 10) {
@@ -37,6 +55,25 @@ function LoginFormContent() {
     setError(null);
     setMessage(null);
 
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/[^\d]/g, '')}`;
+
+    try {
+      // Try Firebase Real SMS Phone Auth
+      const appVerifier = setupRecaptcha();
+      if (appVerifier) {
+        const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+        setConfirmationResult(confirmation);
+        setMessage(`Real SMS OTP dispatched to ${formattedPhone}! (Demo fallback OTP: 123456)`);
+        setStep('OTP');
+        setCooldown(44);
+        setLoading(false);
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Firebase SMS Dispatch notice, using backend server OTP:', err);
+    }
+
+    // Fallback Server Action Send OTP
     const res = await sendOtpAction(phone);
     setLoading(false);
 
@@ -47,7 +84,7 @@ function LoginFormContent() {
 
     setMessage(res.message || 'OTP sent successfully to your mobile number.');
     setStep('OTP');
-    setCooldown(44); // 44s countdown timer matching mockup
+    setCooldown(44);
   };
 
   // Handle Verify OTP
@@ -62,45 +99,72 @@ function LoginFormContent() {
     setError(null);
     setMessage(null);
 
+    // 1. Try Firebase Client Verification
+    if (confirmationResult && otp !== '123456') {
+      try {
+        await confirmationResult.confirm(otp);
+        const res = await loginWithVerifiedPhoneAction(phone);
+        setLoading(false);
+
+        if (res.success) {
+          setMessage('Firebase Phone Authentication successful! Redirecting...');
+          setTimeout(() => router.push(fromPath), 800);
+          return;
+        }
+      } catch (firebaseErr) {
+        console.warn('Firebase verification notice, checking server action fallback...');
+      }
+    }
+
+    // 2. Fallback Server Action OTP verification (including 123456 test OTP)
     const res = await verifyOtpAction(phone, otp);
     setLoading(false);
 
     if (!res.success) {
-      setError(res.error || 'Verification failed.');
+      setError(res.error || 'Verification failed. Try demo OTP 123456.');
       return;
     }
 
-    setMessage('Verification successful! Redirecting...');
+    setMessage('Verification successful! Redirecting to student portal...');
     setTimeout(() => {
       router.push(fromPath);
     }, 800);
   };
 
   return (
-    <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+    <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative">
+      {/* Invisible reCAPTCHA container */}
+      <div id="recaptcha-container"></div>
+
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/10">
           <ShieldCheck className="w-7 h-7" />
         </div>
         <h1 className="text-2xl font-bold text-slate-100 font-heading">DriveSuccess Academy</h1>
-        <p className="text-sm text-slate-400 mt-1">Secure Phone Authentication & Student Portal Access</p>
+        <p className="text-xs text-slate-400 mt-1">Real SMS Phone Authentication & Student Portal</p>
       </div>
 
       {/* Alert Notices */}
       {error && (
-        <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs flex items-start gap-3">
+        <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-2xl text-xs flex items-start gap-3">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
       {message && (
-        <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs flex items-start gap-3">
+        <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl text-xs flex items-start gap-3">
           <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{message}</span>
         </div>
       )}
+
+      {/* Demo Test Notice */}
+      <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] text-amber-400 flex items-center gap-2">
+        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+        <span>For instant test login without waiting for SMS, use Demo OTP: <strong className="font-mono text-xs">123456</strong></span>
+      </div>
 
       {/* Step 1: Phone Number Form */}
       {step === 'PHONE' ? (
@@ -113,22 +177,22 @@ function LoginFormContent() {
               <Phone className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
               <input
                 type="tel"
-                placeholder="+1 (555) 000-0000"
+                placeholder="9876543210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-11 pr-4 py-3 rounded-xl outline-none text-sm font-medium transition"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-11 pr-4 py-3.5 rounded-xl outline-none text-sm font-medium transition"
                 required
               />
             </div>
             <p className="text-[11px] text-slate-500 mt-2">
-              Real SMS with a 6-digit OTP will be dispatched to your phone (5 min expiry). First-time logins auto-create a student profile.
+              Supports real SMS OTP delivery via Firebase Auth + instant test login.
             </p>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
+            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -165,7 +229,7 @@ function LoginFormContent() {
                 placeholder="123456"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 text-center tracking-[0.5em] font-mono text-lg font-bold py-3 rounded-xl outline-none transition"
+                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 text-center tracking-[0.5em] font-mono text-lg font-bold py-3.5 rounded-xl outline-none transition"
                 required
               />
             </div>
@@ -189,7 +253,7 @@ function LoginFormContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
+            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
