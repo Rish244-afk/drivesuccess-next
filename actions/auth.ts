@@ -25,7 +25,7 @@ export async function sendOtpAction(phoneInput: string) {
       where: { phone },
     });
 
-    // Rate Limiting Check 1: 60 seconds cooldown between OTP requests
+    // Rate Limiting Check 1: 60 seconds cooldown & max 3 requests per 10 minutes
     if (existingOtp) {
       const secondsSinceLastSent = (now.getTime() - existingOtp.lastSentAt.getTime()) / 1000;
       if (secondsSinceLastSent < 60) {
@@ -33,6 +33,14 @@ export async function sendOtpAction(phoneInput: string) {
         return {
           success: false,
           error: `Please wait ${waitSeconds} seconds before requesting a new OTP.`,
+        };
+      }
+
+      const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+      if (existingOtp.lastSentAt > tenMinutesAgo && existingOtp.attempts >= 3) {
+        return {
+          success: false,
+          error: 'Maximum OTP requests exceeded. Please try again in 10 minutes.',
         };
       }
     }

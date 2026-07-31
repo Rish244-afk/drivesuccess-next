@@ -47,7 +47,7 @@ function LoginFormContent() {
 
     setMessage(res.message || 'OTP sent successfully to your mobile number.');
     setStep('OTP');
-    setCooldown(60);
+    setCooldown(44); // 44s countdown timer matching mockup
   };
 
   // Handle Verify OTP
