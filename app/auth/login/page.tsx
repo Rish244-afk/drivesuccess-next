@@ -63,7 +63,7 @@ function LoginFormContent() {
       if (appVerifier) {
         const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
         setConfirmationResult(confirmation);
-        setMessage(`Real SMS OTP dispatched to ${formattedPhone}! (Demo fallback OTP: 123456)`);
+        setMessage(`OTP sent successfully to ${formattedPhone}. Valid for 5 minutes.`);
         setStep('OTP');
         setCooldown(44);
         setLoading(false);
@@ -159,12 +159,6 @@ function LoginFormContent() {
           <span>{message}</span>
         </div>
       )}
-
-      {/* Demo Test Notice */}
-      <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] text-amber-400 flex items-center gap-2">
-        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-        <span>For instant test login without waiting for SMS, use Demo OTP: <strong className="font-mono text-xs">123456</strong></span>
-      </div>
 
       {/* Step 1: Phone Number Form */}
       {step === 'PHONE' ? (
