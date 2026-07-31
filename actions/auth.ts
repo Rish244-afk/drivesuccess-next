@@ -73,10 +73,10 @@ export async function sendOtpAction(phoneInput: string) {
     // Send real SMS to phone number
     await sendSmsOtp(phone, rawOtp);
 
-    // Return success message WITHOUT exposing OTP
+    // Return success message with demo OTP notice for testing
     return {
       success: true,
-      message: `OTP sent successfully to ${phone}. Valid for 5 minutes.`,
+      message: `OTP sent successfully to ${phone}. (Demo / Test OTP: 123456). Valid for 5 minutes.`,
     };
   } catch (error) {
     console.error('sendOtpAction Error:', error);
@@ -123,8 +123,8 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
       };
     }
 
-    // Compare hashed OTP
-    const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
+    // Compare hashed OTP or allow demo test OTP 123456
+    const isValid = (await bcrypt.compare(otp, otpRecord.otpHash)) || otp === '123456';
 
     if (!isValid) {
       await prisma.otpVerification.update({
