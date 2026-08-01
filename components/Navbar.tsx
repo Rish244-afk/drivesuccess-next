@@ -25,21 +25,21 @@ export function Navbar() {
         
         {/* Editorial Brand Mark */}
         <Link href="/" className="flex items-center gap-3.5 group">
-          <div className="w-9 h-9 border border-amber-400/40 text-amber-400 rounded-full flex items-center justify-center font-serif text-lg italic transition-transform group-hover:scale-105">
-            D
+          <div className="w-10 h-10 border border-amber-400/40 text-amber-400 rounded-full flex items-center justify-center font-serif text-xl italic transition-transform group-hover:scale-105 bg-amber-400/5">
+            V
           </div>
           <div>
-            <span className="font-serif text-lg tracking-tight text-slate-100 block font-normal">
-              Drive<span className="italic text-amber-400">Success</span>
+            <span className="font-serif text-lg tracking-tight text-slate-100 block font-normal leading-tight">
+              Vahathi <span className="italic text-amber-400">Motor</span> Driving School
             </span>
-            <span className="text-[9px] font-sans font-medium tracking-[0.25em] text-slate-400 uppercase block -mt-1">
-              Academy
+            <span className="text-[9px] font-sans font-medium tracking-[0.2em] text-slate-400 uppercase block">
+              DriveSuccess Academy
             </span>
           </div>
         </Link>
 
         {/* Desktop Nav Links */}
-        <nav className="hidden md:flex items-center gap-10">
+        <nav className="hidden md:flex items-center gap-9">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -65,11 +65,18 @@ export function Navbar() {
 
         {/* Auth & Action Buttons */}
         <div className="hidden md:flex items-center gap-5">
+          <a
+            href="tel:7829780778"
+            className="text-xs font-semibold tracking-wider text-amber-400 hover:text-amber-300 border border-amber-400/30 px-3.5 py-1.5 rounded-full bg-amber-400/5 transition flex items-center gap-1.5"
+          >
+            <span>📞 7829780778</span>
+          </a>
+
           <NotificationBell />
 
           <Link
             href="/auth/login"
-            className="text-xs tracking-wider uppercase font-medium text-slate-300 hover:text-amber-400 flex items-center gap-1.5 transition"
+            className="text-xs tracking-wider uppercase font-medium text-slate-300 hover:text-amber-400 transition"
           >
             <span>Student Portal</span>
           </Link>

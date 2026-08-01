@@ -17,11 +17,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://drivesuccess.edu'),
   title: {
-    default: 'DriveSuccess Academy | Professional Driving School',
-    template: '%s | DriveSuccess Academy',
+    default: 'Vahathi Motor Driving School | DriveSuccess Academy',
+    template: '%s | Vahathi Motor Driving School',
   },
   description:
-    'Empowering the next generation of safe drivers through structured sensor-led pedagogy, dual-control fleet, certified instructors, and RTO licensing support.',
+    'Vahathi Motor Driving School (DriveSuccess Academy) - Professional driving lessons for Hyundai Creta, Honda City, Hyundai Eon, Swift & WagonR. 10 & 15 days packages with 2W & 4W RTO license support. Call 7829780778.',
   keywords: [
     'Driving School',
     'Driver License',

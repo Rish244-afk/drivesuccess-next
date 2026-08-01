@@ -1,107 +1,149 @@
-import {
-  PrismaClient,
-  PackageType,
-  VehicleTier,
-  Transmission,
-  VehicleStatus,
-  BookingStatus,
-  PaymentStatus,
-  SessionStatus,
-  DayOfWeek,
-  Role,
-} from '@prisma/client';
+import { PrismaClient, PackageType, VehicleTier, Transmission, VehicleStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting database seed script...');
 
-  // Clear existing records in correct dependency order
+  // 1. Clean existing records in reverse dependency order
+  console.log('🧹 Existing database records cleared.');
   await prisma.session.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.availability.deleteMany();
-  await prisma.student.deleteMany();
   await prisma.instructor.deleteMany();
   await prisma.vehicle.deleteMany();
   await prisma.package.deleteMany();
-
-  console.log('🧹 Existing database records cleared.');
+  await prisma.notification.deleteMany();
+  await prisma.student.deleteMany();
 
   // ==========================================
-  // 1. SEED PACKAGES
+  // 1. SEED PACKAGES (EXACT REAL VAHATHI MOTOR DRIVING SCHOOL PRICING)
   // ==========================================
-  console.log('📦 Seeding Packages...');
+  console.log('📦 Seeding Packages from Vahathi Motor Driving School...');
 
   const packagesData = [
+    // Standard Car Training (Honda City / Hatchbacks)
     {
-      name: '2 Wheeler License',
-      slug: '2-wheeler-license',
-      type: PackageType.LICENSE_2W,
-      description: 'Complete motorcycle and scooter training program covering balance, braking, and traffic sign compliance.',
-      price: 3500,
-      sessionsCount: 8,
+      name: '10 Days Training (Standard Car)',
+      slug: '10-days-training-standard',
+      type: PackageType.LICENSE_4W,
+      description: '10 days foundational practical car driving sessions (Honda City / Hatchback fleet).',
+      price: 4500,
+      sessionsCount: 10,
       badge: 'Popular',
+      isPopular: true,
+    },
+    {
+      name: '15 Days Training (Standard Car)',
+      slug: '15-days-training-standard',
+      type: PackageType.LICENSE_4W,
+      description: '15 days extended practical driving course with city traffic and parking maneuvers.',
+      price: 6500,
+      sessionsCount: 15,
+      badge: 'Extended',
       isPopular: false,
     },
     {
-      name: '4 Wheeler License',
-      slug: '4-wheeler-license',
+      name: '10 Days Training & 4W License',
+      slug: '10-days-training-4w-license',
       type: PackageType.LICENSE_4W,
-      description: 'Comprehensive foundational car training for first-time drivers with mock RTO exams and road tests.',
-      price: 5000,
+      description: '10 days practical car training combined with official RTO 4-Wheeler driver license assistance.',
+      price: 7000,
       sessionsCount: 10,
       badge: 'Best Seller',
       isPopular: true,
     },
     {
-      name: 'Combo (2W + 4W)',
-      slug: 'combo-2w-4w',
+      name: '15 Days Training & 4W License',
+      slug: '15-days-training-4w-license',
+      type: PackageType.LICENSE_4W,
+      description: '15 days comprehensive driving course + official RTO 4-Wheeler driver license processing.',
+      price: 9000,
+      sessionsCount: 15,
+      badge: 'Recommended',
+      isPopular: true,
+    },
+    {
+      name: '10 Days Training & 2+4 Combo License',
+      slug: '10-days-training-2-4-combo-license',
       type: PackageType.COMBO,
-      description: 'Dual vehicle license package combining 2-wheeler scooter/bike and 4-wheeler car driver training.',
-      price: 7500,
-      sessionsCount: 16,
+      description: '10 days car training + dual RTO license processing for both 2-wheeler scooter/bike & 4-wheeler car.',
+      price: 9000,
+      sessionsCount: 10,
       badge: 'Best Value',
       isPopular: true,
     },
     {
-      name: 'IDL Transfer',
-      slug: 'idl-transfer',
-      type: PackageType.IDL_TRANSFER,
-      description: 'International Driving License conversion program for foreign license holders adapting to local laws.',
-      price: 4500,
-      sessionsCount: 6,
-      badge: 'Specialty',
+      name: '15 Days Training & 2+4 Combo License',
+      slug: '15-days-training-2-4-combo-license',
+      type: PackageType.COMBO,
+      description: '15 days master driving course + combined 2-wheeler & 4-wheeler RTO driver license.',
+      price: 11000,
+      sessionsCount: 15,
+      badge: 'Complete Combo',
+      isPopular: true,
+    },
+
+    // Hyundai Creta SUV Special Training
+    {
+      name: 'Hyundai Creta - 10 Days Training',
+      slug: 'hyundai-creta-10-days-training',
+      type: PackageType.LICENSE_4W,
+      description: '10 days practical SUV driving sessions on modern Hyundai Creta with elevated road visibility.',
+      price: 8000,
+      sessionsCount: 10,
+      badge: 'SUV Special',
       isPopular: false,
     },
     {
-      name: 'License Transfer',
-      slug: 'license-transfer',
-      type: PackageType.IDL_TRANSFER,
-      description: 'Inter-state or regional license transfer bridge program with RTO documentation support.',
-      price: 3200,
-      sessionsCount: 5,
-      badge: 'Bridge',
+      name: 'Hyundai Creta - 15 Days Training',
+      slug: 'hyundai-creta-15-days-training',
+      type: PackageType.LICENSE_4W,
+      description: '15 days comprehensive SUV driving mastery course on Hyundai Creta with reverse camera practice.',
+      price: 12000,
+      sessionsCount: 15,
+      badge: 'SUV Master',
       isPopular: false,
     },
     {
-      name: 'License Renewal',
-      slug: 'license-renewal',
-      type: PackageType.RENEWAL,
-      description: 'Refresher training and paperwork assistance for renewing expired driver licenses quickly.',
-      price: 4200,
-      sessionsCount: 8,
-      badge: 'Refresher',
+      name: 'Hyundai Creta - 10 Days & 4W License',
+      slug: 'hyundai-creta-10-days-4w-license',
+      type: PackageType.LICENSE_4W,
+      description: '10 days Hyundai Creta SUV driving training + complete 4-Wheeler RTO driver license processing.',
+      price: 12000,
+      sessionsCount: 10,
+      badge: 'SUV License',
       isPopular: false,
     },
     {
-      name: 'Vehicle Registration',
-      slug: 'vehicle-registration',
-      type: PackageType.REGISTRATION,
-      description: 'End-to-end guidance for new vehicle registration, RTO compliance, and road tax processing.',
-      price: 3500,
-      sessionsCount: 5,
-      badge: 'RTO Support',
+      name: 'Hyundai Creta - 15 Days & 4W License',
+      slug: 'hyundai-creta-15-days-4w-license',
+      type: PackageType.LICENSE_4W,
+      description: '15 days Hyundai Creta SUV training + official RTO 4-Wheeler license (Discounted Special Offer).',
+      price: 15000,
+      sessionsCount: 15,
+      badge: 'Special Offer',
+      isPopular: true,
+    },
+    {
+      name: 'Hyundai Creta - 10 Days & 2+4 Combo License',
+      slug: 'hyundai-creta-10-days-2-4-combo-license',
+      type: PackageType.COMBO,
+      description: '10 days Hyundai Creta SUV training + combined 2-wheeler scooter/bike & 4-wheeler car license.',
+      price: 15000,
+      sessionsCount: 10,
+      badge: 'SUV Combo',
       isPopular: false,
+    },
+    {
+      name: 'Hyundai Creta - 15 Days & 2+4 Combo License',
+      slug: 'hyundai-creta-15-days-2-4-combo-license',
+      type: PackageType.COMBO,
+      description: '15 days Hyundai Creta SUV master course + dual 2W & 4W RTO driver license certification.',
+      price: 18000,
+      sessionsCount: 15,
+      badge: 'Premium VIP',
+      isPopular: true,
     },
   ];
 
@@ -111,20 +153,48 @@ async function main() {
   console.log(`✅ ${packages.length} Packages seeded.`);
 
   // ==========================================
-  // 2. SEED VEHICLES
+  // 2. SEED VEHICLES (REAL SHOP FLEET: CRETA, HONDA CITY, HYUNDAI EON, SWIFT, WAGONR)
   // ==========================================
   console.log('🚗 Seeding Vehicles...');
 
   const vehiclesData = [
     {
-      name: 'WagonR',
+      name: 'Hyundai Creta',
       modelYear: 2024,
-      plateNumber: 'NY-DS-1001',
+      plateNumber: 'KA-05-DS-7001',
+      tier: VehicleTier.SUV,
+      transmission: Transmission.MANUAL,
+      ratePerSession: 800,
+      description: 'Premium SUV with elevated road visibility, dual controls, and hill assist. Featured at Vahathi Motor Driving School.',
+      imageUrl: '/images/creta.jpg',
+      hasDualControl: true,
+      hasAirConditioning: true,
+      hasSmartAssist: true,
+      status: VehicleStatus.AVAILABLE,
+    },
+    {
+      name: 'Honda City',
+      modelYear: 2024,
+      plateNumber: 'KA-05-DS-7002',
+      tier: VehicleTier.TIER_B_PREMIUM,
+      transmission: Transmission.MANUAL,
+      ratePerSession: 700,
+      description: 'Comfortable mid-size sedan with dual controls, ideal for clutch control and parallel parking.',
+      imageUrl: '/images/hondacity.jpg',
+      hasDualControl: true,
+      hasAirConditioning: true,
+      hasSmartAssist: true,
+      status: VehicleStatus.AVAILABLE,
+    },
+    {
+      name: 'Hyundai Eon',
+      modelYear: 2023,
+      plateNumber: 'KA-05-DS-7003',
       tier: VehicleTier.TIER_A_COMPACT,
       transmission: Transmission.MANUAL,
-      ratePerSession: 600,
-      description: 'High visibility and easy maneuverability. Perfect for beginners.',
-      imageUrl: '/images/wagonr.jpg',
+      ratePerSession: 450,
+      description: 'Compact hatchback for easy maneuverability and confidence building for beginner drivers.',
+      imageUrl: '/images/eon.jpg',
       hasDualControl: true,
       hasAirConditioning: true,
       hasSmartAssist: false,
@@ -133,7 +203,7 @@ async function main() {
     {
       name: 'Swift',
       modelYear: 2024,
-      plateNumber: 'NY-DS-1002',
+      plateNumber: 'KA-05-DS-7004',
       tier: VehicleTier.TIER_A_COMPACT,
       transmission: Transmission.MANUAL,
       ratePerSession: 620,
@@ -145,73 +215,17 @@ async function main() {
       status: VehicleStatus.AVAILABLE,
     },
     {
-      name: 'Dzire',
+      name: 'WagonR',
       modelYear: 2024,
-      plateNumber: 'NY-DS-1003',
+      plateNumber: 'KA-05-DS-7005',
       tier: VehicleTier.TIER_A_COMPACT,
       transmission: Transmission.MANUAL,
-      ratePerSession: 650,
-      description: 'Comfortable compact sedan ideal for clutch and parking practice.',
-      imageUrl: '/images/dzire.jpg',
+      ratePerSession: 600,
+      description: 'High visibility tall-boy design with dual controls.',
+      imageUrl: '/images/wagonr.jpg',
       hasDualControl: true,
       hasAirConditioning: true,
       hasSmartAssist: false,
-      status: VehicleStatus.AVAILABLE,
-    },
-    {
-      name: 'Polo',
-      modelYear: 2023,
-      plateNumber: 'NY-DS-1004',
-      tier: VehicleTier.TIER_A_COMPACT,
-      transmission: Transmission.MANUAL,
-      ratePerSession: 650,
-      description: 'German engineered hatchback with solid build and precise handling.',
-      imageUrl: '/images/polo.jpg',
-      hasDualControl: true,
-      hasAirConditioning: true,
-      hasSmartAssist: false,
-      status: VehicleStatus.AVAILABLE,
-    },
-    {
-      name: 'Verna',
-      modelYear: 2024,
-      plateNumber: 'NY-DS-1005',
-      tier: VehicleTier.TIER_B_PREMIUM,
-      transmission: Transmission.AUTOMATIC,
-      ratePerSession: 800,
-      description: 'Master sedan driving with rear camera, automatic transmission, and smooth acceleration.',
-      imageUrl: '/images/verna.jpg',
-      hasDualControl: true,
-      hasAirConditioning: true,
-      hasSmartAssist: true,
-      status: VehicleStatus.AVAILABLE,
-    },
-    {
-      name: 'Venue',
-      modelYear: 2024,
-      plateNumber: 'NY-DS-1006',
-      tier: VehicleTier.SUV,
-      transmission: Transmission.AUTOMATIC,
-      ratePerSession: 820,
-      description: 'Compact SUV providing elevated road visibility and hill-start assist.',
-      imageUrl: '/images/venue.jpg',
-      hasDualControl: true,
-      hasAirConditioning: true,
-      hasSmartAssist: true,
-      status: VehicleStatus.AVAILABLE,
-    },
-    {
-      name: 'Fronx',
-      modelYear: 2024,
-      plateNumber: 'NY-DS-1007',
-      tier: VehicleTier.TIER_B_PREMIUM,
-      transmission: Transmission.AUTOMATIC,
-      ratePerSession: 850,
-      description: 'Modern crossover with smart-assist sensors and dual AC.',
-      imageUrl: '/images/fronx.jpg',
-      hasDualControl: true,
-      hasAirConditioning: true,
-      hasSmartAssist: true,
       status: VehicleStatus.AVAILABLE,
     },
   ];
@@ -222,166 +236,69 @@ async function main() {
   console.log(`✅ ${vehicles.length} Vehicles seeded.`);
 
   // ==========================================
-  // 3. SEED INSTRUCTORS (5 INSTRUCTORS)
+  // 3. SEED INSTRUCTORS
   // ==========================================
-  console.log('👨‍🏫 Seeding 5 Instructors...');
+  console.log('👨‍🏫 Seeding Instructors...');
 
   const instructorsData = [
     {
-      name: 'Mark Vance',
-      email: 'mark.vance@drivesuccess.edu',
-      phone: '+1 (555) 101-2001',
-      bio: 'Senior instructor with 12+ years experience specializing in defensive driving and nervous beginner training.',
+      name: 'Rajesh Kumar',
+      phone: '+917829780778',
+      email: 'rajesh@vahathidriving.com',
       experienceYears: 12,
-      rating: 5.0,
-      specialties: ['Defensive Driving', 'Parallel Parking', 'Beginners'],
-      role: Role.INSTRUCTOR,
-    },
-    {
-      name: 'Sarah Jenkins',
-      email: 'sarah.jenkins@drivesuccess.edu',
-      phone: '+1 (555) 101-2002',
-      bio: 'Certified defensive driving specialist with a 99% first-attempt student pass rate.',
-      experienceYears: 8,
       rating: 4.9,
-      specialties: ['Night Driving', 'Mock Exams', 'Clutch Control'],
-      role: Role.INSTRUCTOR,
-    },
-    {
-      name: 'David Rodriguez',
-      email: 'david.rodriguez@drivesuccess.edu',
-      phone: '+1 (555) 101-2003',
-      bio: 'Highway merging and high-speed safety expert with background in professional evasive driving.',
-      experienceYears: 10,
-      rating: 4.9,
-      specialties: ['Highway Merging', 'Hazard Response', 'Automatic Sedans'],
-      role: Role.INSTRUCTOR,
+      specialties: ['Dual-Control', 'Creta SUV Specialist', 'RTO Test Track'],
+      avatarUrl: '/images/rajesh.jpg',
     },
     {
       name: 'Priya Sharma',
-      email: 'priya.sharma@drivesuccess.edu',
-      phone: '+1 (555) 101-2004',
-      bio: 'Patient pedagogical instructor focusing on motorcycle licenses and compact vehicle maneuverability.',
-      experienceYears: 7,
-      rating: 4.8,
-      specialties: ['2-Wheeler License', 'City Navigation', 'RTO Rules'],
-      role: Role.INSTRUCTOR,
-    },
-    {
-      name: 'Alex Mercer',
-      email: 'alex.mercer@drivesuccess.edu',
-      phone: '+1 (555) 101-2005',
-      bio: 'Precision driving specialist focused on advanced SUV handling, reversing, and parallel parking.',
-      experienceYears: 9,
-      rating: 4.9,
-      specialties: ['SUV Driving', 'Reverse Steering', 'Hill Start Assist'],
-      role: Role.INSTRUCTOR,
+      phone: '+917829780779',
+      email: 'priya@vahathidriving.com',
+      experienceYears: 8,
+      rating: 4.95,
+      specialties: ['Beginner Confidence', 'Honda City Sedan', 'Traffic Practice'],
+      avatarUrl: '/images/priya.jpg',
     },
   ];
 
   const instructors = await Promise.all(
-    instructorsData.map((inst) => prisma.instructor.create({ data: inst }))
+    instructorsData.map((ins) => prisma.instructor.create({ data: ins }))
   );
   console.log(`✅ ${instructors.length} Instructors seeded.`);
 
-  // Create Availabilities for Instructors
-  const days: DayOfWeek[] = [
-    DayOfWeek.MONDAY,
-    DayOfWeek.TUESDAY,
-    DayOfWeek.WEDNESDAY,
-    DayOfWeek.THURSDAY,
-    DayOfWeek.FRIDAY,
-    DayOfWeek.SATURDAY,
-  ];
-
-  for (const instructor of instructors) {
-    for (const day of days) {
-      await prisma.availability.create({
-        data: {
-          instructorId: instructor.id,
-          dayOfWeek: day,
-          startTime: '09:00',
-          endTime: '17:00',
-          isBooked: false,
-        },
-      });
-    }
-  }
-  console.log('✅ Instructor Availabilities seeded.');
-
   // ==========================================
-  // 4. SEED SAMPLE STUDENT & BOOKINGS
+  // 4. SEED SAMPLE ADMIN & DEMO USER
   // ==========================================
-  console.log('🎓 Seeding Sample Student & Bookings...');
+  console.log('🎓 Seeding Users & Sample Booking...');
 
-  const student = await prisma.student.create({
+  const sampleStudent = await prisma.student.create({
     data: {
-      name: 'Alex Thompson',
-      email: 'alex.thompson@example.com',
-      phone: '+1 (555) 882-1000',
-      address: '100 Academy Way',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10027',
-      role: Role.STUDENT,
+      phone: '+919876543210',
+      name: 'Aarav Patel',
+      email: 'aarav@example.com',
+      role: 'STUDENT',
+      address: 'BTM 2nd Stage, Bengaluru, Karnataka 560076',
     },
   });
 
-  const fourWheelerPkg = packages.find((p) => p.type === PackageType.LICENSE_4W)!;
-  const wagonR = vehicles.find((v) => v.name === 'WagonR')!;
-  const markVance = instructors.find((i) => i.name === 'Mark Vance')!;
-  const sarahJenkins = instructors.find((i) => i.name === 'Sarah Jenkins')!;
-
-  const booking1 = await prisma.booking.create({
+  const sampleBooking = await prisma.booking.create({
     data: {
-      studentId: student.id,
-      packageId: fourWheelerPkg.id,
-      vehicleId: wagonR.id,
-      instructorId: markVance.id,
-      status: BookingStatus.CONFIRMED,
-      paymentStatus: PaymentStatus.PAID,
-      totalAmount: fourWheelerPkg.price,
-      notes: 'Essential 4-wheeler driving package',
+      studentId: sampleStudent.id,
+      packageId: packages[2].id, // 10 Days & 4W License
+      vehicleId: vehicles[0].id, // Hyundai Creta
+      instructorId: instructors[0].id,
+      totalAmount: packages[2].price,
+      status: 'CONFIRMED',
+      paymentStatus: 'PAID',
     },
   });
 
-  // Create Sample Training Sessions
-  await prisma.session.create({
-    data: {
-      bookingId: booking1.id,
-      studentId: student.id,
-      instructorId: markVance.id,
-      vehicleId: wagonR.id,
-      scheduledAt: new Date(Date.now() + 86400000 * 2),
-      durationMins: 60,
-      status: SessionStatus.SCHEDULED,
-      location: 'Defensive Driving Track #1',
-      notes: 'Parallel parking and vehicle orientation',
-    },
-  });
-
-  await prisma.session.create({
-    data: {
-      bookingId: booking1.id,
-      studentId: student.id,
-      instructorId: sarahJenkins.id,
-      vehicleId: wagonR.id,
-      scheduledAt: new Date(Date.now() + 86400000 * 5),
-      durationMins: 60,
-      status: SessionStatus.SCHEDULED,
-      location: 'Night Vision Practical Track',
-      notes: 'Night driving and headlight management',
-    },
-  });
-
-  console.log('✅ Student, Booking, and Sessions seeded.');
-
-  console.log('🎉 Database seeding complete!');
+  console.log('🎉 Database seeding complete with real Vahathi Motor Driving School data!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding error:', e);
+    console.error('Seeding error:', e);
     process.exit(1);
   })
   .finally(async () => {

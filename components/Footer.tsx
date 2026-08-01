@@ -10,20 +10,26 @@ export function Footer() {
         {/* Top Editorial Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800/60 pb-12 gap-8">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 border border-amber-400/40 text-amber-400 rounded-full flex items-center justify-center font-serif text-xl italic">
-              D
+            <div className="w-10 h-10 border border-amber-400/40 text-amber-400 rounded-full flex items-center justify-center font-serif text-xl italic bg-amber-400/5">
+              V
             </div>
             <div>
               <span className="font-serif text-2xl text-slate-100 block font-normal">
-                Drive<span className="italic text-amber-400">Success</span> Academy
+                Vahathi <span className="italic text-amber-400">Motor</span> Driving School
               </span>
-              <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500 font-medium">
-                Certified Automotive Driving Institution • Est. 2018
+              <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-medium">
+                Certified Driving Institution • Call: 7829780778
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-6">
+            <a
+              href="tel:7829780778"
+              className="border border-amber-400/40 text-amber-400 hover:bg-amber-400/10 font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-full transition"
+            >
+              📞 7829780778
+            </a>
             <Link
               href="/book"
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-7 py-3 rounded-full transition"
@@ -57,38 +63,36 @@ export function Footer() {
               <li>
                 <Link href="/auth/login" className="hover:text-amber-400 transition">Student Member Portal</Link>
               </li>
-              <li>
-                <Link href="/admin/login" className="hover:text-amber-400 transition">Administrative Access</Link>
-              </li>
             </ul>
           </div>
 
           {/* Column 2: Hours & Operations */}
           <div className="space-y-4">
             <h4 className="font-serif text-base text-slate-200 font-normal italic">
-              Academy Hours
+              Academy Hours & Contact
             </h4>
             <div className="space-y-3 leading-relaxed text-slate-400">
               <div className="flex items-start gap-2.5">
                 <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-slate-200 font-semibold">Practical Driving Track Hours</p>
+                  <p className="text-slate-200 font-semibold">Practical Driving Hours</p>
                   <p>Monday – Saturday: 6:00 AM – 8:00 PM IST</p>
-                  <p>Sunday: 7:00 AM – 2:00 PM IST (Special Slots)</p>
+                  <p>Sunday: 7:00 AM – 2:00 PM IST</p>
                 </div>
               </div>
               <div className="flex items-start gap-2.5 pt-1">
-                <Mail className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <Phone className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-slate-200 font-semibold">Admissions & Support</p>
-                  <p>contact@drivesuccess.edu.in</p>
-                  <p>+91 (080) 4920-8821</p>
+                  <p className="text-slate-200 font-semibold">Direct Call Helpline</p>
+                  <a href="tel:7829780778" className="hover:text-amber-400 text-amber-400 font-bold text-sm block">
+                    +91 7829780778 / 7829780778
+                  </a>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Column 3: Locate Us (CORRECTED INDIA ADDRESS) */}
+          {/* Column 3: Locate Us */}
           <div className="space-y-4">
             <h4 className="font-serif text-base text-slate-200 font-normal italic">
               Locate Us
@@ -97,11 +101,11 @@ export function Footer() {
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-slate-200 font-semibold">Bengaluru Flagship Branch</p>
-                  <p>DriveSuccess Academy, 29th Main Road</p>
-                  <p>BTM 2nd Stage, Bengaluru, Karnataka 560076</p>
+                  <p className="text-slate-200 font-semibold">Vahathi Motor Driving School</p>
+                  <p>29th Main Road, BTM 2nd Stage</p>
+                  <p>Bengaluru, Karnataka 560076</p>
                   <p className="text-[11px] text-amber-400/80 pt-1 font-mono">
-                    RTO License Track #KA-05 Authorized
+                    Creta SUV & Honda City Certified Training
                   </p>
                 </div>
               </div>
@@ -112,10 +116,10 @@ export function Footer() {
 
         {/* Minimal Copyright Line */}
         <div className="border-t border-slate-800/60 pt-8 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 font-medium gap-4">
-          <p>© {new Date().getFullYear()} DriveSuccess Academy. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Vahathi Motor Driving School (DriveSuccess Academy). All rights reserved.</p>
           <div className="flex gap-6">
-            <span>RTO Authorized #KA-05/2018</span>
-            <span>Dual-Control Certified Standard</span>
+            <span>Call: 7829780778</span>
+            <span>Dual-Control Certified Fleet</span>
           </div>
         </div>
 

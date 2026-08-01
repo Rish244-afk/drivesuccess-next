@@ -40,10 +40,10 @@ export default function ContactPage() {
               <MapPin className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-lg text-slate-100">Academy Headquarters</h3>
+              <h3 className="font-heading font-extrabold text-lg text-slate-100">Vahathi Motor Driving School</h3>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                100 Academy Way, Suite 500<br />
-                New York, NY 10027
+                29th Main Road, BTM 2nd Stage<br />
+                Bengaluru, Karnataka 560076
               </p>
             </div>
           </div>
@@ -53,9 +53,11 @@ export default function ContactPage() {
               <Phone className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-lg text-slate-100">Phone Support</h3>
-              <p className="text-xs text-slate-400 mt-1">+1 (555) 019-8827</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Mon - Sat: 8:00 AM - 8:00 PM EST</p>
+              <h3 className="font-heading font-extrabold text-lg text-slate-100">Call Us (Direct Line)</h3>
+              <a href="tel:7829780778" className="text-amber-400 font-bold text-sm hover:underline block mt-1">
+                +91 7829780778
+              </a>
+              <p className="text-[11px] text-slate-500 mt-0.5">Mon - Sat: 6:00 AM - 8:00 PM IST</p>
             </div>
           </div>
 
@@ -64,9 +66,9 @@ export default function ContactPage() {
               <Mail className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-lg text-slate-100">Email Enquiries</h3>
-              <p className="text-xs text-slate-400 mt-1">contact@drivesuccess.edu</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Average response time: &lt; 2 hours</p>
+              <h3 className="font-heading font-extrabold text-lg text-slate-100">Email & Enquiries</h3>
+              <p className="text-xs text-slate-400 mt-1">contact@vahathidriving.com</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Instant WhatsApp / Phone support</p>
             </div>
           </div>
         </div>
