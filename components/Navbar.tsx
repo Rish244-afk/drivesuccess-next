@@ -76,7 +76,7 @@ export function Navbar() {
           <NotificationBell />
 
           <Link
-            href="/auth/login"
+            href="/dashboard"
             className="text-xs tracking-wider uppercase font-medium text-slate-300 hover:text-amber-400 px-3 py-2 transition-colors"
           >
             <span>Student Portal</span>
@@ -137,11 +137,11 @@ export function Navbar() {
               </a>
 
               <Link
-                href="/auth/login"
+                href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center py-3.5 border border-slate-800 text-slate-200 font-medium text-xs tracking-wider uppercase rounded-full bg-slate-900/60"
               >
-                Student Portal Login
+                Student Portal
               </Link>
               
               <Link

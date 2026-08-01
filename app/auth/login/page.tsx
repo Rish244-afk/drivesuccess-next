@@ -22,6 +22,18 @@ function LoginFormContent() {
   const [cooldown, setCooldown] = useState(0);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
+  // Auto-redirect if student is already logged in
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.user) {
+          router.push(fromPath);
+        }
+      })
+      .catch(() => {});
+  }, [fromPath, router]);
+
   // Resend cooldown timer
   useEffect(() => {
     if (cooldown <= 0) return;
