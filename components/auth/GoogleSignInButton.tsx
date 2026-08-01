@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GoogleLogin, useGoogleOneTap } from '@react-oauth/google';
+import { GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -43,7 +43,7 @@ export function GoogleSignInButton() {
   };
 
   // Google One Tap automatic prompt on page load
-  useGoogleOneTap({
+  useGoogleOneTapLogin({
     onSuccess: handleCredentialResponse,
     onError: () => console.log('One Tap Prompt dismissed or unavailable'),
     disabled: loading || success,
