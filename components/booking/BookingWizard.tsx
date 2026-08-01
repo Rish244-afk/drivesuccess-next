@@ -270,12 +270,12 @@ export function BookingWizard() {
     } else {
       // Test fallback if SDK script blocked by adblocker
       console.warn('Razorpay script loading fallback simulation for test environment');
-      simulateTestPaymentVerification(bookingId, orderRes.orderId);
+      simulateTestPaymentVerification(bookingId, orderRes.orderId || undefined);
     }
   };
 
   // Test Simulation Fallback
-  const simulateTestPaymentVerification = async (bookingId: string, orderId: string) => {
+  const simulateTestPaymentVerification = async (bookingId: string, orderId?: string | null) => {
     setLoading(true);
     const mockPaymentId = `pay_sim_${Date.now()}`;
     const mockSig = `sig_sim_${Date.now()}`;
