@@ -132,7 +132,7 @@ export default function HomePage() {
             </motion.div>
           </motion.div>
 
-          {/* Full-Width Parallax Video Showcase with Smooth Scroll Expansion */}
+          {/* Full-Width Parallax Video Showcase with Edge Watermark Crop Scale */}
           <motion.div
             style={{ scale: videoScale, y: videoY }}
             initial={{ opacity: 0, y: 60 }}
@@ -147,11 +147,12 @@ export default function HomePage() {
               loop
               muted
               playsInline
-              className="w-full h-[480px] sm:h-[620px] lg:h-[720px] object-cover transition-transform duration-1000 group-hover:scale-102"
+              className="w-full h-[480px] sm:h-[620px] lg:h-[720px] object-cover scale-[1.12] origin-center transition-transform duration-1000"
             />
             
-            {/* Subtle Gradient Ambient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128] via-transparent to-transparent opacity-70 pointer-events-none" />
+            {/* Top & Bottom Vignette Overlays to Crop & Seamlessly Blend Edge Watermarks */}
+            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#0A1128] to-transparent pointer-events-none z-10" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0A1128] via-[#0A1128]/60 to-transparent pointer-events-none z-10" />
           </motion.div>
 
         </div>
