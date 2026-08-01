@@ -7,8 +7,8 @@ import { adminLoginAction } from '@/actions/admin';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@drivesuccess.edu');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,10 +86,6 @@ export default function AdminLoginPage() {
               />
             </div>
           </div>
-
-          <p className="text-[11px] text-slate-500 pt-1">
-            Default test admin: <code className="text-amber-400 font-mono">admin@drivesuccess.edu</code> / <code className="text-amber-400 font-mono">admin123</code>
-          </p>
 
           <button
             type="submit"
