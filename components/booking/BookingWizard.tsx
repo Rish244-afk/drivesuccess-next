@@ -86,6 +86,10 @@ export function BookingWizard() {
   );
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [notes, setNotes] = useState<string>('');
+  const [studentName, setStudentName] = useState<string>('');
+  const [studentPhone, setStudentPhone] = useState<string>('');
+  const [studentEmail, setStudentEmail] = useState<string>('');
+  const [isGuest, setIsGuest] = useState<boolean>(false);
 
   // Created Booking Record & Razorpay State
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
@@ -96,6 +100,23 @@ export function BookingWizard() {
   const [slotsLoading, setSlotsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Check current session
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success || !data.user) {
+          setIsGuest(true);
+        } else {
+          setIsGuest(false);
+          if (data.user.name) setStudentName(data.user.name);
+          if (data.user.phone) setStudentPhone(data.user.phone);
+          if (data.user.email) setStudentEmail(data.user.email);
+        }
+      })
+      .catch(() => setIsGuest(true));
+  }, []);
 
   // Dynamically Load Razorpay Checkout Script
   useEffect(() => {
@@ -159,6 +180,11 @@ export function BookingWizard() {
       return;
     }
 
+    if (isGuest && (!studentPhone || studentPhone.length < 10)) {
+      setError('Please enter a valid 10-digit mobile phone number for your student account.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -168,12 +194,14 @@ export function BookingWizard() {
       vehicleId: selectedVehicle.id,
       dateStr: selectedDate,
       timeSlot: selectedTimeSlot,
+      studentName,
+      studentPhone,
+      studentEmail,
       notes: notes,
     });
 
-    setLoading(false);
-
     if (!res.success || !res.booking) {
+      setLoading(false);
       setError(res.error || 'Failed to create booking.');
       return;
     }
@@ -647,6 +675,62 @@ export function BookingWizard() {
                 <strong className="text-amber-400 font-extrabold text-lg">₹{selectedPackage?.price.toLocaleString()}</strong>
               </div>
             </div>
+
+            {isGuest && (
+              <div className="pt-4 border-t border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-extrabold uppercase text-amber-400 tracking-wider">
+                    Student Account Details
+                  </h4>
+                  <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                    Instant Auto-Login Account
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-3 py-2.5 rounded-xl text-xs outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                      Mobile Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      value={studentPhone}
+                      onChange={(e) => setStudentPhone(e.target.value)}
+                      placeholder="e.g. 9876543210"
+                      className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-3 py-2.5 rounded-xl text-xs outline-none focus:border-amber-400"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                    Email Address (Optional)
+                  </label>
+                  <input
+                    type="email"
+                    value={studentEmail}
+                    onChange={(e) => setStudentEmail(e.target.value)}
+                    placeholder="e.g. rahul@gmail.com"
+                    className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-3 py-2.5 rounded-xl text-xs outline-none focus:border-amber-400"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="pt-2">
               <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
