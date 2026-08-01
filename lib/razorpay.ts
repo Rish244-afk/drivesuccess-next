@@ -1,21 +1,25 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-// Initialize Razorpay instance safely with real test credentials
-const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_TKD8CsgNA9sbYW';
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'LVIuSSyY5K7i9OZgcOKAr4nw';
-const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || 'DriveSuccessWebhookSecret778899';
+// Strict Environment Variables - NO HARDCODED SECRETS IN SOURCE CODE
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '';
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || '';
+const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || '';
+
+if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+  console.warn('⚠️ WARNING: RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET environment variables are missing!');
+}
 
 export const razorpay = new Razorpay({
-  key_id: RAZORPAY_KEY_ID,
-  key_secret: RAZORPAY_KEY_SECRET,
+  key_id: RAZORPAY_KEY_ID || 'missing_key_id',
+  key_secret: RAZORPAY_KEY_SECRET || 'missing_key_secret',
 });
 
 export { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET };
 
 /**
  * Verify Razorpay Signature (HMAC SHA256) for Checkout Callback
- * Strict Backend Verification - NO Frontend-Only Trust
+ * Strict Backend Verification - NO Hardcoded Fallbacks
  */
 export function verifyRazorpaySignature({
   orderId,
@@ -27,6 +31,10 @@ export function verifyRazorpaySignature({
   signature: string;
 }): boolean {
   try {
+    if (!RAZORPAY_KEY_SECRET || !orderId || !paymentId || !signature) {
+      return false;
+    }
+
     const text = `${orderId}|${paymentId}`;
     const expectedSignature = crypto
       .createHmac('sha256', RAZORPAY_KEY_SECRET)
@@ -51,6 +59,10 @@ export function verifyWebhookSignature({
   signature: string;
 }): boolean {
   try {
+    if (!RAZORPAY_WEBHOOK_SECRET || !rawBody || !signature) {
+      return false;
+    }
+
     const expectedSignature = crypto
       .createHmac('sha256', RAZORPAY_WEBHOOK_SECRET)
       .update(rawBody)
