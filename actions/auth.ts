@@ -23,20 +23,43 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
     const cleanPhoneDigits = phone.replace(/[^\d]/g, '');
     const phoneSuffix = cleanPhoneDigits.slice(-4) || '8821';
 
-    let student = await prisma.student.findUnique({
-      where: { phone },
-    });
+    // Check if user is currently logged in via Google session to link phone
+    const currentSession = await getServerSession();
+    let student = null;
 
-    if (!student) {
-      student = await prisma.student.create({
+    if (currentSession?.sub) {
+      student = await prisma.student.findUnique({
+        where: { id: currentSession.sub },
+      });
+    }
+
+    if (student) {
+      // Update existing Google account with verified phone
+      student = await prisma.student.update({
+        where: { id: student.id },
         data: {
           phone,
-          name: `Student-${phoneSuffix}`,
-          email: `student_${cleanPhoneDigits}@drivesuccess.edu`,
-          role: Role.STUDENT,
+          phoneVerified: true,
         },
       });
-      console.log(`👤 New Student created on Firebase/Phone login: ${student.name} (${student.phone})`);
+    } else {
+      // Find student by phone
+      student = await prisma.student.findUnique({
+        where: { phone },
+      });
+
+      if (!student) {
+        student = await prisma.student.create({
+          data: {
+            phone,
+            name: `Student-${phoneSuffix}`,
+            email: `student_${cleanPhoneDigits}@drivesuccess.edu`,
+            phoneVerified: true,
+            role: Role.STUDENT,
+          },
+        });
+        console.log(`👤 New Student created on Phone login: ${student.name} (${student.phone})`);
+      }
     }
 
     // Issue 30-Day Rolling JWT Cookie

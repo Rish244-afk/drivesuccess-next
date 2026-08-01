@@ -86,43 +86,83 @@ export async function POST(req: NextRequest) {
 
     logger.info('Processing Google Identity Login', { email, googleId });
 
-    // 3. Intelligent User Lookup & Account Merging
-    let student = await prisma.student.findUnique({
-      where: { googleId },
-    });
+    // Check if user is currently logged in via Phone session to link accounts
+    const currentSession = await getServerSession();
+    let student = null;
 
-    if (student) {
-      logger.info('Google Student Authenticated via Google ID', { studentId: student.id });
-    } else {
-      // Priority 2: Lookup by Email to Merge Accounts
+    if (currentSession?.sub) {
+      student = await prisma.student.findUnique({
+        where: { id: currentSession.sub },
+      });
+    }
+
+    if (!student) {
+      // 3A. Priority 1: Lookup by googleId
+      student = await prisma.student.findUnique({
+        where: { googleId },
+      });
+    }
+
+    if (!student) {
+      // 3B. Priority 2: Lookup by Email
       student = await prisma.student.findUnique({
         where: { email },
       });
+    }
 
-      if (student) {
-        logger.info('Merging Google ID into existing Email student account', { studentId: student.id });
-        student = await prisma.student.update({
-          where: { id: student.id },
-          data: {
-            googleId,
-            emailVerified: true,
-            avatarUrl: student.avatarUrl || picture || undefined,
+    if (student) {
+      logger.info('Linking/Updating Google credentials on Student account', { studentId: student.id });
+      student = await prisma.student.update({
+        where: { id: student.id },
+        data: {
+          googleId,
+          email,
+          emailVerified: true,
+          avatarUrl: student.avatarUrl || picture || undefined,
+        },
+      });
+
+      // Check if another dummy student record exists with placeholder email for this student's phone, and merge it
+      if (student.phone) {
+        const dummyStudent = await prisma.student.findFirst({
+          where: {
+            phone: student.phone,
+            id: { not: student.id },
           },
         });
-      } else {
-        // Priority 3: Create New Student
-        logger.info('Creating new Student account from Google Sign-In', { email });
-        student = await prisma.student.create({
-          data: {
-            email,
-            googleId,
-            name,
-            avatarUrl: picture || null,
-            emailVerified,
-            role: 'STUDENT',
-          },
-        });
+
+        if (dummyStudent) {
+          logger.info('Merging duplicate dummy phone student into main Google student', { dummyId: dummyStudent.id, mainId: student.id });
+          await prisma.booking.updateMany({
+            where: { studentId: dummyStudent.id },
+            data: { studentId: student.id },
+          });
+          await prisma.session.updateMany({
+            where: { studentId: dummyStudent.id },
+            data: { studentId: student.id },
+          });
+          await prisma.notification.updateMany({
+            where: { studentId: dummyStudent.id },
+            data: { studentId: student.id },
+          });
+          await prisma.student.delete({
+            where: { id: dummyStudent.id },
+          }).catch(() => {});
+        }
       }
+    } else {
+      // 3C. Priority 3: Create New Student
+      logger.info('Creating new Student account from Google Sign-In', { email });
+      student = await prisma.student.create({
+        data: {
+          email,
+          googleId,
+          name,
+          avatarUrl: picture || null,
+          emailVerified,
+          role: 'STUDENT',
+        },
+      });
     }
 
     // 4. Issue Unified 30-Day Session JWT Cookie
