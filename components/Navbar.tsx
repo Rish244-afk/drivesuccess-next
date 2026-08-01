@@ -83,6 +83,13 @@ export function Navbar() {
           </Link>
 
           <Link
+            href="/admin"
+            className="text-xs tracking-wider uppercase font-semibold text-amber-400/90 hover:text-amber-300 px-2 py-2 transition-colors flex items-center gap-1"
+          >
+            <span>Admin</span>
+          </Link>
+
+          <Link
             href="/book"
             className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-amber-500/10 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
@@ -142,6 +149,14 @@ export function Navbar() {
                 className="w-full text-center py-3.5 border border-slate-800 text-slate-200 font-medium text-xs tracking-wider uppercase rounded-full bg-slate-900/60"
               >
                 Student Portal
+              </Link>
+
+              <Link
+                href="/admin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full text-center py-3.5 border border-amber-500/30 text-amber-400 font-semibold text-xs tracking-wider uppercase rounded-full bg-amber-500/10"
+              >
+                Admin Control Portal 🔑
               </Link>
               
               <Link
