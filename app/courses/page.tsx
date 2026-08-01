@@ -7,6 +7,8 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, Award, CheckCircle2, ArrowRight, Star, Sparkles, SlidersHorizontal, BookOpen, Clock } from 'lucide-react';
 import { getPackagesAction } from '@/actions/package';
 import { BoneyardWrapper, CourseCardSkeleton } from '@/components/ui/Skeleton';
+import { InspiraCard } from '@/components/ui/InspiraCard';
+import { AnimatedIcon } from '@/components/ui/AnimatedIcon';
 
 interface DbPackage {
   id: string;
@@ -101,21 +103,11 @@ export default function CoursesPage() {
                 const isHighlight = pkg.isPopular || pkg.badge === 'Best Seller' || pkg.badge === 'Best Value';
                 
                 return (
-                  <motion.div
+                  <InspiraCard
                     key={pkg.id}
-                    whileHover={{ y: -8 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                    className={`relative rounded-3xl p-8 space-y-8 flex flex-col justify-between transition-all duration-300 overflow-hidden ${
-                      isHighlight
-                        ? 'bg-gradient-to-b from-[#0F172A] to-[#070B19] border-2 border-amber-400/60 shadow-[0_20px_50px_rgba(245,158,11,0.15)]'
-                        : 'bg-[#070B19] border border-slate-800/80 hover:border-slate-600 shadow-xl'
-                    }`}
+                    isHighlight={isHighlight}
+                    className="p-8 space-y-8 flex flex-col justify-between"
                   >
-                    {/* Top Glow Accent Bar for Highlighted Packages */}
-                    {isHighlight && (
-                      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400" />
-                    )}
-
                     <div className="space-y-6">
                       
                       {/* Top Row: Badge & Price */}
@@ -147,18 +139,24 @@ export default function CoursesPage() {
                         </p>
                       </div>
 
-                      {/* Feature Bullet List */}
+                      {/* Feature Bullet List with Animated Icons */}
                       <div className="space-y-2.5 pt-4 border-t border-slate-800/80 text-xs text-slate-300 font-light">
                         <div className="flex items-center gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                          <AnimatedIcon animation="scale">
+                            <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                          </AnimatedIcon>
                           <span>{pkg.sessionsCount} Practical 1-on-1 Sessions</span>
                         </div>
                         <div className="flex items-center gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                          <AnimatedIcon animation="scale">
+                            <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                          </AnimatedIcon>
                           <span>Dual-Control Fleet Vehicle Included</span>
                         </div>
                         <div className="flex items-center gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                          <AnimatedIcon animation="scale">
+                            <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                          </AnimatedIcon>
                           <span>Mock RTO Exam Track Prep</span>
                         </div>
                       </div>
@@ -179,7 +177,7 @@ export default function CoursesPage() {
                       </Link>
                     </div>
 
-                  </motion.div>
+                  </InspiraCard>
                 );
               })}
             </div>
