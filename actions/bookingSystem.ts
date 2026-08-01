@@ -72,27 +72,6 @@ export async function getAvailableSlotsAction({
 }) {
   try {
     const selectedDate = new Date(dateStr);
-    const dayOfWeek = dayOfWeekMap[selectedDate.getDay()];
-
-    // 1. Check if instructor has explicit off-day marked in database
-    const explicitOffDay = await prisma.availability.findFirst({
-      where: {
-        instructorId,
-        dayOfWeek,
-        isAvailable: false,
-      },
-    });
-
-    if (explicitOffDay) {
-      return {
-        success: true,
-        data: TIME_SLOTS.map((slot) => ({
-          time: slot,
-          available: false,
-          reason: 'Instructor off-day',
-        })),
-      };
-    }
 
     // 2. Fetch existing sessions for this date (start of day to end of day)
     const startOfDay = new Date(selectedDate);
