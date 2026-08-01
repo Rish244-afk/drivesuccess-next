@@ -1,11 +1,12 @@
 'use client';
 
+import React, { useState } from 'react';
+import { Search, Calendar, UserCheck, Car, CheckCircle2, AlertCircle, RefreshCw, Filter, MinusCircle } from 'lucide-react';
 import {
   updateBookingAssignmentAction,
   markSessionCompleteAction,
   removeCompletedSessionAction,
 } from '@/actions/admin';
-import { MinusCircle } from 'lucide-react';
 
 interface AdminBookingsClientProps {
   initialBookings: any[];
