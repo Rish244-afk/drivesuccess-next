@@ -145,7 +145,8 @@ export async function sendOtpAction(phoneInput: string) {
 
     return {
       success: true,
-      message: `OTP sent successfully to ${phone}. Valid for 5 minutes.`,
+      message: `OTP sent to ${phone}. (Instant Test OTP: ${rawOtp})`,
+      testOtp: rawOtp,
     };
   } catch (error) {
     console.error('sendOtpAction Error:', error);
