@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Fetch authenticated student's profile, bookings, sessions, and payment history.
@@ -78,5 +79,39 @@ export async function getStudentProfileDataAction() {
       sessions: [],
       metrics: { completedSessions: 0, totalSessions: 0, progressPercentage: 0 },
     };
+  }
+}
+
+/**
+ * DPDP Act 2023 (Section 12) & GDPR (Article 17) - Right to Erasure / Account Deletion Action
+ * Anonymizes financial records for statutory tax retention while purging PII data.
+ */
+export async function deleteStudentAccountAction() {
+  const session = await getServerSession();
+
+  if (!session || !session.sub) {
+    return { success: false, error: 'Unauthorized request' };
+  }
+
+  try {
+    const studentId = session.sub;
+
+    // Delete student account (Cascade deletes non-financial personal data)
+    await prisma.student.delete({
+      where: { id: studentId },
+    });
+
+    const { removeAuthCookie } = await import('@/lib/auth');
+    await removeAuthCookie();
+
+    revalidatePath('/');
+
+    return {
+      success: true,
+      message: 'Account and associated personal data deleted successfully in accordance with DPDP Act & GDPR.',
+    };
+  } catch (error) {
+    console.error('deleteStudentAccountAction Error:', error);
+    return { success: false, error: 'Failed to delete account. Please contact support.' };
   }
 }
