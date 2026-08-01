@@ -253,10 +253,10 @@ function LoginFormContent() {
               <input
                 type="text"
                 maxLength={6}
-                placeholder="123456"
+                placeholder="••••••"
                 value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 text-center tracking-[0.5em] font-mono text-lg font-bold py-3.5 rounded-xl outline-none transition"
+                onChange={(e) => setOtp(e.target.value.replace(/[^\d]/g, ''))}
+                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 text-center tracking-[0.5em] font-mono text-xl font-extrabold py-3.5 pl-10 pr-4 rounded-xl outline-none transition placeholder:tracking-widest placeholder:text-slate-600"
                 required
               />
             </div>
