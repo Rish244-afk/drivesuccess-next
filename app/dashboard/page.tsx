@@ -2,6 +2,7 @@ import React from 'react';
 import { getStudentProfileDataAction } from '@/actions/profile';
 import { StudentDashboardClient } from '@/components/dashboard/StudentDashboardClient';
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Student Dashboard | DriveSuccess Academy',
@@ -13,11 +14,7 @@ export default async function DashboardPage() {
   const data = await getStudentProfileDataAction();
 
   if (!data.success || !data.student) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center p-6 text-center text-slate-400">
-        <p>Failed to load profile. Please login again.</p>
-      </div>
-    );
+    redirect('/auth/login?from=/dashboard');
   }
 
   return (
