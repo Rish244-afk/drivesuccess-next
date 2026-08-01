@@ -121,38 +121,70 @@ export async function getAvailableSlotsAction({
   }
 }
 
-const createBookingSchema = z.object({
+  const createBookingSchema = z.object({
   packageId: z.string().min(1, 'Package is required'),
   instructorId: z.string().min(1, 'Instructor is required'),
   vehicleId: z.string().min(1, 'Vehicle is required'),
   dateStr: z.string().min(1, 'Date is required'),
   timeSlot: z.string().min(1, 'Time slot is required'),
+  studentName: z.string().optional(),
+  studentPhone: z.string().optional(),
+  studentEmail: z.string().optional(),
   notes: z.string().optional(),
 });
 
 /**
- * Create Booking (Status: PENDING) with Atomic Double Booking Prevention
+ * Create Booking (Status: PENDING) with Atomic Double Booking Prevention & Guest Auto-Auth
  */
 export async function createBookingTransactionAction(inputData: unknown) {
   try {
+    const data = createBookingSchema.parse(inputData);
     const session = await getServerSession();
     let studentId = session?.sub;
 
+    // If unauthenticated guest checkout, create/find student by phone and issue auth token
     if (!studentId) {
-      let defaultStudent = await prisma.student.findFirst();
-      if (!defaultStudent) {
-        defaultStudent = await prisma.student.create({
+      const phoneInput = data.studentPhone?.trim().replace(/[^\d+]/g, '') || '';
+      if (!phoneInput || phoneInput.length < 10) {
+        return {
+          success: false,
+          error: 'Please enter a valid 10-digit mobile phone number for your booking account.',
+        };
+      }
+
+      const cleanPhoneDigits = phoneInput.replace(/[^\d]/g, '');
+      const studentName = data.studentName?.trim() || `Student-${cleanPhoneDigits.slice(-4)}`;
+      const studentEmail = data.studentEmail?.trim() || `student_${cleanPhoneDigits}@drivesuccess.edu`;
+
+      let student = await prisma.student.findUnique({
+        where: { phone: phoneInput },
+      });
+
+      if (!student) {
+        student = await prisma.student.create({
           data: {
-            name: 'Academy Student',
-            email: `student_${Date.now()}@drivesuccess.edu`,
-            phone: '+919876543210',
+            phone: phoneInput,
+            name: studentName,
+            email: studentEmail,
+            phoneVerified: true,
+            role: 'STUDENT',
           },
         });
       }
-      studentId = defaultStudent.id;
-    }
 
-    const data = createBookingSchema.parse(inputData);
+      studentId = student.id;
+
+      // Issue 30-Day Session Cookie so guest is seamlessly logged into their new student account!
+      const { signSessionToken, setAuthCookie } = await import('@/lib/auth');
+      const token = await signSessionToken({
+        sub: student.id,
+        phone: student.phone || '',
+        role: student.role,
+        name: student.name,
+        email: student.email,
+      });
+      await setAuthCookie(token);
+    }
 
     // Parse scheduled datetime
     const [timeStr, period] = data.timeSlot.split(' ');
