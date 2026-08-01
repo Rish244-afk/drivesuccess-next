@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apple-Style Scroll Canvas Sequence | DriveSuccess Academy</title>
+  
+  <!-- GSAP & ScrollTrigger CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <style>
+    /* ==========================================================================
+       1. GLOBAL RESET & EDITORIAL LUXURY DARK THEME
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0a1128;
+      color: #faf8f3;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ==========================================================================
+       2. INTRO & OUTRO SECTIONS
+       ========================================================================== */
+    .hero-header {
+      height: 80vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      background: radial-gradient(circle at center, #131c38 0%, #0a1128 100%);
+    }
+
+    .hero-header h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .hero-header h1 span {
+      font-style: italic;
+      color: #f59e0b;
+    }
+
+    .hero-header p {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: #94a3b8;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .scroll-hint {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #f59e0b;
+      opacity: 0.8;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* ==========================================================================
+       3. CANVAS SCROLL CONTAINER & PRELOADER
+       ========================================================================== */
+    .sequence-container {
+      position: relative;
+      width: 100%;
+      height: 300vh; /* Determines scroll distance for frame sequence */
+    }
+
+    .sticky-wrapper {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-color: #070b19;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Lightweight Preloader Overlay */
+    .preloader {
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      background-color: #070b19;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+    }
+
+    .preloader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .preloader-title {
+      font-size: 1.25rem;
+      font-weight: 300;
+      color: #faf8f3;
+      margin-bottom: 1.5rem;
+    }
+
+    .progress-bar-bg {
+      width: 240px;
+      height: 4px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background-color: #f59e0b;
+      border-radius: 9999px;
+      transition: width 0.1s ease-out;
+    }
+
+    .progress-text {
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      font-family: monospace;
+    }
+
+    /* Floating Overlay Copy synced to Scroll */
+    .floating-copy {
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+      text-align: center;
+      max-width: 650px;
+      padding: 0 1.5rem;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .floating-copy.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .floating-copy h2 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 300;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+    }
+
+    .floating-copy h2 em {
+      font-style: italic;
+      color: #f59e0b;
+    }
+
+    .floating-copy p {
+      font-size: 1rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* Outro Footer Section */
+    .outro-section {
+      height: 80vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background-color: #070b19;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2rem;
+    }
+
+    .outro-section h2 {
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 300;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO SECTION -->
+  <section class="hero-header">
+    <h1>Precision Engineering in <span>Motion</span></h1>
+    <p>Scroll down to experience our Apple-inspired frame-by-frame canvas scrub animation.</p>
+    <div class="scroll-hint">↓ Scroll to Scrub</div>
+  </section>
+
+  <!-- APPLE-STYLE CANVAS SCROLL SEQUENCE SECTION -->
+  <section id="sequence-section" class="sequence-container">
+    
+    <div class="sticky-wrapper">
+      
+      <!-- PRELOADER OVERLAY -->
+      <div id="preloader" class="preloader">
+        <div class="preloader-title">Loading Sequence Frames...</div>
+        <div class="progress-bar-bg">
+          <div id="progress-fill" class="progress-bar-fill"></div>
+        </div>
+        <div id="progress-text" class="progress-text">0%</div>
+      </div>
+
+      <!-- MAIN HIGH-DPI CANVAS -->
+      <canvas id="sequence-canvas"></canvas>
+
+      <!-- OPTIONAL SCROLL OVERLAY COPY STAGES -->
+      <div id="copy-1" class="floating-copy">
+        <h2>Dual-Control <em>Precision</em></h2>
+        <p>Sensor-assisted handling designed for ultimate road safety and control.</p>
+      </div>
+
+      <div id="copy-2" class="floating-copy">
+        <h2>Refined <em>Aerodynamics</em></h2>
+        <p>Engineered for smooth power delivery and responsive city maneuvering.</p>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- OUTRO SECTION -->
+  <section class="outro-section">
+    <h2>Ready to <em>Master</em> the Road?</h2>
+  </section>
+
+  <!-- JAVASCRIPT SCROLL SEQUENCE ENGINE -->
+  <script>
+    /* ==========================================================================
+       CONFIGURABLE SEQUENCE SETTINGS
+       ========================================================================== */
+    const CONFIG = {
+      // (a) Frame folder & naming pattern: e.g. "frames/frame_0001.jpg"
+      frameCount: 60,
+      framePath: (index) => {
+        const frameNumber = String(index + 1).padStart(4, '0');
+        return `frames/frame_${frameNumber}.jpg`;
+      },
+      // Fallback poster if frames are missing
+      fallbackPoster: 'images/swift.jpg',
+      // Target section ID
+      sectionId: 'sequence-section',
+      canvasId: 'sequence-canvas',
+    };
+
+    /* ==========================================================================
+       STATE & REFS
+       ========================================================================== */
+    const canvas = document.getElementById(CONFIG.canvasId);
+    const ctx = canvas.getContext('2d');
+    const preloader = document.getElementById('preloader');
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const copy1 = document.getElementById('copy-1');
+    const copy2 = document.getElementById('copy-2');
+
+    const frames = [];
+    let imagesLoaded = 0;
+    const sequenceState = { frame: 0 };
+    let isReady = false;
+
+    // Register GSAP ScrollTrigger
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* ==========================================================================
+       1. RESPONSIVE CANVAS SIZING (RETINA / DEVICE PIXEL RATIO)
+       ========================================================================== */
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+
+      // Redraw current frame on resize
+      if (isReady) renderFrame(sequenceState.frame);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    /* ==========================================================================
+       2. OBJECT-FIT COVER DRAWING LOGIC FOR CANVAS
+       ========================================================================== */
+    function drawImageCover(img) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      
+      const imgWidth = img.naturalWidth || img.width || 1280;
+      const imgHeight = img.naturalHeight || img.height || 720;
+      
+      const imgRatio = imgWidth / imgHeight;
+      const canvasRatio = w / h;
+      
+      let drawW, drawH, drawX, drawY;
+
+      if (canvasRatio > imgRatio) {
+        drawW = w;
+        drawH = w / imgRatio;
+        drawX = 0;
+        drawY = (h - drawH) / 2;
+      } else {
+        drawH = h;
+        drawW = h * imgRatio;
+        drawX = (w - drawW) / 2;
+        drawY = 0;
+      }
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+    }
+
+    function renderFrame(index) {
+      const clampedIndex = Math.min(CONFIG.frameCount - 1, Math.max(0, Math.round(index)));
+      const img = frames[clampedIndex];
+
+      if (img && img.complete && img.naturalWidth > 0) {
+        requestAnimationFrame(() => drawImageCover(img));
+      }
+    }
+
+    /* ==========================================================================
+       3. PRELOADING ENGINE & CATION
+       ========================================================================== */
+    function preloadFrames() {
+      resizeCanvas();
+
+      for (let i = 0; i < CONFIG.frameCount; i++) {
+        const img = new Image();
+        img.src = CONFIG.framePath(i);
+
+        img.onload = () => {
+          imagesLoaded++;
+          const percent = Math.round((imagesLoaded / CONFIG.frameCount) * 100);
+          
+          progressFill.style.width = `${percent}%`;
+          progressText.innerText = `${percent}%`;
+
+          // Draw 1st frame immediately as fallback while remaining load
+          if (i === 0) renderFrame(0);
+
+          if (imagesLoaded === CONFIG.frameCount) {
+            onAllFramesLoaded();
+          }
+        };
+
+        img.onerror = () => {
+          // Graceful fallback: replace broken frame with fallback poster
+          imagesLoaded++;
+          img.src = CONFIG.fallbackPoster;
+          if (imagesLoaded === CONFIG.frameCount) onAllFramesLoaded();
+        };
+
+        frames.push(img);
+      }
+    }
+
+    /* ==========================================================================
+       4. GSAP SCROLLTRIGGER BINDING
+       ========================================================================== */
+    function onAllFramesLoaded() {
+      isReady = true;
+      preloader.classList.add('hidden');
+
+      // Create GSAP ScrollTrigger timeline to scrub frame index
+      gsap.to(sequenceState, {
+        frame: CONFIG.frameCount - 1,
+        snap: 'frame',
+        ease: 'none',
+        scrollTrigger: {
+          trigger: `#${CONFIG.sectionId}`,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.5, // 0.5s smooth scrubbing interpolation
+          onUpdate: (self) => {
+            renderFrame(sequenceState.frame);
+
+            // Toggle floating copy overlays based on scroll progress
+            const p = self.progress;
+            if (p > 0.15 && p < 0.45) {
+              copy1.classList.add('active');
+            } else {
+              copy1.classList.remove('active');
+            }
+
+            if (p > 0.55 && p < 0.85) {
+              copy2.classList.add('active');
+            } else {
+              copy2.classList.remove('active');
+            }
+          },
+        },
+      });
+    }
+
+    // Initialize Preloading
+    preloadFrames();
+  </script>
+</body>
+</html>
