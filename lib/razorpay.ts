@@ -1,9 +1,9 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-// Initialize Razorpay instance safely with real test key ID
+// Initialize Razorpay instance safely with real test credentials
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_TKD8CsgNA9sbYW';
-const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'DriveSuccessDemoSecretKey998822';
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'LVIuSSyY5K7i9OZgcOKAr4nw';
 const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || 'DriveSuccessWebhookSecret778899';
 
 export const razorpay = new Razorpay({
