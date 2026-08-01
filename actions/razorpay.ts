@@ -26,7 +26,7 @@ export async function createRazorpayOrderAction(bookingId: string) {
 
     // Amount in paise (1 INR = 100 paise)
     const amountInPaise = Math.round(booking.totalAmount * 100);
-    let orderId = '';
+    let orderId: string | null = null;
 
     try {
       // Create Order via Razorpay SDK
@@ -42,8 +42,8 @@ export async function createRazorpayOrderAction(bookingId: string) {
       });
       orderId = razorpayOrder.id;
     } catch (sdkErr: any) {
-      console.error('Razorpay SDK Order Create Error:', sdkErr?.error || sdkErr?.message || sdkErr);
-      orderId = `test_order_${booking.id.slice(-8)}`;
+      console.warn('Razorpay SDK Order Creation Notice (using standard test mode checkout):', sdkErr?.error || sdkErr?.message || sdkErr);
+      orderId = null;
     }
 
     // Update database record with razorpayOrderId
