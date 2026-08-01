@@ -70,7 +70,21 @@ function LoginFormContent() {
         return;
       }
     } catch (err: any) {
-      console.warn('Firebase SMS Dispatch notice, using backend server OTP:', err);
+      console.error('🚨 Firebase Phone Auth Failure - Code:', err?.code, 'Message:', err?.message, err);
+      // Reset reCAPTCHA verifier for retry
+      if ((window as any).recaptchaVerifier) {
+        try {
+          (window as any).recaptchaVerifier.clear();
+          (window as any).recaptchaVerifier = null;
+        } catch (e) {}
+      }
+      if (err?.code === 'auth/unauthorized-domain') {
+        setError('Firebase Error: Unauthorized Domain. Please add drivesuccess-next.vercel.app to Firebase Authorized Domains.');
+      } else if (err?.code === 'auth/quota-exceeded') {
+        setError('Firebase Error: Daily SMS quota exceeded. Add test number in Firebase or upgrade to Blaze plan.');
+      } else if (err?.code === 'auth/invalid-phone-number') {
+        setError('Firebase Error: Invalid phone number format.');
+      }
     }
 
     // Fallback Server Action Send OTP
