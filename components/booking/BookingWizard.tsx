@@ -34,6 +34,7 @@ interface WizardPackage {
   price: number;
   sessionsCount: number;
   description: string;
+  targetVehicleCategory?: string | null;
   badge?: string | null;
 }
 
@@ -77,10 +78,34 @@ export function BookingWizard() {
   const [vehicles, setVehicles] = useState<WizardVehicle[]>([]);
   const [slots, setSlots] = useState<SlotItem[]>([]);
 
+  // Category Tab filter for Step 1
+  const [packageCategoryTab, setPackageCategoryTab] = useState<'ALL' | 'CRETA' | 'HONDACITY' | 'HATCHBACK'>('ALL');
+
   // Selected state
   const [selectedPackage, setSelectedPackage] = useState<WizardPackage | null>(null);
   const [selectedInstructor, setSelectedInstructor] = useState<WizardInstructor | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<WizardVehicle | null>(null);
+
+  // Smart vehicle auto-selection when a package is selected
+  const handleSelectPackage = (pkg: WizardPackage, availableVehicles: WizardVehicle[]) => {
+    setSelectedPackage(pkg);
+
+    const cat = pkg.targetVehicleCategory || '';
+    const nameLower = pkg.name.toLowerCase();
+
+    if (cat === 'CRETA' || nameLower.includes('creta')) {
+      const cretaVeh = availableVehicles.find((v) => v.name.toLowerCase().includes('creta'));
+      if (cretaVeh) setSelectedVehicle(cretaVeh);
+    } else if (cat === 'HONDACITY' || nameLower.includes('honda city')) {
+      const hondaVeh = availableVehicles.find((v) => v.name.toLowerCase().includes('honda city'));
+      if (hondaVeh) setSelectedVehicle(hondaVeh);
+    } else if (cat === 'HATCHBACK' || nameLower.includes('hatchback')) {
+      const hatchbackVeh = availableVehicles.find(
+        (v) => !v.name.toLowerCase().includes('creta') && !v.name.toLowerCase().includes('honda city')
+      );
+      if (hatchbackVeh) setSelectedVehicle(hatchbackVeh);
+    }
+  };
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
   );
@@ -377,38 +402,71 @@ export function BookingWizard() {
             <p className="text-xs text-slate-400 mt-1">Loaded live from database. Select your course package.</p>
           </div>
 
+          {/* Vehicle Category Filter Tabs */}
+          <div className="flex flex-wrap gap-2 border-b border-slate-800/80 pb-4">
+            {[
+              { id: 'ALL', label: 'All Packages' },
+              { id: 'CRETA', label: 'Hyundai Creta SUV' },
+              { id: 'HONDACITY', label: 'Honda City Sedan' },
+              { id: 'HATCHBACK', label: 'Standard Hatchback' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setPackageCategoryTab(tab.id as any)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  packageCategoryTab === tab.id
+                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
+                    : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           {loading ? (
             <div className="text-center py-12 text-slate-400">
               <RefreshCw className="w-6 h-6 animate-spin text-amber-400 mx-auto" />
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {packages.map((pkg) => {
-                const isSelected = selectedPackage?.id === pkg.id;
-                return (
-                  <div
-                    key={pkg.id}
-                    onClick={() => setSelectedPackage(pkg)}
-                    className={`p-5 rounded-2xl border cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-amber-500/10 border-amber-500 shadow-lg shadow-amber-500/10'
-                        : 'bg-slate-950 border-slate-800 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-heading font-bold text-slate-100 text-base">{pkg.name}</h3>
-                      <span className="font-heading font-extrabold text-lg text-amber-400">
-                        ₹{pkg.price.toLocaleString()}
-                      </span>
+              {packages
+                .filter((pkg) => {
+                  if (packageCategoryTab === 'ALL') return true;
+                  const cat = pkg.targetVehicleCategory || '';
+                  const nameLower = pkg.name.toLowerCase();
+                  if (packageCategoryTab === 'CRETA') return cat === 'CRETA' || nameLower.includes('creta');
+                  if (packageCategoryTab === 'HONDACITY') return cat === 'HONDACITY' || nameLower.includes('honda city');
+                  if (packageCategoryTab === 'HATCHBACK') return cat === 'HATCHBACK' || nameLower.includes('hatchback');
+                  return true;
+                })
+                .map((pkg) => {
+                  const isSelected = selectedPackage?.id === pkg.id;
+                  return (
+                    <div
+                      key={pkg.id}
+                      onClick={() => handleSelectPackage(pkg, vehicles)}
+                      className={`p-5 rounded-2xl border cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-amber-500/10 border-amber-500 shadow-lg shadow-amber-500/10'
+                          : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-heading font-bold text-slate-100 text-base">{pkg.name}</h3>
+                        <span className="font-heading font-extrabold text-lg text-amber-400">
+                          ₹{pkg.price.toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-2 line-clamp-2">{pkg.description}</p>
+                      <div className="mt-4 flex items-center justify-between text-[11px] text-slate-400">
+                        <span>{pkg.sessionsCount} Practical Sessions</span>
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-amber-400" />}
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-400 mt-2 line-clamp-2">{pkg.description}</p>
-                    <div className="mt-4 flex items-center justify-between text-[11px] text-slate-400">
-                      <span>{pkg.sessionsCount} Practical Sessions</span>
-                      {isSelected && <CheckCircle2 className="w-4 h-4 text-amber-400" />}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           )}
 
@@ -500,17 +558,46 @@ export function BookingWizard() {
             <p className="text-xs text-slate-400 mt-1">Dual-control certified fleet vehicles.</p>
           </div>
 
+          {/* Package Vehicle Lock Notice */}
+          {selectedPackage && (
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-2xl text-xs flex items-center justify-between">
+              <span>
+                <strong>Selected Package:</strong> {selectedPackage.name}
+              </span>
+              <span className="text-[10px] bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                {selectedPackage.targetVehicleCategory || 'Vehicle Auto-Matched'}
+              </span>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {vehicles.map((veh) => {
               const isSelected = selectedVehicle?.id === veh.id;
+              const cat = selectedPackage?.targetVehicleCategory || '';
+              const pkgName = selectedPackage?.name.toLowerCase() || '';
+              const vehName = veh.name.toLowerCase();
+
+              let isAllowed = true;
+              if (cat === 'CRETA' || pkgName.includes('creta')) {
+                isAllowed = vehName.includes('creta');
+              } else if (cat === 'HONDACITY' || pkgName.includes('honda city')) {
+                isAllowed = vehName.includes('honda city');
+              } else if (cat === 'HATCHBACK' || pkgName.includes('hatchback')) {
+                isAllowed = !vehName.includes('creta') && !vehName.includes('honda city');
+              }
+
               return (
                 <div
                   key={veh.id}
-                  onClick={() => setSelectedVehicle(veh)}
-                  className={`p-5 rounded-2xl border cursor-pointer transition-all ${
-                    isSelected
-                      ? 'bg-amber-500/10 border-amber-500 shadow-lg shadow-amber-500/10'
-                      : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                  onClick={() => {
+                    if (isAllowed) setSelectedVehicle(veh);
+                  }}
+                  className={`p-5 rounded-2xl border transition-all ${
+                    !isAllowed
+                      ? 'bg-slate-950/40 border-slate-900 opacity-40 cursor-not-allowed'
+                      : isSelected
+                      ? 'bg-amber-500/10 border-amber-500 shadow-lg shadow-amber-500/10 cursor-pointer'
+                      : 'bg-slate-950 border-slate-800 hover:border-slate-700 cursor-pointer'
                   }`}
                 >
                   <div className="flex justify-between items-start">
@@ -524,7 +611,13 @@ export function BookingWizard() {
                   </div>
                   <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
                     <span>{veh.tier.replace('_', ' ')}</span>
-                    {isSelected && <CheckCircle2 className="w-4 h-4 text-amber-400" />}
+                    {!isAllowed ? (
+                      <span className="text-[10px] text-rose-400 font-medium">Not for selected package</span>
+                    ) : isSelected ? (
+                      <span className="flex items-center gap-1 text-amber-400 font-bold">
+                        <CheckCircle2 className="w-4 h-4" /> Selected
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               );

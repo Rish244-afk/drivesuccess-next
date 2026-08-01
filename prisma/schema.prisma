@@ -199,22 +199,24 @@ model Vehicle {
 }
 
 model Package {
-  id            String      @id @default(cuid())
-  name          String      // e.g. 2 Wheeler License, 4 Wheeler License, Combo, IDL Transfer, Renewal, Registration
-  slug          String      @unique
-  type          PackageType
-  description   String
-  price         Float
-  sessionsCount Int
-  badge         String?
-  isPopular     Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id                    String      @id @default(cuid())
+  name                  String      // e.g. 2 Wheeler License, 4 Wheeler License, Combo, IDL Transfer, Renewal, Registration
+  slug                  String      @unique
+  type                  PackageType
+  targetVehicleCategory String?     @default("ANY") // CRETA, HONDACITY, HATCHBACK, ANY
+  description           String
+  price                 Float
+  sessionsCount         Int
+  badge                 String?
+  isPopular             Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
 
-  bookings      Booking[]
+  bookings              Booking[]
 
   @@index([type])
   @@index([slug])
+  @@index([targetVehicleCategory])
   @@map("packages")
 }
 
