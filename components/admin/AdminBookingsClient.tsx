@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Search, Calendar, UserCheck, Car, CheckCircle2, AlertCircle, RefreshCw, Filter } from 'lucide-react';
-import { updateBookingAssignmentAction } from '@/actions/admin';
+import { updateBookingAssignmentAction, markSessionCompleteAction } from '@/actions/admin';
 
 interface AdminBookingsClientProps {
   initialBookings: any[];
@@ -58,6 +58,33 @@ export function AdminBookingsClient({
       setTimeout(() => setMessage(null), 3000);
     } else {
       alert(res.error || 'Failed to update assignment.');
+    }
+  };
+
+  // Handle Mark Next Session Completed
+  const handleMarkSessionComplete = async (bookingId: string) => {
+    setLoadingId(bookingId);
+    setMessage(null);
+
+    const res = await markSessionCompleteAction(bookingId);
+    setLoadingId(null);
+
+    if (res.success) {
+      setMessage(res.message || 'Session marked completed!');
+      // Update local state session count
+      setBookings((prev) =>
+        prev.map((b) => {
+          if (b.id === bookingId) {
+            const completedCount = (b.sessions || []).filter((s: any) => s.status === 'COMPLETED').length + 1;
+            const updatedSessions = [...(b.sessions || []), { id: `s_${Date.now()}`, status: 'COMPLETED' }];
+            return { ...b, sessions: updatedSessions };
+          }
+          return b;
+        })
+      );
+      setTimeout(() => setMessage(null), 4000);
+    } else {
+      alert(res.error || 'Failed to complete session.');
     }
   };
 
@@ -117,16 +144,30 @@ export function AdminBookingsClient({
               className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 hover:border-slate-700 transition"
             >
               {/* Header */}
-              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-heading font-extrabold text-base text-slate-100">{b.student?.name}</h3>
                     <span className="text-xs text-slate-400 font-mono">({b.student?.phone})</span>
                   </div>
-                  <p className="text-xs text-amber-400 font-semibold">{b.package?.name} • ₹{b.totalAmount.toLocaleString()}</p>
+                  <p className="text-xs text-amber-400 font-semibold">
+                    {b.package?.name} • ₹{b.totalAmount.toLocaleString()} •{' '}
+                    <strong className="text-emerald-400">
+                      {(b.sessions || []).filter((s: any) => s.status === 'COMPLETED').length} / {b.package?.sessionsCount || 10} Sessions Completed
+                    </strong>
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={loadingId === b.id}
+                    onClick={() => handleMarkSessionComplete(b.id)}
+                    className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>+1 Session Completed</span>
+                  </button>
                   <span className="text-[10px] font-mono text-slate-500">ID: {b.id.slice(-8)}</span>
                 </div>
               </div>
