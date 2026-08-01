@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Award, CheckCircle2, Car, RefreshCw, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import { getVehiclesAction } from '@/actions/vehicle';
+import { BoneyardWrapper, VehicleCardSkeleton } from '@/components/ui/Skeleton';
 
 interface DbVehicle {
   id: string;
@@ -101,12 +102,7 @@ export default function FleetPage() {
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-500 space-y-4">
-              <RefreshCw className="w-8 h-8 animate-spin text-amber-500" />
-              <p className="text-sm font-medium">Loading fleet from database...</p>
-            </div>
-          ) : (
+          <BoneyardWrapper loading={loading} skeleton={<VehicleCardSkeleton count={4} />}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {vehicles.map((car) => (
                 <div
@@ -166,7 +162,7 @@ export default function FleetPage() {
                 </div>
               ))}
             </div>
-          )}
+          </BoneyardWrapper>
 
         </div>
       </section>

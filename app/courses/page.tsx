@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Award, CheckCircle2, ArrowRight, RefreshCw, Star, Sparkles, SlidersHorizontal, BookOpen, Clock } from 'lucide-react';
+import { ShieldCheck, Award, CheckCircle2, ArrowRight, Star, Sparkles, SlidersHorizontal, BookOpen, Clock } from 'lucide-react';
 import { getPackagesAction } from '@/actions/package';
+import { BoneyardWrapper, CourseCardSkeleton } from '@/components/ui/Skeleton';
 
 interface DbPackage {
   id: string;
@@ -94,12 +95,7 @@ export default function CoursesPage() {
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-4">
-              <RefreshCw className="w-8 h-8 animate-spin text-amber-400" />
-              <p className="text-sm font-medium">Loading accredited programs from database...</p>
-            </div>
-          ) : (
+          <BoneyardWrapper loading={loading} skeleton={<CourseCardSkeleton count={6} />}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {filteredPackages.map((pkg) => {
                 const isHighlight = pkg.isPopular || pkg.badge === 'Best Seller' || pkg.badge === 'Best Value';
@@ -187,7 +183,7 @@ export default function CoursesPage() {
                 );
               })}
             </div>
-          )}
+          </BoneyardWrapper>
 
         </div>
       </section>
