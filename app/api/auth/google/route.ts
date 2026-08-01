@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '@/lib/prisma';
-import { signSessionToken, setAuthCookie } from '@/lib/auth';
+import { signSessionToken, setAuthCookie, getServerSession } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/lib/error-handler';
