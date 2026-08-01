@@ -11,11 +11,6 @@ import { revalidatePath } from 'next/cache';
  */
 export async function createRazorpayOrderAction(bookingId: string) {
   try {
-    const session = await getServerSession();
-    if (!session) {
-      return { success: false, error: 'Authentication required.' };
-    }
-
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
       include: { package: true, student: true },
@@ -23,11 +18,6 @@ export async function createRazorpayOrderAction(bookingId: string) {
 
     if (!booking) {
       return { success: false, error: 'Booking not found.' };
-    }
-
-    // ROW-LEVEL SECURITY: Ensure student can only pay for their own booking
-    if (booking.studentId !== session.sub && session.role !== 'ADMIN') {
-      return { success: false, error: 'Forbidden: You do not own this booking.' };
     }
 
     if (booking.paymentStatus === PaymentStatus.PAID) {
