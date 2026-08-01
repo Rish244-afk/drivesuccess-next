@@ -103,7 +103,7 @@ export default function FleetPage() {
       {/* ISO 9001 Quality Banner */}
       <div className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl h-56 flex items-end p-8">
         <Image
-          src="/images/fleet_verna_1785513736403.jpg"
+          src="/images/hero.jpg"
           alt="ISO Fleet Maintenance"
           fill
           className="object-cover opacity-25"
@@ -179,7 +179,7 @@ export default function FleetPage() {
                 {/* Vehicle Image Placeholder with Fallback */}
                 <div className="h-60 relative overflow-hidden bg-slate-950">
                   <Image
-                    src={car.imageUrl || '/images/fleet_wagonr_1785513709373.jpg'}
+                    src={car.imageUrl || `/images/${car.name.toLowerCase().includes('fronx') ? 'fronx' : car.name.toLowerCase().includes('polo') ? 'polo' : 'swift'}.jpg`}
                     alt={car.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"

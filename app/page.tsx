@@ -73,7 +73,7 @@ export default function HomePage() {
             >
               <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group">
                 <Image
-                  src="/images/hero_driving_lesson_1785513694392.jpg"
+                  src="/images/hero.jpg"
                   alt="Professional Driving Lesson"
                   width={700}
                   height={450}
