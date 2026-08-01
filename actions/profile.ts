@@ -71,6 +71,9 @@ export async function getStudentProfileDataAction() {
       },
     };
   } catch (error) {
+    if ((error as any)?.digest?.startsWith('NEXT_REDIRECT') || (error as any)?.message === 'NEXT_REDIRECT') {
+      throw error;
+    }
     console.error('getStudentProfileDataAction Error:', error);
     return {
       success: false,
