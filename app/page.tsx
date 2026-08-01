@@ -4,26 +4,22 @@ import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { ShieldCheck, Award, Users, CheckCircle2, ArrowRight, Star, Clock, Car, SlidersHorizontal, Sparkles, ChevronDown } from 'lucide-react';
+import { ShieldCheck, Award, Users, CheckCircle2, ArrowRight, Star, Clock, Car, SlidersHorizontal, Sparkles, Compass } from 'lucide-react';
 
 export default function HomePage() {
   const heroRef = useRef<HTMLDivElement | null>(null);
 
-  // Framer Motion Scroll Progress Hooks
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ['start start', 'end start'],
   });
 
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-
-  // Scroll Transforms for Awwwards-tier Parallax & Zoom Effects
   const videoScale = useTransform(smoothProgress, [0, 0.8], [1, 1.05]);
-  const videoY = useTransform(smoothProgress, [0, 1], [0, 60]);
-  const textY = useTransform(smoothProgress, [0, 0.8], [0, -50]);
+  const videoY = useTransform(smoothProgress, [0, 1], [0, 50]);
+  const textY = useTransform(smoothProgress, [0, 0.8], [0, -40]);
   const opacity = useTransform(smoothProgress, [0, 0.7], [1, 0.2]);
 
-  // Motion Variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -36,7 +32,7 @@ export default function HomePage() {
   };
 
   const wordVariants = {
-    hidden: { opacity: 0, y: 40, rotateX: -30 },
+    hidden: { opacity: 0, y: 35, rotateX: -20 },
     visible: {
       opacity: 1,
       y: 0,
@@ -48,11 +44,22 @@ export default function HomePage() {
   return (
     <div className="space-y-0 overflow-hidden bg-[#0A1128]">
       
-      {/* 1. AWWWARDS-TIER ANIMATED HERO & PARALLAX VIDEO SECTION */}
+      {/* 1. WINZY-STYLE ATMOSPHERIC CINEMATIC HERO SECTION */}
       <section ref={heroRef} className="relative pt-20 pb-24 lg:pt-28 lg:pb-36 border-b border-slate-800/60 overflow-hidden">
         
-        {/* Dynamic Ambient Light Rays */}
-        <div aria-hidden="true" className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-b from-amber-500/15 via-amber-500/5 to-transparent rounded-full blur-[140px] pointer-events-none" />
+        {/* Full-Bleed Atmospheric Background Photography Layer */}
+        <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden">
+          <Image
+            src="/images/hero_bg.jpg"
+            alt="Atmospheric Driving Road"
+            fill
+            priority
+            className="object-cover opacity-40 scale-105"
+          />
+          {/* Dark Glassmorphism Radial Gradient Vignette */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0A1128]/90 via-[#0A1128]/75 to-[#0A1128] backdrop-blur-[2px]" />
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-amber-500/10 rounded-full blur-[150px] pointer-events-none" />
+        </div>
 
         <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16 relative z-10">
           
@@ -64,9 +71,9 @@ export default function HomePage() {
             animate="visible"
             className="text-center max-w-5xl mx-auto space-y-8"
           >
-            {/* Animated Badge */}
-            <motion.div variants={wordVariants} className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-amber-400/30 text-amber-400 text-xs font-medium tracking-widest uppercase bg-amber-400/5 backdrop-blur-md shadow-inner">
-              <Sparkles className="w-3.5 h-3.5 animate-spin" />
+            {/* Animated Glass Badge */}
+            <motion.div variants={wordVariants} className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-amber-400/30 text-amber-400 text-xs font-medium tracking-widest uppercase bg-[#0A1128]/80 backdrop-blur-xl shadow-2xl">
+              <Sparkles className="w-3.5 h-3.5 animate-spin text-amber-400" />
               <span>Certified Automotive Pedagogy</span>
             </motion.div>
 
@@ -89,16 +96,17 @@ export default function HomePage() {
 
             <motion.p
               variants={wordVariants}
-              className="text-lg sm:text-xl text-slate-300 font-light leading-relaxed max-w-2xl mx-auto"
+              className="text-lg sm:text-xl text-slate-200 font-light leading-relaxed max-w-2xl mx-auto drop-shadow-md"
             >
               Safe, structured instruction for first-time drivers. Our patient pedagogical methodology builds long-term competence, road safety, and stress-free license certification.
             </motion.p>
 
-            {/* Interactive Magnetic CTA Buttons */}
-            <motion.div variants={wordVariants} className="flex flex-col sm:flex-row items-center justify-center gap-5 pt-4">
+            {/* Interactive Buttons + Floating Student Avatars Bar */}
+            <motion.div variants={wordVariants} className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
+              
               <Link
                 href="/book"
-                className="group relative bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-10 py-4.5 rounded-full flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(245,158,11,0.25)] hover:scale-105 transition-all duration-300"
+                className="group relative bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-10 py-4.5 rounded-full flex items-center justify-center gap-3 shadow-[0_10px_35px_rgba(245,158,11,0.3)] hover:scale-105 transition-all duration-300"
               >
                 <span>Reserve Training Session</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -106,33 +114,36 @@ export default function HomePage() {
 
               <Link
                 href="/courses"
-                className="border border-slate-700/80 hover:border-slate-400 bg-slate-900/40 hover:bg-slate-900 text-slate-200 font-medium text-xs uppercase tracking-wider px-9 py-4.5 rounded-full flex items-center justify-center backdrop-blur-md transition-all duration-300"
+                className="border border-slate-600/80 hover:border-slate-300 bg-[#070B19]/70 hover:bg-[#070B19] text-slate-100 font-medium text-xs uppercase tracking-wider px-9 py-4.5 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 shadow-xl"
               >
                 Explore Curriculum
               </Link>
+
             </motion.div>
 
-            {/* Feature Check Badges */}
-            <motion.div
-              variants={wordVariants}
-              className="pt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-12 text-xs text-slate-400 font-medium"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-amber-400 font-serif text-base italic">✓</span>
-                <span>Dual Control Pedals</span>
+            {/* Winzy-Style Floating Student Proof Bar */}
+            <motion.div variants={wordVariants} className="pt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+              
+              <div className="flex items-center gap-3 bg-[#070B19]/80 backdrop-blur-xl px-5 py-2 rounded-full border border-slate-800/80 shadow-xl">
+                <div className="flex -space-x-2">
+                  <Image src="/images/rajesh.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-[#0A1128] object-cover" />
+                  <Image src="/images/priya.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-[#0A1128] object-cover" />
+                  <div className="w-7 h-7 rounded-full bg-amber-500 text-slate-950 text-[10px] font-bold flex items-center justify-center border-2 border-[#0A1128]">
+                    +2.4k
+                  </div>
+                </div>
+                <span className="text-xs text-slate-300 font-medium">Certified Student Drivers</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-amber-400 font-serif text-base italic">✓</span>
-                <span>ISO 9001 Certified Fleet</span>
+
+              <div className="flex items-center gap-2 text-xs text-slate-300 font-medium bg-[#070B19]/80 backdrop-blur-xl px-5 py-2 rounded-full border border-slate-800/80 shadow-xl">
+                <span className="text-amber-400 font-serif text-base italic">★ 5.0</span>
+                <span>98.4% First-Attempt Pass Rate</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-amber-400 font-serif text-base italic">✓</span>
-                <span>98.4% Pass Rate</span>
-              </div>
+
             </motion.div>
           </motion.div>
 
-          {/* Full-Width Parallax Video Showcase with Edge Watermark Crop Scale */}
+          {/* Full-Width Parallax Video Showcase with Edge Watermark Crop */}
           <motion.div
             style={{ scale: videoScale, y: videoY }}
             initial={{ opacity: 0, y: 60 }}
@@ -158,7 +169,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. STAT BAND (3-Column Minimal Numbers with Animated Counter Reveal) */}
+      {/* 2. STAT BAND */}
       <section className="bg-[#070B19] py-24 border-b border-slate-800/60">
         <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800/60">
