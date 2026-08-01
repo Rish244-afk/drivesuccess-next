@@ -115,7 +115,7 @@ export default function FleetPage() {
                 >
                   <div className="h-64 relative overflow-hidden bg-slate-950">
                     <Image
-                      src={car.imageUrl || `/images/${car.name.toLowerCase().includes('fronx') ? 'fronx' : car.name.toLowerCase().includes('polo') ? 'polo' : 'swift'}.jpg`}
+                      src={car.imageUrl || `/images/${car.name.toLowerCase()}.jpg`}
                       alt={car.name}
                       fill
                       className="object-cover hover:scale-105 transition-transform duration-700"
