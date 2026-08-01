@@ -297,24 +297,26 @@ export function BookingWizard() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
+    <div className="max-w-4xl mx-auto bg-[#070B19] border border-slate-800/80 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
       
-      {/* Wizard Progress Bar */}
-      <div className="space-y-3">
-        <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-slate-400">
-          <span>Step {step} of 6</span>
-          <span className="text-amber-400">
-            {step === 1 && '1. Choose Package'}
-            {step === 2 && '2. Choose Instructor'}
-            {step === 3 && '3. Choose Vehicle'}
-            {step === 4 && '4. Select Date & Slots'}
-            {step === 5 && '5. Booking Summary'}
-            {step === 6 && '6. Razorpay Payment Checkout'}
+      {/* Slim Elegant Progress Line */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-baseline text-xs uppercase tracking-widest text-slate-400 font-sans">
+          <span className="font-serif text-lg text-slate-200 normal-case font-normal">
+            Step <em className="italic text-amber-400 font-normal">{step}</em> of 6
+          </span>
+          <span className="text-amber-400 font-medium tracking-widest">
+            {step === 1 && 'Select Driving Package'}
+            {step === 2 && 'Select Certified Instructor'}
+            {step === 3 && 'Select Training Vehicle'}
+            {step === 4 && 'Select Date & Available Slot'}
+            {step === 5 && 'Review Booking Summary'}
+            {step === 6 && 'Complete Secure Payment'}
           </span>
         </div>
-        <div className="h-2 bg-slate-950 rounded-full overflow-hidden">
+        <div className="h-1 bg-slate-900 rounded-full overflow-hidden">
           <div
-            className="h-full bg-amber-500 rounded-full transition-all duration-500"
+            className="h-full bg-amber-400 rounded-full transition-all duration-500"
             style={{ width: `${(step / 6) * 100}%` }}
           />
         </div>

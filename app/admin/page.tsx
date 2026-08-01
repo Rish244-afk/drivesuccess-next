@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAdminOverviewAction, getAdminSession } from '@/actions/admin';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { DollarSign, Calendar, Users, Car, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
+import { DollarSign, Calendar, Users, Car, ArrowRight, Clock, ArrowUpRight } from 'lucide-react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -28,25 +28,29 @@ export default async function AdminDashboardPage() {
   const todaysBookings = overview.todaysBookings || [];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 space-y-8 pb-16">
+    <div className="min-h-screen bg-[#0A1128] text-slate-100 space-y-12 pb-20">
       <AdminHeader />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-12">
         
-        {/* Page Title */}
-        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        {/* Editorial Page Title */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-6 border-b border-slate-800/60 pb-8">
           <div>
-            <h1 className="font-heading font-extrabold text-3xl text-slate-100">Academy Overview</h1>
-            <p className="text-xs text-slate-400 mt-1">Real-time revenue metrics, today&apos;s bookings, and fleet status.</p>
+            <span className="text-xs font-semibold uppercase tracking-widest text-amber-400">
+              Administrative Control Center
+            </span>
+            <h1 className="font-serif text-3xl sm:text-4xl text-slate-100 font-normal mt-1">
+              Academy <em className="italic text-amber-400 font-normal">Overview</em>
+            </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Link
               href="/admin/bookings"
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition flex items-center gap-2"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-3 rounded-full text-xs uppercase tracking-widest transition flex items-center gap-2 shadow-lg shadow-amber-500/10"
             >
-              <Calendar className="w-4 h-4" />
               <span>Manage All Bookings</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -54,92 +58,65 @@ export default async function AdminDashboardPage() {
         {/* 1. REVENUE & STATS CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           
-          {/* Card 1: Revenue */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center">
-              <DollarSign className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Revenue Collected</span>
-              <h2 className="font-heading font-extrabold text-3xl text-amber-400 mt-1">
-                ₹{stats.totalRevenue.toLocaleString()}
-              </h2>
-            </div>
+          <div className="bg-[#070B19] border border-slate-800/60 p-6 rounded-2xl space-y-2">
+            <span className="text-[11px] font-sans uppercase tracking-widest text-slate-400 font-medium">Total Revenue</span>
+            <h2 className="font-serif text-3xl text-amber-400 font-normal">
+              ₹{stats.totalRevenue.toLocaleString()}
+            </h2>
           </div>
 
-          {/* Card 2: Total Bookings */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-            <div className="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center">
-              <Calendar className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Bookings</span>
-              <h2 className="font-heading font-extrabold text-3xl text-slate-100 mt-1">
-                {stats.totalBookingsCount}
-              </h2>
-            </div>
+          <div className="bg-[#070B19] border border-slate-800/60 p-6 rounded-2xl space-y-2">
+            <span className="text-[11px] font-sans uppercase tracking-widest text-slate-400 font-medium">Total Bookings</span>
+            <h2 className="font-serif text-3xl text-slate-100 font-normal">
+              {stats.totalBookingsCount}
+            </h2>
           </div>
 
-          {/* Card 3: Active Instructors */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-            <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
-              <Users className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Active Instructors</span>
-              <h2 className="font-heading font-extrabold text-3xl text-slate-100 mt-1">
-                {stats.activeInstructorsCount}
-              </h2>
-            </div>
+          <div className="bg-[#070B19] border border-slate-800/60 p-6 rounded-2xl space-y-2">
+            <span className="text-[11px] font-sans uppercase tracking-widest text-slate-400 font-medium">Active Instructors</span>
+            <h2 className="font-serif text-3xl text-slate-100 font-normal">
+              {stats.activeInstructorsCount}
+            </h2>
           </div>
 
-          {/* Card 4: Fleet Vehicles */}
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-            <div className="w-12 h-12 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center">
-              <Car className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Learning Fleet</span>
-              <h2 className="font-heading font-extrabold text-3xl text-slate-100 mt-1">
-                {stats.totalVehiclesCount}
-              </h2>
-            </div>
+          <div className="bg-[#070B19] border border-slate-800/60 p-6 rounded-2xl space-y-2">
+            <span className="text-[11px] font-sans uppercase tracking-widest text-slate-400 font-medium">Learning Fleet</span>
+            <h2 className="font-serif text-3xl text-slate-100 font-normal">
+              {stats.totalVehiclesCount}
+            </h2>
           </div>
 
         </div>
 
         {/* 2. TODAY'S BOOKINGS SECTION */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6">
+        <div className="bg-[#070B19] border border-slate-800/60 rounded-3xl p-8 space-y-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Clock className="w-6 h-6 text-amber-400" />
-              <div>
-                <h2 className="font-heading font-extrabold text-xl text-slate-100">Today&apos;s Bookings</h2>
-                <p className="text-xs text-slate-400">Bookings scheduled or created today ({stats.todaysBookingsCount} bookings)</p>
-              </div>
+            <div>
+              <h2 className="font-serif text-2xl text-slate-100 font-normal">Today&apos;s Scheduled Bookings</h2>
+              <p className="text-xs text-slate-400 font-light mt-0.5">{stats.todaysBookingsCount} bookings active today</p>
             </div>
 
-            <Link href="/admin/bookings" className="text-xs font-bold text-amber-400 hover:underline flex items-center gap-1">
-              <span>View All</span>
+            <Link href="/admin/bookings" className="text-xs font-semibold uppercase tracking-widest text-amber-400 hover:underline flex items-center gap-1">
+              <span>View Full Ledger</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           {todaysBookings.length === 0 ? (
-            <div className="text-center py-10 bg-slate-950 border border-slate-800 rounded-2xl text-xs text-slate-400">
-              No new bookings created today.
+            <div className="text-center py-12 bg-[#0A1128] border border-slate-800/60 rounded-2xl text-xs text-slate-400 font-light">
+              No new bookings recorded today.
             </div>
           ) : (
-            <div className="divide-y divide-slate-800/80 bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden">
+            <div className="divide-y divide-slate-800/60 bg-[#0A1128] border border-slate-800/60 rounded-2xl overflow-hidden">
               {todaysBookings.map((b: any) => (
-                <div key={b.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+                <div key={b.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
                   <div>
-                    <h3 className="font-heading font-bold text-slate-100 text-sm">{b.student?.name}</h3>
-                    <p className="text-slate-400">Package: <strong className="text-slate-200">{b.package?.name}</strong> • Phone: {b.student?.phone || 'N/A'}</p>
+                    <h3 className="font-serif text-lg text-slate-100 font-normal">{b.student?.name}</h3>
+                    <p className="text-slate-400 font-light">Package: {b.package?.name} • Phone: {b.student?.phone || 'N/A'}</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-heading font-extrabold text-amber-400 text-base">₹{b.totalAmount.toLocaleString()}</span>
-                    <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                  <div className="flex items-center gap-4">
+                    <span className="font-serif text-lg text-amber-400">₹{b.totalAmount.toLocaleString()}</span>
+                    <span className="text-[10px] uppercase tracking-widest font-medium px-3 py-1 rounded-full border border-slate-700 text-slate-300">
                       {b.status}
                     </span>
                   </div>
