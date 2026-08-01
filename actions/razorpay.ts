@@ -7,10 +7,13 @@ import { BookingStatus, PaymentStatus, Role } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
 /**
- * 1. Create Razorpay Order for Pending Booking
+ * 1. Create Razorpay Order for Pending Booking with Idempotency Key
  */
-export async function createRazorpayOrderAction(bookingId: string) {
+export async function createRazorpayOrderAction(bookingId: string, idempotencyKey?: string) {
   try {
+    const effectiveKey = idempotencyKey || `idemp_${bookingId}`;
+
+    // Idempotency Check: Retrieve existing booking
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
       include: { package: true, student: true },
@@ -22,6 +25,23 @@ export async function createRazorpayOrderAction(bookingId: string) {
 
     if (booking.paymentStatus === PaymentStatus.PAID) {
       return { success: false, error: 'Booking has already been paid.' };
+    }
+
+    // Return existing Razorpay Order if already generated for this idempotency key
+    if (booking.razorpayOrderId && booking.idempotencyKey === effectiveKey) {
+      const amountInPaise = Math.round(booking.totalAmount * 100);
+      return {
+        success: true,
+        keyId: RAZORPAY_KEY_ID,
+        orderId: booking.razorpayOrderId,
+        amount: amountInPaise,
+        currency: 'INR',
+        bookingId: booking.id,
+        packageName: booking.package.name,
+        studentName: booking.student.name,
+        studentPhone: booking.student.phone || '',
+        studentEmail: booking.student.email || '',
+      };
     }
 
     // Amount in paise (1 INR = 100 paise)
@@ -38,6 +58,7 @@ export async function createRazorpayOrderAction(bookingId: string) {
           bookingId: booking.id,
           packageName: booking.package.name,
           studentName: booking.student.name,
+          idempotencyKey: effectiveKey,
         },
       });
       orderId = razorpayOrder.id;
@@ -50,11 +71,12 @@ export async function createRazorpayOrderAction(bookingId: string) {
       };
     }
 
-    // Update database record with razorpayOrderId
+    // Atomic Database Update with idempotencyKey and razorpayOrderId
     await prisma.booking.update({
       where: { id: bookingId },
       data: {
         razorpayOrderId: orderId,
+        idempotencyKey: effectiveKey,
         paymentStatus: PaymentStatus.PENDING,
       },
     });
@@ -79,7 +101,7 @@ export async function createRazorpayOrderAction(bookingId: string) {
 
 /**
  * 2. Strict Backend Payment Verification (Cryptographic HMAC SHA256)
- * NEVER trusts frontend alone!
+ * Idempotent Verification: Safe against retries & concurrent webhooks.
  */
 export async function verifyPaymentSignatureAction({
   bookingId,
@@ -93,6 +115,24 @@ export async function verifyPaymentSignatureAction({
   razorpaySignature: string;
 }) {
   try {
+    // Check if booking is already processed and paid (Idempotent return)
+    const existingBooking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { student: true, package: true },
+    });
+
+    if (!existingBooking) {
+      return { success: false, error: 'Booking record not found.' };
+    }
+
+    if (existingBooking.paymentStatus === PaymentStatus.PAID) {
+      return {
+        success: true,
+        message: 'Payment already verified and booking confirmed.',
+        booking: existingBooking,
+      };
+    }
+
     // 1. Cryptographic HMAC SHA256 Verification on Backend
     const isValidSignature =
       verifyRazorpaySignature({
