@@ -120,12 +120,15 @@ export function Footer() {
         {/* Minimal Copyright Line */}
         <div className="border-t border-slate-800/80 pt-8 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 font-medium gap-4">
           <p>© {new Date().getFullYear()} Vahathi Motor Driving School (DriveSuccess Platform). All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5">
+          <div className="flex items-center gap-5 flex-wrap">
+            <Link href="/privacy" className="hover:text-amber-400 transition">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-amber-400 transition">Terms & Conditions</Link>
+            <Link href="/cookies" className="hover:text-amber-400 transition">Cookie Policy</Link>
+            <span className="text-slate-700">|</span>
+            <span className="flex items-center gap-1.5 text-slate-400">
               <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Dual-Control Certified Fleet</span>
+              <span>Dual-Control Certified</span>
             </span>
-            <span>Helpline: 7829780778</span>
           </div>
         </div>
 
