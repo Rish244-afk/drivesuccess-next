@@ -26,7 +26,9 @@ export async function adminLoginAction(formData: FormData) {
       where: { email: email.toLowerCase().trim(), role: Role.ADMIN },
     });
 
-    if (!adminUser && email === 'admin@drivesuccess.edu' && password === 'admin123') {
+    const isValidPassword = password === 'VahathiAdmin#2026!' || password === 'admin123';
+
+    if (!adminUser && email === 'admin@drivesuccess.edu' && isValidPassword) {
       // Upsert default admin user
       adminUser = await prisma.student.upsert({
         where: { email: 'admin@drivesuccess.edu' },
@@ -34,11 +36,11 @@ export async function adminLoginAction(formData: FormData) {
         create: {
           email: 'admin@drivesuccess.edu',
           name: 'Chief Academy Director',
-          phone: '+1 (555) 999-0000',
+          phone: '+91 7829780778',
           role: Role.ADMIN,
         },
       });
-    } else if (!adminUser || password !== 'admin123') {
+    } else if (!adminUser || !isValidPassword) {
       return { success: false, error: 'Invalid admin credentials.' };
     }
 
