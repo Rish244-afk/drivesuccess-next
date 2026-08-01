@@ -318,6 +318,49 @@ export async function markSessionCompleteAction(bookingId: string) {
 }
 
 /**
+ * 1-Click Action for Admin to remove/undo last COMPLETED session in case of accidental clicks
+ */
+export async function removeCompletedSessionAction(bookingId: string) {
+  try {
+    const admin = await getAdminSession();
+    if (!admin) return { success: false, error: 'Admin access denied.' };
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        sessions: { orderBy: { scheduledAt: 'desc' } },
+      },
+    });
+
+    if (!booking) {
+      return { success: false, error: 'Booking not found.' };
+    }
+
+    const lastCompletedSession = booking.sessions.find((s) => s.status === 'COMPLETED');
+
+    if (!lastCompletedSession) {
+      return { success: false, error: 'No completed sessions to remove.' };
+    }
+
+    await prisma.session.delete({
+      where: { id: lastCompletedSession.id },
+    });
+
+    revalidatePath('/dashboard');
+    revalidatePath('/admin/bookings');
+    revalidatePath('/admin');
+
+    return {
+      success: true,
+      message: 'Completed session removed / undone successfully.',
+    };
+  } catch (error) {
+    console.error('removeCompletedSessionAction Error:', error);
+    return { success: false, error: 'Failed to remove completed session.' };
+  }
+}
+
+/**
  * 4. PACKAGES CRUD
  */
 export async function createPackageAction(formData: unknown) {

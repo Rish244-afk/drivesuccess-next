@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, Calendar, UserCheck, Car, CheckCircle2, AlertCircle, RefreshCw, Filter } from 'lucide-react';
-import { updateBookingAssignmentAction, markSessionCompleteAction } from '@/actions/admin';
+import {
+  updateBookingAssignmentAction,
+  markSessionCompleteAction,
+  removeCompletedSessionAction,
+} from '@/actions/admin';
+import { MinusCircle } from 'lucide-react';
 
 interface AdminBookingsClientProps {
   initialBookings: any[];
@@ -75,7 +78,6 @@ export function AdminBookingsClient({
       setBookings((prev) =>
         prev.map((b) => {
           if (b.id === bookingId) {
-            const completedCount = (b.sessions || []).filter((s: any) => s.status === 'COMPLETED').length + 1;
             const updatedSessions = [...(b.sessions || []), { id: `s_${Date.now()}`, status: 'COMPLETED' }];
             return { ...b, sessions: updatedSessions };
           }
@@ -85,6 +87,34 @@ export function AdminBookingsClient({
       setTimeout(() => setMessage(null), 4000);
     } else {
       alert(res.error || 'Failed to complete session.');
+    }
+  };
+
+  // Handle Remove/Undo Last Completed Session
+  const handleRemoveSession = async (bookingId: string) => {
+    setLoadingId(bookingId);
+    setMessage(null);
+
+    const res = await removeCompletedSessionAction(bookingId);
+    setLoadingId(null);
+
+    if (res.success) {
+      setMessage(res.message || 'Completed session undone successfully!');
+      // Remove one completed session from local state
+      setBookings((prev) =>
+        prev.map((b) => {
+          if (b.id === bookingId) {
+            const sessionsCopy = [...(b.sessions || [])];
+            const compIdx = sessionsCopy.findLastIndex((s: any) => s.status === 'COMPLETED');
+            if (compIdx !== -1) sessionsCopy.splice(compIdx, 1);
+            return { ...b, sessions: sessionsCopy };
+          }
+          return b;
+        })
+      );
+      setTimeout(() => setMessage(null), 4000);
+    } else {
+      alert(res.error || 'Failed to remove session.');
     }
   };
 
@@ -158,7 +188,7 @@ export function AdminBookingsClient({
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
                     disabled={loadingId === b.id}
@@ -166,8 +196,20 @@ export function AdminBookingsClient({
                     className="bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>+1 Session Completed</span>
+                    <span>+1 Session</span>
                   </button>
+
+                  <button
+                    type="button"
+                    disabled={loadingId === b.id || (b.sessions || []).filter((s: any) => s.status === 'COMPLETED').length === 0}
+                    onClick={() => handleRemoveSession(b.id)}
+                    className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 disabled:opacity-30 font-bold px-3 py-2 rounded-xl text-xs flex items-center gap-1 transition"
+                    title="Undo / Remove Last Completed Session"
+                  >
+                    <MinusCircle className="w-3.5 h-3.5" />
+                    <span>-1 Undo</span>
+                  </button>
+
                   <span className="text-[10px] font-mono text-slate-500">ID: {b.id.slice(-8)}</span>
                 </div>
               </div>
