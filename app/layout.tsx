@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { AIChatWidget } from '@/components/ai/AIChatWidget';
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
+import { CookieConsentBanner } from '@/components/privacy/CookieConsentBanner';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', style: ['normal', 'italic'] });
@@ -79,6 +80,7 @@ export default function RootLayout({
 
           <Footer />
           <AIChatWidget />
+          <CookieConsentBanner />
         </SmoothScrollProvider>
       </body>
     </html>
