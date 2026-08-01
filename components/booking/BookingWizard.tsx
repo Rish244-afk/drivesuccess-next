@@ -200,13 +200,12 @@ export function BookingWizard() {
     }
 
     // Options for Razorpay Modal
-    const options = {
+    const options: any = {
       key: orderRes.keyId,
       amount: orderRes.amount,
       currency: orderRes.currency,
       name: 'DriveSuccess Academy',
       description: `Payment for ${orderRes.packageName}`,
-      order_id: orderRes.orderId,
       prefill: {
         name: orderRes.studentName,
         email: orderRes.studentEmail,
@@ -215,6 +214,11 @@ export function BookingWizard() {
       theme: {
         color: '#F59E0B', // Amber
       },
+    };
+
+    if (orderRes.orderId && orderRes.orderId.startsWith('order_')) {
+      options.order_id = orderRes.orderId;
+    }
 
       // Strict Backend Verification Callback
       handler: async function (response: any) {
