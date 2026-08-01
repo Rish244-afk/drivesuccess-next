@@ -92,19 +92,22 @@ enum NotificationType {
 }
 
 model Student {
-  id           String         @id @default(cuid())
-  email        String         @unique
-  name         String
-  phone        String?        @unique
-  avatarUrl    String?
-  address      String?
-  city         String?        @default("New York")
-  state        String?        @default("NY")
-  zipCode      String?
-  licenseNo    String?
-  role         Role           @default(STUDENT)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  phone         String?        @unique
+  googleId      String?        @unique
+  emailVerified Boolean        @default(false)
+  phoneVerified Boolean        @default(false)
+  avatarUrl     String?
+  address       String?
+  city          String?        @default("New York")
+  state         String?        @default("NY")
+  zipCode       String?
+  licenseNo     String?
+  role          Role           @default(STUDENT)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   bookings      Booking[]
   sessions      Session[]
@@ -112,6 +115,7 @@ model Student {
 
   @@index([email])
   @@index([phone])
+  @@index([googleId])
   @@index([role])
   @@map("students")
 }

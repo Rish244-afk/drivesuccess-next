@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ShieldCheck, Phone, KeyRound, ArrowRight, RefreshCw, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
 import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/actions/auth';
 import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
+import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 function LoginFormContent() {
   const router = useRouter();
@@ -282,16 +284,30 @@ function LoginFormContent() {
           </button>
         </form>
       )}
+
+      {/* Divider */}
+      <div className="my-6 flex items-center gap-4">
+        <div className="h-[1px] bg-slate-800 flex-1" />
+        <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+          OR
+        </span>
+        <div className="h-[1px] bg-slate-800 flex-1" />
+      </div>
+
+      {/* Google Identity Sign-In & One Tap */}
+      <GoogleSignInButton />
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
-      <Suspense fallback={<div className="text-slate-400 text-sm">Loading authentication...</div>}>
-        <LoginFormContent />
-      </Suspense>
-    </div>
+    <GoogleAuthProvider>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+        <Suspense fallback={<div className="text-slate-400 text-sm">Loading authentication...</div>}>
+          <LoginFormContent />
+        </Suspense>
+      </div>
+    </GoogleAuthProvider>
   );
 }
