@@ -256,6 +256,66 @@ export async function updateBookingAssignmentAction({
 }
 
 /**
+ * 1-Click Action for Admin/Instructor to mark next session as COMPLETED for a student booking
+ */
+export async function markSessionCompleteAction(bookingId: string) {
+  try {
+    const admin = await getAdminSession();
+    if (!admin) return { success: false, error: 'Admin access denied.' };
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        sessions: { orderBy: { scheduledAt: 'asc' } },
+        package: true,
+      },
+    });
+
+    if (!booking) {
+      return { success: false, error: 'Booking not found.' };
+    }
+
+    // Find first SCHEDULED or IN_PROGRESS session, or create next completed session
+    const pendingSession = booking.sessions.find((s) => s.status === 'SCHEDULED' || s.status === 'IN_PROGRESS');
+
+    if (pendingSession) {
+      await prisma.session.update({
+        where: { id: pendingSession.id },
+        data: { status: 'COMPLETED' },
+      });
+    } else {
+      // Create next completed session record
+      const sessionCount = booking.sessions.length + 1;
+      await prisma.session.create({
+        data: {
+          bookingId: booking.id,
+          studentId: booking.studentId,
+          instructorId: booking.instructorId || (await prisma.instructor.findFirst())?.id || '',
+          vehicleId: booking.vehicleId || (await prisma.vehicle.findFirst())?.id || '',
+          scheduledAt: new Date(),
+          durationMins: 60,
+          status: 'COMPLETED',
+          location: 'City Driving Circuit',
+          notes: `Practical Driving Session #${sessionCount} Completed`,
+        },
+      });
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath('/admin/bookings');
+    revalidatePath('/admin');
+
+    return {
+      success: true,
+      message: `Practical Driving Session marked COMPLETED! Client dashboard updated live.`,
+    };
+  } catch (error) {
+    console.error('markSessionCompleteAction Error:', error);
+    return { success: false, error: 'Failed to complete session.' };
+  }
+}
+
+/**
  * 4. PACKAGES CRUD
  */
 export async function createPackageAction(formData: unknown) {

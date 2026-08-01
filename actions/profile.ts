@@ -53,10 +53,11 @@ export async function getStudentProfileDataAction() {
       orderBy: { scheduledAt: 'asc' },
     });
 
-    // 4. Calculate progress metrics
+    // 4. Calculate progress metrics based on booked package duration
     const completedSessions = sessions.filter((s) => s.status === 'COMPLETED').length;
-    const totalSessions = sessions.length > 0 ? sessions.length : 10;
-    const progressPercentage = Math.round((completedSessions / totalSessions) * 100);
+    const packageTotalSessions = bookings.reduce((sum, b) => sum + (b.package?.sessionsCount || 10), 0);
+    const totalSessions = Math.max(packageTotalSessions, sessions.length, 10);
+    const progressPercentage = Math.min(100, Math.round((completedSessions / totalSessions) * 100));
 
     return {
       success: true,
