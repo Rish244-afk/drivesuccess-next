@@ -4,6 +4,7 @@ import '@/styles/globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { AIChatWidget } from '@/components/ai/AIChatWidget';
+import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', style: ['normal', 'italic'] });
@@ -60,24 +61,25 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans bg-[#0A1128] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-400/20 selection:text-amber-400">
-        
-        {/* Accessibility Skip Link */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-amber-500 focus:text-slate-950 font-bold text-xs"
-        >
-          Skip to main content
-        </a>
+        <SmoothScrollProvider>
+          {/* Accessibility Skip Link */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-amber-500 focus:text-slate-950 font-bold text-xs"
+          >
+            Skip to main content
+          </a>
 
-        <Navbar />
+          <Navbar />
 
-        {/* Main Accessibility Landmark */}
-        <main id="main-content" className="flex-1" tabIndex={-1}>
-          {children}
-        </main>
+          {/* Main Accessibility Landmark */}
+          <main id="main-content" className="flex-1" tabIndex={-1}>
+            {children}
+          </main>
 
-        <Footer />
-        <AIChatWidget />
+          <Footer />
+          <AIChatWidget />
+        </SmoothScrollProvider>
       </body>
     </html>
   );
