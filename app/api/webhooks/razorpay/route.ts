@@ -33,8 +33,18 @@ export async function POST(req: NextRequest) {
       paymentEntity?.receipt?.replace('receipt_', '');
 
     if (bookingId) {
+      // Fetch existing booking record to check for duplicate webhook delivery
+      const existingBooking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+      });
+
       // 2. Handle Payment Captured / Order Paid Event
       if (event === 'payment.captured' || event === 'order.paid') {
+        if (existingBooking?.paymentStatus === PaymentStatus.PAID) {
+          console.log(`ℹ️ Webhook duplicate ignored: Booking ${bookingId} is already PAID.`);
+          return NextResponse.json({ success: true, status: 'already_processed' }, { status: 200 });
+        }
+
         const paymentId = paymentEntity?.id || 'pay_wh_' + Date.now();
         const orderId = paymentEntity?.order_id || orderEntity?.id || 'order_wh_' + Date.now();
 

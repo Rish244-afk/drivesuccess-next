@@ -234,7 +234,8 @@ model Booking {
   totalAmount       Float
   notes             String?
 
-  // Razorpay Integration Fields
+  // Idempotency & Razorpay Integration Fields
+  idempotencyKey    String?       @unique
   razorpayOrderId   String?       @unique
   razorpayPaymentId String?       @unique
   razorpaySignature String?
@@ -253,6 +254,7 @@ model Booking {
   @@index([instructorId])
   @@index([status])
   @@index([paymentStatus])
+  @@index([idempotencyKey])
   @@index([razorpayOrderId])
   @@map("bookings")
 }
