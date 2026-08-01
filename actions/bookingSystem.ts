@@ -74,21 +74,22 @@ export async function getAvailableSlotsAction({
     const selectedDate = new Date(dateStr);
     const dayOfWeek = dayOfWeekMap[selectedDate.getDay()];
 
-    // 1. Fetch instructor availability work schedule
-    const availabilities = await prisma.availability.findMany({
+    // 1. Check if instructor has explicit off-day marked in database
+    const explicitOffDay = await prisma.availability.findFirst({
       where: {
         instructorId,
         dayOfWeek,
+        isAvailable: false,
       },
     });
 
-    if (availabilities.length === 0) {
+    if (explicitOffDay) {
       return {
         success: true,
         data: TIME_SLOTS.map((slot) => ({
           time: slot,
           available: false,
-          reason: 'Instructor not working on this day',
+          reason: 'Instructor off-day',
         })),
       };
     }
