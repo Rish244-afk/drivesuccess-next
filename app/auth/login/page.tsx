@@ -178,7 +178,7 @@ function LoginFormContent() {
           <ShieldCheck className="w-7 h-7" />
         </div>
         <h1 className="text-2xl font-bold text-slate-100 font-heading">DriveSuccess Academy</h1>
-        <p className="text-xs text-slate-400 mt-1">Real SMS Phone Authentication & Student Portal</p>
+        <p className="text-xs text-slate-400 mt-1">Vahathi Motor Driving School Student Portal</p>
       </div>
 
       {/* Alert Notices */}
@@ -207,16 +207,13 @@ function LoginFormContent() {
               <Phone className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
               <input
                 type="tel"
-                placeholder="9876543210"
+                placeholder="Enter 10-digit mobile number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-11 pr-4 py-3.5 rounded-xl outline-none text-sm font-medium transition"
                 required
               />
             </div>
-            <p className="text-[11px] text-slate-500 mt-2">
-              Supports real SMS OTP delivery via Firebase Auth + instant test login.
-            </p>
           </div>
 
           <button
