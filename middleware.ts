@@ -86,6 +86,9 @@ export async function middleware(req: NextRequest) {
 
     response.headers.set('x-user-id', payload.sub as string);
     response.headers.set('x-user-role', payload.role as string);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
 
     return response;
   } catch (err) {
