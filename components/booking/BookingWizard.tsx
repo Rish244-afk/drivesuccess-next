@@ -283,7 +283,7 @@ export function BookingWizard() {
     // Verify Backend Action
     const verifyRes = await verifyPaymentSignatureAction({
       bookingId,
-      razorpayOrderId: orderId,
+      razorpayOrderId: orderId || '',
       razorpayPaymentId: mockPaymentId,
       razorpaySignature: mockSig,
     });
