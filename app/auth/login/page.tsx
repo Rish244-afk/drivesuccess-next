@@ -113,29 +113,37 @@ function LoginFormContent() {
     setError(null);
     setMessage(null);
 
-    // 1. Try Firebase Client Verification
-    if (confirmationResult && otp !== '123456') {
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/[^\d]/g, '')}`;
+
+    // 1. Try Firebase Client Verification (Strict - NO bypass)
+    if (confirmationResult) {
       try {
         await confirmationResult.confirm(otp);
-        const res = await loginWithVerifiedPhoneAction(phone);
+        const res = await loginWithVerifiedPhoneAction(formattedPhone);
         setLoading(false);
 
         if (res.success) {
-          setMessage('Firebase Phone Authentication successful! Redirecting...');
+          setMessage('Phone Authentication successful! Redirecting...');
           setTimeout(() => router.push(fromPath), 800);
           return;
+        } else {
+          setError(res.error || 'Authentication failed.');
+          return;
         }
-      } catch (firebaseErr) {
-        console.warn('Firebase verification notice, checking server action fallback...');
+      } catch (firebaseErr: any) {
+        setLoading(false);
+        console.error('Firebase OTP Verification Error:', firebaseErr);
+        setError('Invalid OTP code. Please check the 6-digit code sent to your phone and try again.');
+        return;
       }
     }
 
-    // 2. Fallback Server Action OTP verification (including 123456 test OTP)
-    const res = await verifyOtpAction(phone, otp);
+    // 2. Server Action OTP verification
+    const res = await verifyOtpAction(formattedPhone, otp);
     setLoading(false);
 
     if (!res.success) {
-      setError(res.error || 'Verification failed. Try demo OTP 123456.');
+      setError(res.error || 'Verification failed. Invalid OTP code.');
       return;
     }
 

@@ -148,19 +148,19 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
       where: { phone },
     });
 
-    if (!otpRecord && otp !== '123456') {
+    if (!otpRecord) {
       return { success: false, error: 'No OTP request found. Please request a new OTP.' };
     }
 
     const now = new Date();
 
     if (otpRecord) {
-      if (now > otpRecord.expiresAt && otp !== '123456') {
+      if (now > otpRecord.expiresAt) {
         await prisma.otpVerification.delete({ where: { phone } });
         return { success: false, error: 'OTP has expired. Please request a new OTP.' };
       }
 
-      const isValid = (await bcrypt.compare(otp, otpRecord.otpHash)) || otp === '123456';
+      const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
 
       if (!isValid) {
         await prisma.otpVerification.update({
@@ -169,7 +169,7 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
         });
         return {
           success: false,
-          error: `Invalid OTP. ${4 - otpRecord.attempts} attempts remaining.`,
+          error: `Invalid OTP code. ${3 - otpRecord.attempts} attempts remaining.`,
         };
       }
 
