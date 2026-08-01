@@ -10,19 +10,19 @@ interface AnimatedIconProps {
 }
 
 export function AnimatedIcon({ children, animation = 'scale', className = '' }: AnimatedIconProps) {
-  const getAnimation = () => {
+  const getAnimation = (): { hover: any; transition: any } => {
     switch (animation) {
       case 'bounce':
-        return { hover: { y: -4 }, transition: { type: 'spring' as const, stiffness: 400, damping: 10 } };
+        return { hover: { y: -4 }, transition: { type: 'spring', stiffness: 400, damping: 10 } };
       case 'spin':
         return { hover: { rotate: 180 }, transition: { duration: 0.5, ease: 'easeInOut' } };
       case 'pulse':
-        return { hover: { scale: 1.2 }, transition: { repeat: Infinity, repeatType: 'reverse' as const, duration: 0.6 } };
+        return { hover: { scale: 1.2 }, transition: { repeat: Infinity, repeatType: 'reverse', duration: 0.6 } };
       case 'shake':
         return { hover: { rotate: [0, -10, 10, -10, 0] }, transition: { duration: 0.4 } };
       case 'scale':
       default:
-        return { hover: { scale: 1.15, rotate: 3 }, transition: { type: 'spring' as const, stiffness: 350, damping: 15 } };
+        return { hover: { scale: 1.15, rotate: 3 }, transition: { type: 'spring', stiffness: 350, damping: 15 } };
     }
   };
 
