@@ -194,7 +194,7 @@ export function BookingWizard() {
     const orderRes = await createRazorpayOrderAction(bookingId);
     setLoading(false);
 
-    if (!orderRes.success || !orderRes.orderId) {
+    if (!orderRes.success) {
       setError(orderRes.error || 'Failed to initialize payment gateway.');
       return;
     }
