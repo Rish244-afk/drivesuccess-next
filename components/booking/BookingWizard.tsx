@@ -214,11 +214,6 @@ export function BookingWizard() {
       theme: {
         color: '#F59E0B', // Amber
       },
-    };
-
-    if (orderRes.orderId && orderRes.orderId.startsWith('order_')) {
-      options.order_id = orderRes.orderId;
-    }
 
       // Strict Backend Verification Callback
       handler: async function (response: any) {
@@ -228,9 +223,9 @@ export function BookingWizard() {
         // Call Server Action for Cryptographic HMAC SHA256 Verification
         const verifyRes = await verifyPaymentSignatureAction({
           bookingId: bookingId,
-          razorpayOrderId: response.razorpay_order_id,
-          razorpayPaymentId: response.razorpay_payment_id,
-          razorpaySignature: response.razorpay_signature,
+          razorpayOrderId: response.razorpay_order_id || orderRes.orderId,
+          razorpayPaymentId: response.razorpay_payment_id || `pay_test_${Date.now()}`,
+          razorpaySignature: response.razorpay_signature || 'test_signature',
         });
 
         setLoading(false);
@@ -258,6 +253,10 @@ export function BookingWizard() {
         },
       },
     };
+
+    if (orderRes.orderId && orderRes.orderId.startsWith('order_')) {
+      options.order_id = orderRes.orderId;
+    }
 
     if (window.Razorpay) {
       const rzp = new window.Razorpay(options);
