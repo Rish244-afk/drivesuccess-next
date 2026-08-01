@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Outfit } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import '@/styles/globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { AIChatWidget } from '@/components/ai/AIChatWidget';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
-const outfit = Outfit({ subsets: ['latin'], variable: '--font-heading' });
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', style: ['normal', 'italic'] });
 
 export const viewport: Viewport = {
-  themeColor: '#0b192c',
+  themeColor: '#0A1128',
   width: 'device-width',
   initialScale: 1,
 };
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     '4 Wheeler License',
     '2 Wheeler Training',
     'Dual Control Fleet',
-    'RTO Licensing',
+    'RTO Licensing Support',
   ],
   authors: [{ name: 'DriveSuccess Academy' }],
   openGraph: {
@@ -58,8 +58,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
-      <body className="font-body bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <body className="font-sans bg-[#0A1128] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-400/20 selection:text-amber-400">
         
         {/* Accessibility Skip Link */}
         <a

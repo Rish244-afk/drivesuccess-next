@@ -1,94 +1,121 @@
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, MapPin, Phone, Mail, Award, Clock } from 'lucide-react';
+import { ShieldCheck, MapPin, Phone, Mail, Clock } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="bg-slate-950 text-slate-400 border-t border-slate-800 pt-16 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="bg-[#070B19] text-slate-400 border-t border-slate-800/60 pt-20 pb-12">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
-          
-          {/* Col 1: Brand Info */}
-          <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-amber-500 text-slate-950 rounded-full flex items-center justify-center font-bold">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <span className="font-heading font-extrabold text-xl text-slate-100">
-                DriveSuccess <span className="text-amber-400">Academy</span>
+        {/* Top Editorial Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800/60 pb-12 gap-8">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 border border-amber-400/40 text-amber-400 rounded-full flex items-center justify-center font-serif text-xl italic">
+              D
+            </div>
+            <div>
+              <span className="font-serif text-2xl text-slate-100 block font-normal">
+                Drive<span className="italic text-amber-400">Success</span> Academy
               </span>
-            </Link>
-            <p className="text-xs leading-relaxed text-slate-400">
-              Empowering the next generation of safe drivers through structured, sensor-led pedagogy and safety-first fleet management.
-            </p>
-            <div className="flex items-center gap-2 text-xs text-amber-400 font-semibold">
-              <Award className="w-4 h-4" />
-              <span>ISO 9001:2026 Certified Institution</span>
+              <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500 font-medium">
+                Certified Automotive Driving Institution • Est. 2018
+              </span>
             </div>
           </div>
 
-          {/* Col 2: Programs */}
-          <div>
-            <h4 className="font-heading font-bold text-slate-100 text-xs tracking-wider uppercase mb-4">
-              Training Programs
+          <div className="flex items-center gap-6">
+            <Link
+              href="/book"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-7 py-3 rounded-full transition"
+            >
+              Reserve Session
+            </Link>
+          </div>
+        </div>
+
+        {/* Minimal 3-Column Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-xs">
+          
+          {/* Column 1: Navigate */}
+          <div className="space-y-4">
+            <h4 className="font-serif text-base text-slate-200 font-normal italic">
+              Navigation
             </h4>
-            <ul className="space-y-2.5 text-xs">
-              <li><Link href="/courses" className="hover:text-amber-400 transition">Essential License Program</Link></li>
-              <li><Link href="/courses" className="hover:text-amber-400 transition">License Transfer Bridge</Link></li>
-              <li><Link href="/courses" className="hover:text-amber-400 transition">Professional Masterclass</Link></li>
-              <li><Link href="/courses" className="hover:text-amber-400 transition">Weekend Warrior Program</Link></li>
-              <li><Link href="/courses" className="hover:text-amber-400 transition">License Renewal Support</Link></li>
+            <ul className="space-y-2.5 text-slate-400 font-medium">
+              <li>
+                <Link href="/" className="hover:text-amber-400 transition">Home Overview</Link>
+              </li>
+              <li>
+                <Link href="/courses" className="hover:text-amber-400 transition">Curriculum & Packages</Link>
+              </li>
+              <li>
+                <Link href="/fleet" className="hover:text-amber-400 transition">Vehicle Fleet Standards</Link>
+              </li>
+              <li>
+                <Link href="/book" className="hover:text-amber-400 transition">Schedule Driving Session</Link>
+              </li>
+              <li>
+                <Link href="/auth/login" className="hover:text-amber-400 transition">Student Member Portal</Link>
+              </li>
+              <li>
+                <Link href="/admin/login" className="hover:text-amber-400 transition">Administrative Access</Link>
+              </li>
             </ul>
           </div>
 
-          {/* Col 3: Vehicle Fleet */}
-          <div>
-            <h4 className="font-heading font-bold text-slate-100 text-xs tracking-wider uppercase mb-4">
-              Learning Fleet
+          {/* Column 2: Hours & Operations */}
+          <div className="space-y-4">
+            <h4 className="font-serif text-base text-slate-200 font-normal italic">
+              Academy Hours
             </h4>
-            <ul className="space-y-2.5 text-xs">
-              <li><Link href="/fleet" className="hover:text-amber-400 transition">Tier A: WagonR & Swift</Link></li>
-              <li><Link href="/fleet" className="hover:text-amber-400 transition">Tier A: Polo & Dzire</Link></li>
-              <li><Link href="/fleet" className="hover:text-amber-400 transition">Tier B: Verna Sedan</Link></li>
-              <li><Link href="/fleet" className="hover:text-amber-400 transition">Tier B: Venue & Fronx Crossover</Link></li>
-              <li><Link href="/fleet" className="hover:text-amber-400 transition">Dual-Control Safety Standard</Link></li>
-            </ul>
+            <div className="space-y-3 leading-relaxed text-slate-400">
+              <div className="flex items-start gap-2.5">
+                <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-slate-200 font-semibold">Practical Driving Track Hours</p>
+                  <p>Monday – Saturday: 6:00 AM – 8:00 PM IST</p>
+                  <p>Sunday: 7:00 AM – 2:00 PM IST (Special Slots)</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5 pt-1">
+                <Mail className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-slate-200 font-semibold">Admissions & Support</p>
+                  <p>contact@drivesuccess.edu.in</p>
+                  <p>+91 (080) 4920-8821</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Col 4: Contact Details */}
-          <div>
-            <h4 className="font-heading font-bold text-slate-100 text-xs tracking-wider uppercase mb-4">
-              Academy Contact
+          {/* Column 3: Locate Us (CORRECTED INDIA ADDRESS) */}
+          <div className="space-y-4">
+            <h4 className="font-serif text-base text-slate-200 font-normal italic">
+              Locate Us
             </h4>
-            <ul className="space-y-3 text-xs">
-              <li className="flex items-start gap-3">
+            <div className="space-y-3 text-slate-400 leading-relaxed">
+              <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>100 Academy Way, Suite 500, New York, NY 10027</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>+1 (555) 019-8827</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>contact@drivesuccess.edu</span>
-              </li>
-              <li className="flex items-center gap-3 text-slate-400">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Mon - Sat: 8:00 AM - 8:00 PM</span>
-              </li>
-            </ul>
+                <div>
+                  <p className="text-slate-200 font-semibold">Bengaluru Flagship Branch</p>
+                  <p>DriveSuccess Academy, 29th Main Road</p>
+                  <p>BTM 2nd Stage, Bengaluru, Karnataka 560076</p>
+                  <p className="text-[11px] text-amber-400/80 pt-1 font-mono">
+                    RTO License Track #KA-05 Authorized
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
 
-        <div className="pt-8 border-t border-slate-900 flex flex-col md:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© 2026 DriveSuccess Academy. All rights reserved. Licensed Pedagogical Institution.</p>
-          <div className="flex items-center gap-6">
-            <a href="#" className="hover:text-slate-300">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-300">Terms of Service</a>
-            <a href="#" className="hover:text-slate-300">RTO Accreditation</a>
+        {/* Minimal Copyright Line */}
+        <div className="border-t border-slate-800/60 pt-8 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 font-medium gap-4">
+          <p>© {new Date().getFullYear()} DriveSuccess Academy. All rights reserved.</p>
+          <div className="flex gap-6">
+            <span>RTO Authorized #KA-05/2018</span>
+            <span>Dual-Control Certified Standard</span>
           </div>
         </div>
 

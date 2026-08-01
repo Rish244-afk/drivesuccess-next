@@ -4,91 +4,91 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Award, Users, CheckCircle2, ArrowRight, Star, Clock } from 'lucide-react';
+import { ShieldCheck, Award, Users, CheckCircle2, ArrowRight, Star, Clock, Car, SlidersHorizontal } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <div className="space-y-24 pb-20">
+    <div className="space-y-0">
       
-      {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      {/* 1. HERO SECTION (Deep Navy) */}
+      <section className="relative overflow-hidden bg-[#0A1128] py-24 lg:py-32 border-b border-slate-800/60">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
             {/* Left Content */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+              className="lg:col-span-7 space-y-8"
             >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-extrabold uppercase tracking-wider">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Certified Excellence</span>
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-amber-400/30 text-amber-400 text-xs font-medium tracking-widest uppercase bg-amber-400/5">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                <span>Certified Driving Pedagogy</span>
               </div>
 
-              <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-100 leading-[1.15]">
-                Learn to Drive with <span className="text-amber-400">Professional</span> Confidence
+              <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-slate-100 leading-[1.1] tracking-tight">
+                Learn to Drive with <em className="italic text-amber-400 font-normal">Confidence</em>
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-                Safe, proven-line training for first-time drivers. Our pedagogical approach ensures not just a pass, but a lifetime of road safety and competence.
+              <p className="text-base sm:text-lg text-slate-300 font-light leading-relaxed max-w-xl">
+                Structured sensor-assisted instruction for new drivers. Our patient pedagogical methodology builds long-term competence, road safety, and stress-free license certification.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-5 pt-4">
                 <Link
-                  href="/courses"
-                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-8 py-4 rounded-xl flex items-center justify-center gap-3 text-sm shadow-xl shadow-amber-500/20 hover:-translate-y-0.5 transition-all"
+                  href="/book"
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-8 py-4 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 hover:scale-[1.02] transition-all"
                 >
-                  <span>Explore All Programs</span>
+                  <span>Reserve Training Session</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
                 <Link
-                  href="/fleet"
-                  className="border border-slate-800 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-900 text-slate-200 font-bold px-7 py-4 rounded-xl flex items-center justify-center text-sm transition"
+                  href="/courses"
+                  className="border border-slate-700/80 hover:border-slate-500 text-slate-200 font-medium text-xs uppercase tracking-wider px-7 py-4 rounded-full flex items-center justify-center transition"
                 >
-                  View Vehicle Fleet
+                  Explore Curriculum
                 </Link>
               </div>
 
-              <div className="pt-6 border-t border-slate-800/80 flex items-center gap-6 text-xs text-slate-400">
+              <div className="pt-8 border-t border-slate-800/80 flex items-center gap-8 text-xs text-slate-400 font-medium">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                  <span className="text-amber-400 font-serif text-base italic">✓</span>
                   <span>Dual Control Pedals</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                  <span>Certified Instructors</span>
+                  <span className="text-amber-400 font-serif text-base italic">✓</span>
+                  <span>RTO Approved Tracks</span>
                 </div>
               </div>
             </motion.div>
 
             {/* Right Hero Image Card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative"
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="lg:col-span-5 relative"
             >
-              <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl group">
+              <div className="relative rounded-3xl overflow-hidden border border-slate-800/80 shadow-2xl group">
                 <Image
                   src="/images/hero.jpg"
                   alt="Professional Driving Lesson"
                   width={700}
-                  height={450}
-                  className="w-full h-[400px] sm:h-[460px] object-cover group-hover:scale-105 transition-transform duration-700"
+                  height={500}
+                  className="w-full h-[440px] lg:h-[500px] object-cover group-hover:scale-105 transition-transform duration-700"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128] via-transparent to-transparent opacity-80" />
                 
-                <div className="absolute bottom-6 left-6 right-6 p-5 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl flex items-center justify-between">
+                <div className="absolute bottom-6 left-6 right-6 p-6 bg-[#070B19]/90 backdrop-blur-md border border-slate-800 rounded-2xl flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Student Success Rate</span>
-                    <p className="font-heading font-extrabold text-2xl text-slate-100">98% First Attempt Pass</p>
+                    <span className="text-[10px] font-medium uppercase tracking-widest text-slate-400">RTO First Attempt Rate</span>
+                    <p className="font-serif text-2xl text-slate-100 font-normal mt-0.5">98.4% <em className="italic text-amber-400 font-normal">Success</em></p>
                   </div>
-                  <div className="w-12 h-12 bg-amber-500 text-slate-950 rounded-xl flex items-center justify-center font-bold">
-                    ★ 5.0
+                  <div className="text-right font-serif text-xl italic text-amber-400">
+                    ★ 5.0 Rated
                   </div>
                 </div>
               </div>
@@ -98,185 +98,230 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. TRUST BADGES / STATS SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            { icon: Clock, value: '15+ Years', label: 'Instruction Experience', desc: 'Proven safety pedagogy since 2011' },
-            { icon: Award, value: '98% Pass Rate', label: 'Success Ratio', desc: 'First-time licensing exam pass rate' },
-            { icon: Users, value: '5000+ Students', label: 'Trained & Licensed', desc: 'Graduates driving safely across NY' },
-            { icon: ShieldCheck, value: 'ISO 9001:2026', label: 'Quality Standards', desc: 'Certified safety & maintenance' },
-          ].map((stat, idx) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-slate-900 border border-slate-800 hover:border-amber-500/40 p-6 rounded-2xl transition-all group"
-            >
-              <div className="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <stat.icon className="w-6 h-6" />
-              </div>
-              <h3 className="font-heading font-extrabold text-2xl text-slate-100">{stat.value}</h3>
-              <p className="text-xs font-bold uppercase tracking-wider text-amber-400 mt-1">{stat.label}</p>
-              <p className="text-xs text-slate-400 mt-2">{stat.desc}</p>
-            </motion.div>
-          ))}
+      {/* 2. STAT BAND (3-Column Minimal Numbers, No Icons, No Borders) */}
+      <section className="bg-[#070B19] py-20 border-b border-slate-800/60">
+        <div className="max-w-6xl mx-auto px-6 sm:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800/60">
+            
+            <div className="space-y-2 py-4 md:py-0">
+              <p className="font-serif text-5xl sm:text-6xl text-slate-100 font-normal tracking-tight">
+                2,400<em className="italic text-amber-400 font-normal">+</em>
+              </p>
+              <p className="text-xs uppercase tracking-widest text-slate-400 font-medium">
+                Students Certified
+              </p>
+            </div>
+
+            <div className="space-y-2 py-4 md:py-0">
+              <p className="font-serif text-5xl sm:text-6xl text-slate-100 font-normal tracking-tight">
+                12<em className="italic text-amber-400 font-normal">Years</em>
+              </p>
+              <p className="text-xs uppercase tracking-widest text-slate-400 font-medium">
+                Pedagogical Experience
+              </p>
+            </div>
+
+            <div className="space-y-2 py-4 md:py-0">
+              <p className="font-serif text-5xl sm:text-6xl text-slate-100 font-normal tracking-tight">
+                98.4<em className="italic text-amber-400 font-normal">%</em>
+              </p>
+              <p className="text-xs uppercase tracking-widest text-slate-400 font-medium">
+                First Attempt Pass Rate
+              </p>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      {/* 3. PATHWAY TO PROFESSIONALISM / SERVICES */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 sm:p-12 space-y-12">
+      {/* 3. ALTERNATING LIGHT SECTION: WHY DRIVESUCCESS (Warm Off-White #FAF8F3) */}
+      <section className="bg-[#FAF8F3] text-slate-900 py-24 lg:py-32">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
           
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <span className="text-xs font-extrabold uppercase tracking-wider text-amber-400">Structured Learning Modules</span>
-              <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-slate-100 mt-2">
-                The Pathway to Professionalism
-              </h2>
-              <p className="text-sm text-slate-400 mt-2 max-w-2xl">
-                Modules designed to build skill progressively, from basic vehicle orientation to complex night driving and highway merging.
+          <div className="max-w-3xl space-y-4">
+            <span className="text-xs font-semibold uppercase tracking-widest text-amber-500">
+              Pedagogical Standards
+            </span>
+            <h2 className="font-serif text-4xl sm:text-5xl font-normal text-slate-900 tracking-tight leading-tight">
+              Designed for Stress-Free <em className="italic text-amber-500 font-normal">Mastery</em>
+            </h2>
+            <p className="text-base text-slate-600 font-light leading-relaxed">
+              We replace anxiety with structured practice. Every training module is engineered to build muscle memory, spatial awareness, and calm decision-making.
+            </p>
+          </div>
+
+          {/* Feature Cards: Thin stroke Lucide icons + bold short headline + 1-sentence description, minimal borders */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            
+            <div className="space-y-4 border-l border-slate-300/80 pl-6 py-2">
+              <ShieldCheck className="w-7 h-7 text-amber-500 stroke-[1.25]" />
+              <h3 className="font-serif text-2xl text-slate-900 font-normal">
+                Dual-Control Safety
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-light">
+                Every vehicle features instructor dual-pedal overrides, ensuring instant safety intervention during real traffic sessions.
               </p>
+            </div>
+
+            <div className="space-y-4 border-l border-slate-300/80 pl-6 py-2">
+              <SlidersHorizontal className="w-7 h-7 text-amber-500 stroke-[1.25]" />
+              <h3 className="font-serif text-2xl text-slate-900 font-normal">
+                Tailored Progression
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-light">
+                Progress from private track maneuvering to main-road navigation at a pace tailored specifically to your comfort level.
+              </p>
+            </div>
+
+            <div className="space-y-4 border-l border-slate-300/80 pl-6 py-2">
+              <Award className="w-7 h-7 text-amber-500 stroke-[1.25]" />
+              <h3 className="font-serif text-2xl text-slate-900 font-normal">
+                RTO Exam Fast-Track
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-light">
+                Full documentation assistance and mock driver tests covering track parallel parking, H-tracks, and gradient starts.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* 4. CURRICULUM HIGHLIGHTS (Deep Navy) */}
+      <section className="bg-[#0A1128] py-24 lg:py-32 border-t border-b border-slate-800/60">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div className="max-w-2xl space-y-4">
+              <span className="text-xs font-medium uppercase tracking-widest text-amber-400">
+                Curriculum Programs
+              </span>
+              <h2 className="font-serif text-4xl sm:text-5xl font-normal text-slate-100 tracking-tight">
+                Curated Training <em className="italic text-amber-400 font-normal">Packages</em>
+              </h2>
             </div>
             <Link
               href="/courses"
-              className="inline-flex items-center gap-2 text-sm font-bold text-amber-400 hover:underline shrink-0"
+              className="text-xs font-semibold uppercase tracking-widest text-amber-400 hover:underline flex items-center gap-2"
             >
-              <span>Explore all services</span>
+              <span>View All 7 Programs</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Card 1 */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden group flex flex-col"
-            >
-              <div className="h-56 relative overflow-hidden">
-                <Image
-                  src="/images/hero_driving_lesson_1785513694392.jpg"
-                  alt="License Courses"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* Package 1 */}
+            <div className="bg-[#070B19] border border-slate-800/80 hover:border-amber-400/40 p-8 rounded-2xl space-y-6 transition-all duration-300 hover:-translate-y-1 group">
+              <div className="flex justify-between items-start">
+                <span className="text-[10px] uppercase tracking-widest text-amber-400 font-semibold border border-amber-400/30 px-3 py-1 rounded-full">
+                  Most Popular
+                </span>
+                <span className="font-serif text-2xl text-amber-400">₹5,000</span>
               </div>
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-md">
-                    Comprehensive
-                  </span>
-                  <h3 className="font-heading font-extrabold text-xl text-slate-100 mt-3">License Courses</h3>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    Packages from beginner to advanced maneuvers. Includes mock RTO exams, parallel parking mastery, and defensive driving.
-                  </p>
-                </div>
-                <Link href="/courses" className="inline-flex items-center gap-2 text-xs font-bold text-slate-200 group-hover:text-amber-400 transition">
-                  <span>Learn More</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+              <div>
+                <h3 className="font-serif text-2xl text-slate-100 font-normal group-hover:text-amber-400 transition-colors">
+                  4 Wheeler License
+                </h3>
+                <p className="text-xs text-slate-400 font-light leading-relaxed mt-2">
+                  10 comprehensive 1-on-1 practical driving sessions + mock RTO exam track prep.
+                </p>
               </div>
-            </motion.div>
-
-            {/* Card 2 */}
-            <motion.div
-              whileHover={{ y: -6 }}
-              className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden group flex flex-col"
-            >
-              <div className="h-56 relative overflow-hidden">
-                <Image
-                  src="/images/fleet_verna_1785513736403.jpg"
-                  alt="Vehicle Fleet"
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-md">
-                    Safety Fleet
-                  </span>
-                  <h3 className="font-heading font-extrabold text-xl text-slate-100 mt-3">Vehicle Fleet</h3>
-                  <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                    Modern, dual-control vehicles equipped with certified instructor pedals, blind-spot sensors, and rear cameras.
-                  </p>
-                </div>
-                <Link href="/fleet" className="inline-flex items-center gap-2 text-xs font-bold text-slate-200 group-hover:text-amber-400 transition">
-                  <span>View Fleet</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 4. TESTIMONIALS SECTION */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-10">
-        <div>
-          <span className="text-xs font-extrabold uppercase tracking-wider text-amber-400">Verified Student Alumni</span>
-          <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-slate-100 mt-2">
-            Success Stories
-          </h2>
-          <p className="text-sm text-slate-400 mt-2 max-w-xl mx-auto">
-            Hear from our recently licensed alumni about their journey to confident driving.
-          </p>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="bg-slate-900 border border-slate-800 p-8 sm:p-12 rounded-3xl max-w-3xl mx-auto text-left relative"
-        >
-          <div className="flex gap-1 text-amber-400 mb-6">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-            ))}
-          </div>
-
-          <p className="text-base sm:text-lg text-slate-200 italic leading-relaxed">
-            “The instructors at DriveSuccess Academy are incredibly patient. I was a very nervous driver, but they broke down every parallel park and highway merge into manageable steps. Passed my license test on my first attempt!”
-          </p>
-
-          <div className="mt-8 flex items-center gap-4 pt-6 border-t border-slate-800">
-            <Image
-              src="/images/student_alex_1785513764126.jpg"
-              alt="Sarah Jenkins"
-              width={52}
-              height={52}
-              className="rounded-full object-cover border-2 border-amber-400"
-            />
-            <div>
-              <h4 className="font-heading font-bold text-slate-100 text-base">Sarah Jenkins</h4>
-              <p className="text-xs text-slate-400">First-Time Licensee • Essential Program Graduate</p>
+              <ul className="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800/80">
+                <li>• 10 Practical Road Sessions</li>
+                <li>• Clutch & Hill-Start Mastery</li>
+                <li>• RTO Track Mock Exam</li>
+              </ul>
+              <Link
+                href="/book"
+                className="block text-center w-full py-3 border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-400 text-xs uppercase tracking-widest font-semibold rounded-full transition"
+              >
+                Select Program
+              </Link>
             </div>
+
+            {/* Package 2 */}
+            <div className="bg-[#070B19] border border-slate-800/80 hover:border-amber-400/40 p-8 rounded-2xl space-y-6 transition-all duration-300 hover:-translate-y-1 group">
+              <div className="flex justify-between items-start">
+                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold border border-slate-800 px-3 py-1 rounded-full">
+                  Dual Vehicle
+                </span>
+                <span className="font-serif text-2xl text-amber-400">₹7,500</span>
+              </div>
+              <div>
+                <h3 className="font-serif text-2xl text-slate-100 font-normal group-hover:text-amber-400 transition-colors">
+                  Combo (2W + 4W)
+                </h3>
+                <p className="text-xs text-slate-400 font-light leading-relaxed mt-2">
+                  16 practical sessions covering both gear motorcycle balance and 4-wheeler driving.
+                </p>
+              </div>
+              <ul className="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800/80">
+                <li>• 16 Dual Vehicle Sessions</li>
+                <li>• Motorcycle Balance & Braking</li>
+                <li>• Complete RTO Processing</li>
+              </ul>
+              <Link
+                href="/book"
+                className="block text-center w-full py-3 border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-400 text-xs uppercase tracking-widest font-semibold rounded-full transition"
+              >
+                Select Program
+              </Link>
+            </div>
+
+            {/* Package 3 */}
+            <div className="bg-[#070B19] border border-slate-800/80 hover:border-amber-400/40 p-8 rounded-2xl space-y-6 transition-all duration-300 hover:-translate-y-1 group">
+              <div className="flex justify-between items-start">
+                <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold border border-slate-800 px-3 py-1 rounded-full">
+                  Refresher
+                </span>
+                <span className="font-serif text-2xl text-amber-400">₹4,200</span>
+              </div>
+              <div>
+                <h3 className="font-serif text-2xl text-slate-100 font-normal group-hover:text-amber-400 transition-colors">
+                  License Renewal
+                </h3>
+                <p className="text-xs text-slate-400 font-light leading-relaxed mt-2">
+                  8 targeted sessions to rebuild confidence for drivers returning to traffic after a gap.
+                </p>
+              </div>
+              <ul className="space-y-2 text-xs text-slate-300 pt-2 border-t border-slate-800/80">
+                <li>• 8 Heavy-Traffic Sessions</li>
+                <li>• Highway Merging Practice</li>
+                <li>• Paperwork Renewal Support</li>
+              </ul>
+              <Link
+                href="/book"
+                className="block text-center w-full py-3 border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-400 text-xs uppercase tracking-widest font-semibold rounded-full transition"
+              >
+                Select Program
+              </Link>
+            </div>
+
           </div>
-        </motion.div>
+
+        </div>
       </section>
 
-      {/* 5. CTA BANNER */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-amber-950/40 border border-slate-800 rounded-3xl p-10 sm:p-14 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl relative overflow-hidden">
-          <div className="space-y-3 text-center md:text-left z-10 max-w-xl">
-            <h2 className="font-heading font-extrabold text-3xl sm:text-4xl text-slate-100">
-              Start Your Driving Journey Today
-            </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              Flexible scheduling across 12 academy locations. Morning, afternoon, and weekend slots available with certified senior instructors.
-            </p>
+      {/* 5. CTA BAND (Full-width Navy section, Centered Serif heading with italic accent word, Single Amber Button) */}
+      <section className="bg-[#070B19] py-28 text-center border-t border-slate-800/60">
+        <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-8">
+          <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-100 tracking-tight leading-tight">
+            Your Journey to <em className="italic text-amber-400 font-normal">Freedom</em> Starts Today
+          </h2>
+          <p className="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
+            Reserve your preferred training vehicle, instructor, and schedule online in under 2 minutes.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/book"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-9 py-4 rounded-full inline-flex items-center gap-2 shadow-xl shadow-amber-500/10 hover:scale-[1.02] transition-all"
+            >
+              <span>Reserve Your Session Now</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-
-          <Link
-            href="/courses"
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-8 py-4 rounded-xl flex items-center gap-3 text-sm shadow-xl shadow-amber-500/20 shrink-0 hover:scale-105 transition-all z-10"
-          >
-            <span>Explore Programs</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
         </div>
       </section>
 
