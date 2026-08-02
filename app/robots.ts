@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/', '/dashboard/'],
     },
-    sitemap: 'https://drivesuccess.edu/sitemap.xml',
+    sitemap: 'https://drivesuccess-next.vercel.app/sitemap.xml',
   };
 }
