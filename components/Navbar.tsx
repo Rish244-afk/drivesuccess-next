@@ -101,8 +101,10 @@ export function Navbar() {
         {/* Mobile Hamburger Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-slate-300 hover:text-amber-400 p-2 rounded-xl border border-slate-800 focus:outline-none"
+          className="md:hidden text-slate-300 hover:text-amber-400 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400/40 transition"
           aria-label="Toggle Navigation Menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-navigation-drawer"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
