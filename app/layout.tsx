@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
 import '@/styles/globals.css';
+import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { AIChatWidget } from '@/components/ai/AIChatWidget';
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
-import { CookieConsentBanner } from '@/components/privacy/CookieConsentBanner';
-
 import { JsonLdSchemas } from '@/components/seo/JsonLdSchemas';
+
+const AIChatWidget = dynamic(() => import('@/components/ai/AIChatWidget').then((mod) => mod.AIChatWidget), { ssr: false });
+const CookieConsentBanner = dynamic(() => import('@/components/privacy/CookieConsentBanner').then((mod) => mod.CookieConsentBanner), { ssr: false });
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', style: ['normal', 'italic'] });
