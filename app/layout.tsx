@@ -7,6 +7,8 @@ import { AIChatWidget } from '@/components/ai/AIChatWidget';
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
 import { CookieConsentBanner } from '@/components/privacy/CookieConsentBanner';
 
+import { JsonLdSchemas } from '@/components/seo/JsonLdSchemas';
+
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', style: ['normal', 'italic'] });
 
@@ -17,36 +19,40 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://drivesuccess.edu'),
+  metadataBase: new URL('https://drivesuccess-next.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
   title: {
-    default: 'Vahathi Motor Driving School | DriveSuccess Academy',
+    default: 'Vahathi Motor Driving School | DriveSuccess Academy Bengaluru',
     template: '%s | Vahathi Motor Driving School',
   },
   description:
-    'Vahathi Motor Driving School (DriveSuccess Academy) - Professional driving lessons for Hyundai Creta, Honda City, Hyundai Eon, Swift & WagonR. 10 & 15 days packages with 2W & 4W RTO license support. Call 7829780778.',
+    'Vahathi Motor Driving School (DriveSuccess Academy) - Professional driving lessons for Hyundai Creta SUV, Honda City, Swift & WagonR. 10 & 15 days packages with 2W & 4W RTO license support in Bengaluru. Call +91 7829780778.',
   keywords: [
-    'Driving School',
-    'Driver License',
-    'Driving Lessons',
-    '4 Wheeler License',
+    'Driving School Bengaluru',
+    'Vahathi Motor Driving School',
+    'Creta SUV Driving Training',
+    'Honda City Driving Lessons',
+    '4 Wheeler Driving License',
     '2 Wheeler Training',
     'Dual Control Fleet',
-    'RTO Licensing Support',
+    'RTO Licensing Support BTM Stage 2',
   ],
-  authors: [{ name: 'DriveSuccess Academy' }],
+  authors: [{ name: 'Vahathi Motor Driving School' }],
   openGraph: {
-    title: 'DriveSuccess Academy | Professional Driving School',
+    title: 'Vahathi Motor Driving School | DriveSuccess Academy',
     description:
-      'Master the road with confidence. Dual-control fleet, certified instructors, flexible schedules, and RTO licensing support.',
-    url: 'https://drivesuccess.edu',
-    siteName: 'DriveSuccess Academy',
-    locale: 'en_US',
+      'Master the road with confidence. Hyundai Creta SUV & Honda City dual-control fleet, certified instructors, flexible schedules, and RTO licensing support.',
+    url: 'https://drivesuccess-next.vercel.app',
+    siteName: 'Vahathi Motor Driving School',
+    locale: 'en_IN',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'DriveSuccess Academy | Professional Driving School',
-    description: 'Master the road with confidence. Dual-control fleet & RTO licensing support.',
+    title: 'Vahathi Motor Driving School | DriveSuccess Academy',
+    description: 'Master the road with confidence. Dual-control fleet & RTO licensing support in Bengaluru.',
   },
   robots: {
     index: true,
@@ -62,6 +68,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans bg-[#0A1128] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-400/20 selection:text-amber-400">
+        <JsonLdSchemas />
         <SmoothScrollProvider>
           {/* Accessibility Skip Link */}
           <a
