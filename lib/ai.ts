@@ -4,37 +4,47 @@ import { createRazorpayOrderAction } from '@/actions/razorpay';
 import { getServerSession } from '@/lib/auth';
 import { PackageType, BookingStatus, PaymentStatus, SessionStatus } from '@prisma/client';
 
-// Knowledge Base for FAQ & Customer Support
+// Expanded Knowledge Base for FAQ & General Information
 const FAQ_KNOWLEDGE_BASE = [
   {
-    keywords: ['rto', 'license', 'age', 'eligibility', 'document', 'form', 'paperwork'],
-    answer: 'To apply for a 2-Wheeler or 4-Wheeler (LMV) Driving License, you must be at least 18 years old. Required documents: 1) Proof of Age (Aadhaar / Passport / Birth Certificate), 2) Address Proof, 3) Passport Photos, and 4) Form 1A Medical Certificate. Our instructors assist you with RTO slot booking and mock track testing!',
+    category: 'ABOUT',
+    keywords: ['about', 'website', 'drivesuccess', 'school', 'academy', 'services', 'offer', 'what do you do', 'who are you'],
+    answer: 'DriveSuccess Academy is an accredited ISO 9001:2026 driving school. We provide 2-Wheeler (Bike/Scooter) and 4-Wheeler (Compact/Sedan/SUV) practical driving courses, RTO mock test prep, dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and doorstep pickup.',
   },
   {
-    keywords: ['vehicle', 'car', 'dual control', 'safety', 'fleet', 'pedal'],
-    answer: 'Every learning car in our fleet (WagonR, Swift, Dzire, Polo, Verna, Venue, Fronx) is fitted with instructor dual-brake & clutch control pedals, dual mirrors, and smart safety sensors for 100% peace of mind.',
+    category: 'DOCUMENTS',
+    keywords: ['document', 'documents', 'need', 'paperwork', 'proof', 'age', 'rto', 'requirement', 'eligibility', 'form'],
+    answer: 'To apply for a Driving License, you must be at least 18 years old. Required documents include: 1) Proof of Age (Aadhaar / Passport / Birth Certificate), 2) Proof of Address, 3) 4 Passport size photos, and 4) Form 1A Medical Certificate. Our team assists you with RTO slot booking and test track prep!',
   },
   {
-    keywords: ['payment', 'method', 'accept', 'upi', 'card', 'pay'],
-    answer: 'We accept all major payment methods including UPI (Google Pay, PhonePe, Paytm), Debit & Credit Cards, Netbanking, and EMI via our secure Razorpay gateway.',
+    category: 'VEHICLES',
+    keywords: ['vehicle', 'car', 'dual control', 'safety', 'fleet', 'pedal', 'model'],
+    answer: 'Every learning vehicle in our fleet (WagonR, Swift, Dzire, Polo, Verna, Venue, Fronx) is equipped with instructor-side dual brake & clutch control pedals, dual side mirrors, and smart assist sensors for 100% driving safety.',
   },
   {
-    keywords: ['refund', 'cancel', 'money back'],
-    answer: 'Cancellations made at least 24 hours before a scheduled session are eligible for full refund or free slot rescheduling. To process a refund, please contact our support desk directly at +91 7829780778 or email support@drivesuccess.edu with your Booking ID.',
+    category: 'PAYMENTS',
+    keywords: ['payment', 'method', 'accept', 'upi', 'card', 'pay', 'razorpay', 'netbanking'],
+    answer: 'We accept all major payment options including UPI (Google Pay, PhonePe, Paytm), Debit & Credit Cards, Netbanking, and EMI via our secure Razorpay gateway.',
   },
   {
-    keywords: ['pickup', 'drop', 'doorstep', 'home', 'location'],
-    answer: 'We provide complimentary doorstep pickup and drop-off service within a 10 km radius of our primary training tracks.',
+    category: 'REFUNDS',
+    keywords: ['refund', 'cancel', 'money back', 'dispute', 'complaint'],
+    answer: 'Cancellations made at least 24 hours before a scheduled session are eligible for a full refund or free slot rescheduling. To initiate a refund or dispute, please contact our support desk directly at +91 7829780778 or email support@drivesuccess.edu with your Booking ID.',
   },
   {
-    keywords: ['duration', 'time', 'hours', 'session', 'class'],
-    answer: 'Each practical driving session is 60 minutes long. Complete packages range from 10 to 15 one-on-one practical driving sessions plus RTO track preparation.',
+    category: 'LOCATION',
+    keywords: ['pickup', 'drop', 'doorstep', 'home', 'location', 'track', 'radius'],
+    answer: 'We offer complimentary doorstep pickup and drop-off service within a 10 km radius of our primary training tracks.',
+  },
+  {
+    category: 'DURATION',
+    keywords: ['duration', 'time', 'hours', 'session', 'class', 'length'],
+    answer: 'Each practical driving session is 60 minutes long. Full licensing packages range from 10 to 15 one-on-one practical driving sessions plus RTO test track preparation.',
   },
 ];
 
 /**
  * 1. Tool Implementation: checkAvailability()
- * Queries database for real available slots
  */
 export async function checkAvailabilityTool(params: { date?: string; packageType?: string }) {
   try {
@@ -79,7 +89,6 @@ export async function checkAvailabilityTool(params: { date?: string; packageType
 
 /**
  * 2. Tool Implementation: createBooking()
- * Creates atomic booking in database & returns Razorpay payment link
  */
 export async function createBookingTool(params: {
   studentName?: string;
@@ -184,7 +193,6 @@ export async function createBookingTool(params: {
 
 /**
  * 3. Tool Implementation: getUserBookingStatus()
- * Queries current user's booking payment and session confirmation status
  */
 export async function getUserBookingStatusTool() {
   try {
@@ -232,19 +240,20 @@ export async function getUserBookingStatusTool() {
  * 4. Tool Implementation: getFAQAnswer()
  */
 export async function getFAQAnswerTool(params: { query: string }) {
-  const queryLower = params.query.toLowerCase();
+  const queryLower = params.query.toLowerCase().trim();
 
   const matched = FAQ_KNOWLEDGE_BASE.find((faq) =>
     faq.keywords.some((kw) => queryLower.includes(kw))
   );
 
   if (matched) {
-    return { success: true, answer: matched.answer };
+    return { success: true, isMatched: true, category: matched.category, answer: matched.answer };
   }
 
+  // Default general information response instead of instant escalation
   return {
     success: true,
-    isFallback: true,
-    answer: "I'm not fully sure on that specific detail — let me connect you directly with our senior team! You can call us at +91 7829780778 or email support@drivesuccess.edu for instant assistance.",
+    isMatched: false,
+    answer: 'DriveSuccess Academy offers accredited 2-wheeler and 4-wheeler practical driving courses with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and RTO exam track prep. How can I assist you with packages or lesson slots?',
   };
 }
