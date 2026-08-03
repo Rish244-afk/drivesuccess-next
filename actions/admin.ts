@@ -21,27 +21,30 @@ export async function adminLoginAction(formData: FormData) {
       return { success: false, error: 'Email and password are required.' };
     }
 
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@drivesuccess.edu').toLowerCase().trim();
+    const adminPassword = process.env.ADMIN_PASSWORD || 'VahathiAdmin#2026!';
+
+    if (email.toLowerCase().trim() !== adminEmail || password !== adminPassword) {
+      return { success: false, error: 'Invalid admin credentials.' };
+    }
+
     // Check credentials or find admin student record
     let adminUser = await prisma.student.findFirst({
-      where: { email: email.toLowerCase().trim(), role: Role.ADMIN },
+      where: { email: adminEmail, role: Role.ADMIN },
     });
 
-    const isValidPassword = password === 'VahathiAdmin#2026!' || password === 'admin123';
-
-    if (!adminUser && email === 'admin@drivesuccess.edu' && isValidPassword) {
+    if (!adminUser) {
       // Upsert default admin user
       adminUser = await prisma.student.upsert({
-        where: { email: 'admin@drivesuccess.edu' },
+        where: { email: adminEmail },
         update: { role: Role.ADMIN },
         create: {
-          email: 'admin@drivesuccess.edu',
+          email: adminEmail,
           name: 'Chief Academy Director',
           phone: '+91 7829780778',
           role: Role.ADMIN,
         },
       });
-    } else if (!adminUser || !isValidPassword) {
-      return { success: false, error: 'Invalid admin credentials.' };
     }
 
     // Issue Admin JWT Token
