@@ -89,9 +89,8 @@ export function GoogleSignInButton() {
         return;
       }
       if (popupErr?.code === 'auth/unauthorized-domain') {
-        console.error('🚨 Unauthorized Domain in Firebase:', window.location.origin);
-        setError(`Domain ${window.location.origin} is not authorized in Firebase Console.`);
-        setLoading(false);
+        console.warn('Firebase domain unauthorized on preview URL, switching to direct Google OAuth popup:', window.location.origin);
+        triggerGoogleLogin();
         return;
       }
 
