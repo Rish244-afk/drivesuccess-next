@@ -1,18 +1,25 @@
 'use client';
 
-import React, { useState } from 'react';
-import { GoogleLogin, useGoogleOneTapLogin, useGoogleLogin } from '@react-oauth/google';
+import React, { useEffect, useState, useRef } from 'react';
+import { useGoogleLogin } from '@react-oauth/google';
 import { auth, googleAuthProvider, signInWithPopup } from '@/lib/firebase';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
 
 export function GoogleSignInButton() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const gsiButtonRef = useRef<HTMLDivElement>(null);
 
-  // 1. Process Google credential after user finishes account selection in popup/One Tap
+  // 1. Process Google credential after user finishes account selection in One Tap or Popup
   const processGoogleCredential = async (payload: {
     credential?: string;
     email?: string | null;
@@ -23,7 +30,7 @@ export function GoogleSignInButton() {
     setError(null);
 
     try {
-      console.log('🔄 Sending Google token to server for backend verification...');
+      console.log('🔄 Sending Google ID token to backend for verification...');
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -38,36 +45,95 @@ export function GoogleSignInButton() {
       const data = await res.json();
 
       if (data.success) {
-        console.log('✅ Google identity verified! Session cookie issued.');
+        console.log('✅ Google Identity verified! Session issued.');
         setSuccess(true);
         setTimeout(() => {
           router.push('/dashboard');
           router.refresh();
         }, 600);
       } else {
-        console.error('❌ Server verification rejected Google token:', data.error);
+        console.error('❌ Server verification rejected token:', data.error);
         setError(data.error || 'Google Authentication failed. Please try again.');
       }
     } catch (err: any) {
-      console.error('🚨 Network/Server error during Google auth verification:', err);
+      console.error('🚨 Network error verifying Google token:', err);
       setError('Network error connecting to authentication server.');
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. Google Identity Services (GSI) One-Tap / Standard Button Handler
-  const handleGsiCredential = (credentialResponse: any) => {
-    if (!credentialResponse?.credential) return;
-    console.log('🔑 GSI Credential received from Google Identity Services.');
-    processGoogleCredential({ credential: credentialResponse.credential });
-  };
+  // 2. Initialize Google Identity Services (GSI) One Tap + Official Rendered Button
+  useEffect(() => {
+    const clientId =
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+      '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
 
-  // 3. Secondary Custom Google OAuth popup trigger via useGoogleLogin
-  const triggerGoogleLogin = useGoogleLogin({
+    const initGsi = () => {
+      if (window.google?.accounts?.id) {
+        console.log('⚡ Initializing Google Identity Services (One Tap)...');
+
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response: any) => {
+            console.log('🔑 Google One Tap / GSI Credential received:', response);
+            if (response.credential) {
+              processGoogleCredential({ credential: response.credential });
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: false,
+        });
+
+        // Trigger Google One Tap UI prompt (top-right corner prompt)
+        window.google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed()) {
+            console.log('ℹ️ One Tap not displayed reason:', notification.getNotDisplayedReason());
+          } else if (notification.isSkippedMoment()) {
+            console.log('ℹ️ One Tap skipped reason:', notification.getSkippedReason());
+          } else if (notification.isDismissedMoment()) {
+            console.log('ℹ️ One Tap dismissed reason:', notification.getDismissedReason());
+          }
+        });
+
+        // Render official GSI button in container if present
+        if (gsiButtonRef.current) {
+          gsiButtonRef.current.innerHTML = '';
+          window.google.accounts.id.renderButton(gsiButtonRef.current, {
+            theme: 'filled_black',
+            size: 'large',
+            shape: 'rectangular',
+            text: 'continue_with',
+            width: '100%',
+          });
+        }
+      }
+    };
+
+    // Load GSI script if not present
+    if (typeof window !== 'undefined' && !window.google?.accounts?.id) {
+      const existingScript = document.getElementById('google-gsi-script');
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.id = 'google-gsi-script';
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = initGsi;
+        document.head.appendChild(script);
+      } else {
+        existingScript.addEventListener('load', initGsi);
+      }
+    } else {
+      initGsi();
+    }
+  }, []);
+
+  // 3. Fallback OAuth Popup trigger via useGoogleLogin
+  const triggerGoogleOAuth = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       if (!tokenResponse?.access_token) return;
-      console.log('🔑 OAuth access token received from Google Account Picker.');
+      console.log('🔑 Google OAuth access token received.');
       setLoading(true);
       setError(null);
 
@@ -84,32 +150,34 @@ export function GoogleSignInButton() {
           sub: googleUser.sub,
         });
       } catch (e: any) {
-        console.error('🚨 Failed to fetch Google user profile from Google API:', e);
+        console.error('🚨 Failed to fetch user profile:', e);
         setError('Failed to retrieve Google profile identity.');
         setLoading(false);
       }
     },
     onError: (errResp: any) => {
-      console.error('🚨 Google OAuth Popup Error Response:', errResp);
-      setError(`Google Sign-In Error: ${errResp?.error_description || errResp?.error || 'Popup closed or domain unauthorized'}`);
+      console.error('🚨 Google OAuth Error:', errResp);
+      setError(`Google Sign-In Error: ${errResp?.error_description || errResp?.error || 'Popup closed'}`);
       setLoading(false);
     },
   });
 
-  // 4. Primary Button Click: Trigger Google Popup IMMEDIATELY (Do NOT set loading=true prematurely)
+  // 4. Primary Custom Button Handler: Triggers GSI prompt or Firebase popup
   const handleGoogleClick = async () => {
     setError(null);
 
-    try {
-      console.log('🔒 Triggering Google Account Picker popup for domain:', typeof window !== 'undefined' ? window.location.origin : '');
+    // If GSI prompt is available, try prompt or fallback to Firebase / OAuth popup
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.prompt();
+    }
 
+    try {
+      console.log('🔒 Triggering Firebase Google Auth popup...');
       const result = await signInWithPopup(auth, googleAuthProvider);
       const user = result.user;
       const idToken = await user.getIdToken();
 
       console.log('🔑 Firebase Google Account selected:', user.email);
-
-      // User has selected account in popup, NOW verify backend
       await processGoogleCredential({
         credential: idToken || 'custom_access_token',
         email: user.email,
@@ -117,30 +185,17 @@ export function GoogleSignInButton() {
         sub: user.uid,
       });
     } catch (popupErr: any) {
-      console.warn('Firebase Google Auth popup warning/error:', popupErr);
-
+      console.warn('Firebase popup warning, falling back to direct OAuth:', popupErr);
       if (popupErr?.code === 'auth/popup-closed-by-user') {
-        console.log('ℹ️ User closed Google Account Picker popup window.');
         return;
       }
-
-      // If domain unauthorized or popup blocked, fallback to useGoogleLogin directly
-      console.log('🔄 Triggering fallback Google OAuth popup...');
       try {
-        triggerGoogleLogin();
+        triggerGoogleOAuth();
       } catch (err) {
-        console.error('🚨 All Google Sign-In triggers failed:', err);
         setError('Google Sign-In service unavailable.');
       }
     }
   };
-
-  // 5. Google One Tap automatic prompt on page load
-  useGoogleOneTapLogin({
-    onSuccess: handleGsiCredential,
-    onError: () => console.log('One Tap Prompt dismissed or unavailable'),
-    disabled: loading || success,
-  });
 
   return (
     <div className="w-full space-y-3">
@@ -164,7 +219,10 @@ export function GoogleSignInButton() {
           <span>Verifying Google Identity...</span>
         </div>
       ) : (
-        <div className="w-full space-y-2">
+        <div className="w-full space-y-2.5">
+          {/* Official Google Identity Services (GSI) Button Container */}
+          <div ref={gsiButtonRef} className="w-full min-h-[40px] flex justify-center" />
+
           {/* Custom Branded Google Sign-In Button */}
           <button
             type="button"
@@ -179,14 +237,6 @@ export function GoogleSignInButton() {
             </svg>
             <span>Continue with Google</span>
           </button>
-
-          {/* Official GSI Button Embed */}
-          <div className="hidden">
-            <GoogleLogin
-              onSuccess={handleGsiCredential}
-              onError={() => console.log('GSI fallback prompt dismissed')}
-            />
-          </div>
         </div>
       )}
     </div>
