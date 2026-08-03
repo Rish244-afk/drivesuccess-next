@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ShieldCheck, X, Send, Sparkles, CheckCircle2, CreditCard, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { processAIChatAction, AIMessage } from '@/actions/aiAssistant';
+import { processAIChatAction, AIMessage, AIOption, AIPackageCard } from '@/actions/aiAssistant';
 import Link from 'next/link';
 
 export function AIChatWidget() {
@@ -13,7 +13,12 @@ export function AIChatWidget() {
   const [messages, setMessages] = useState<AIMessage[]>([
     {
       role: 'assistant',
-      content: 'Hello! I am your DriveAI Assistant. How can I help you today with course packages, open session slots, or booking details?',
+      content: 'Hello! I am your DriveAI Assistant. How can I help you today?',
+      options: [
+        { label: '📦 Browse Packages', value: 'Show packages' },
+        { label: '📅 Check Open Slots', value: 'Check available slots' },
+        { label: '📜 RTO License Docs', value: 'What documents do I need' },
+      ],
     },
   ]);
 
@@ -57,6 +62,8 @@ export function AIChatWidget() {
       const botMsg: AIMessage = {
         role: 'assistant',
         content: res.message || '',
+        options: res.options,
+        packageCards: res.packageCards,
         cardData: res.cardData,
       };
       setMessages((prev) => [...prev, botMsg]);
@@ -122,7 +129,7 @@ export function AIChatWidget() {
               </button>
             </div>
 
-            {/* Touch-optimized Scrollable Messages Container (Fixes Issue 1) */}
+            {/* Touch-optimized Scrollable Messages Container */}
             <div
               className="flex-1 overflow-y-auto p-4 space-y-4 touch-pan-y overscroll-contain"
               style={{
@@ -133,7 +140,7 @@ export function AIChatWidget() {
               {messages.map((m, idx) => (
                 <div
                   key={idx}
-                  className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-2`}
+                  className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} space-y-2.5`}
                 >
                   {/* Message Bubble */}
                   <div
@@ -145,6 +152,70 @@ export function AIChatWidget() {
                   >
                     <p className="whitespace-pre-line">{m.content}</p>
                   </div>
+
+                  {/* Interactive Tappable Option Chips (WhatsApp/Instagram Style) */}
+                  {m.options && m.options.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1 max-w-[95%]">
+                      {m.options.map((opt, oIdx) => (
+                        <button
+                          key={oIdx}
+                          type="button"
+                          disabled={idx < messages.length - 1 || loading}
+                          onClick={() => handleSendMessage(opt.value)}
+                          className={`px-3.5 py-2 rounded-full text-xs font-semibold tracking-wide transition-all shadow-md flex items-center gap-1.5 border ${
+                            idx < messages.length - 1
+                              ? 'bg-slate-900/40 border-slate-800/60 text-slate-500 cursor-not-allowed opacity-50'
+                              : 'bg-slate-900 border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-slate-950 hover:border-amber-500 active:scale-95 cursor-pointer'
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Mini Product Package Cards */}
+                  {m.packageCards && m.packageCards.length > 0 && (
+                    <div className="w-full space-y-2.5 pt-1">
+                      {m.packageCards.map((pkg, pIdx) => (
+                        <div
+                          key={pIdx}
+                          className="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2.5 shadow-xl hover:border-amber-500/40 transition"
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <div>
+                              <h4 className="font-heading font-bold text-xs text-slate-100">{pkg.name}</h4>
+                              <p className="text-[11px] text-slate-400 font-light mt-0.5">
+                                {pkg.description || `${pkg.sessionsCount} Practical Driving Sessions`}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-sm font-extrabold text-amber-400 font-mono">₹{pkg.price.toLocaleString()}</span>
+                              {pkg.badge && (
+                                <span className="block text-[9px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30 text-center mt-1 font-semibold">
+                                  {pkg.badge}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={idx < messages.length - 1 || loading}
+                            onClick={() => handleSendMessage(`Select ${pkg.name}`)}
+                            className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow ${
+                              idx < messages.length - 1
+                                ? 'bg-slate-950 text-slate-600 border border-slate-800 cursor-not-allowed opacity-60'
+                                : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20 active:scale-98 cursor-pointer'
+                            }`}
+                          >
+                            <span>Select This Package</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Interactive Slots Card */}
                   {m.cardData && m.cardData.type === 'SLOTS_AVAILABLE' && (
@@ -208,7 +279,7 @@ export function AIChatWidget() {
                     <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-[11px] font-medium text-slate-300 font-sans">Checking options & database...</span>
+                  <span className="text-[11px] font-medium text-slate-300 font-sans">Fetching options...</span>
                 </div>
               )}
 
@@ -227,13 +298,13 @@ export function AIChatWidget() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about courses, pricing, or open slots..."
+                placeholder="Type a message or tap an option above..."
                 className="flex-1 bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-2.5 rounded-xl text-xs outline-none transition font-sans"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 p-2.5 rounded-xl disabled:opacity-50 transition focus:outline-none"
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 p-2.5 rounded-xl disabled:opacity-50 transition focus:outline-none cursor-pointer"
               >
                 <Send className="w-4 h-4" />
               </button>
