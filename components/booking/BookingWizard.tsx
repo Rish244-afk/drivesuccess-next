@@ -30,6 +30,7 @@ import {
 import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/actions/auth';
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
+import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
 
 interface WizardPackage {
   id: string;
@@ -126,6 +127,20 @@ export function BookingWizard() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  const setupWizardRecaptcha = () => {
+    if (typeof window === 'undefined') return null;
+    if ((window as any).wizardRecaptchaVerifier) {
+      return (window as any).wizardRecaptchaVerifier;
+    }
+    const verifier = new RecaptchaVerifier(auth, 'wizard-recaptcha-container', {
+      size: 'invisible',
+      callback: () => {},
+    });
+    (window as any).wizardRecaptchaVerifier = verifier;
+    return verifier;
+  };
 
   const refreshSessionData = async () => {
     try {
@@ -133,11 +148,21 @@ export function BookingWizard() {
       const data = await res.json();
       if (data.success && data.user) {
         setIsGuest(false);
-        if (data.user.name) setStudentName(data.user.name);
-        if (data.user.phone) setStudentPhone(data.user.phone);
-        if (data.user.email) setStudentEmail(data.user.email);
+        setStudentName(data.user.name || '');
+        setStudentPhone(data.user.phone || '');
+        setStudentEmail(data.user.email || '');
+      } else {
+        setIsGuest(true);
+        setStudentName('');
+        setStudentPhone('');
+        setStudentEmail('');
       }
-    } catch (err) {}
+    } catch (err) {
+      setIsGuest(true);
+      setStudentName('');
+      setStudentPhone('');
+      setStudentEmail('');
+    }
   };
 
   const handleSendWizardOtp = async () => {
@@ -149,6 +174,24 @@ export function BookingWizard() {
     setAuthError(null);
     setAuthMessage(null);
 
+    const formattedPhone = authPhone.startsWith('+') ? authPhone : `+91${authPhone.replace(/[^\d]/g, '')}`;
+
+    try {
+      // CAPTCHA-protected Firebase Phone SMS Auth
+      const appVerifier = setupWizardRecaptcha();
+      if (appVerifier) {
+        const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+        setConfirmationResult(confirmation);
+        setAuthMessage(`OTP sent successfully via SMS to ${formattedPhone}. Valid for 5 minutes.`);
+        setAuthStep('OTP');
+        setAuthLoading(false);
+        return;
+      }
+    } catch (firebaseErr: any) {
+      console.warn('Firebase SMS Auth fallback triggered:', firebaseErr);
+    }
+
+    // Fallback OTP action
     const res = await sendOtpAction(authPhone);
     setAuthLoading(false);
 
@@ -170,6 +213,22 @@ export function BookingWizard() {
     setAuthError(null);
 
     const formattedPhone = authPhone.startsWith('+') ? authPhone : `+91${authPhone.replace(/[^\d]/g, '')}`;
+
+    if (confirmationResult) {
+      try {
+        await confirmationResult.confirm(authOtp);
+        const loginRes = await loginWithVerifiedPhoneAction(formattedPhone);
+        if (loginRes.success) {
+          setAuthMessage('Phone authenticated successfully!');
+          await refreshSessionData();
+          setAuthLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Firebase verification failed, trying server verification...');
+      }
+    }
+
     const res = await verifyOtpAction(formattedPhone, authOtp);
     setAuthLoading(false);
 
@@ -853,6 +912,9 @@ export function BookingWizard() {
                   </div>
                 )}
 
+                {/* Invisible reCAPTCHA container for bot protection */}
+                <div id="wizard-recaptcha-container"></div>
+
                 <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
                   {/* Phone OTP Section */}
                   {authStep === 'PHONE' ? (
@@ -931,7 +993,7 @@ export function BookingWizard() {
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-extrabold uppercase text-emerald-400 tracking-wider flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Verified Student Account</span>
+                    <span>Verified Student Account (Database Record)</span>
                   </h4>
                   <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30 uppercase font-extrabold">
                     Authenticated
@@ -940,16 +1002,50 @@ export function BookingWizard() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800 text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Student Name</span>
-                    <strong className="text-slate-100">{studentName || 'Student'}</strong>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Student Name *</span>
+                    {studentName ? (
+                      <strong className="text-slate-100">{studentName}</strong>
+                    ) : (
+                      <input
+                        type="text"
+                        placeholder="Complete Full Name"
+                        value={studentName}
+                        onChange={(e) => setStudentName(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-amber-400"
+                        required
+                      />
+                    )}
                   </div>
+
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Mobile Phone</span>
-                    <strong className="text-amber-400">{studentPhone || 'N/A'}</strong>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Mobile Phone *</span>
+                    {studentPhone ? (
+                      <strong className="text-amber-400">{studentPhone}</strong>
+                    ) : (
+                      <input
+                        type="tel"
+                        placeholder="Complete Mobile Phone"
+                        value={studentPhone}
+                        onChange={(e) => setStudentPhone(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-amber-400"
+                        required
+                      />
+                    )}
                   </div>
+
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Email Address</span>
-                    <strong className="text-slate-100">{studentEmail || 'N/A'}</strong>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Email Address</span>
+                    {studentEmail ? (
+                      <strong className="text-slate-100">{studentEmail}</strong>
+                    ) : (
+                      <input
+                        type="email"
+                        placeholder="Add Email (Optional)"
+                        value={studentEmail}
+                        onChange={(e) => setStudentEmail(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-amber-400"
+                      />
+                    )}
                   </div>
                 </div>
               </div>
