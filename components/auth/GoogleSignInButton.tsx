@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { GoogleLogin, useGoogleOneTapLogin, useGoogleLogin } from '@react-oauth/google';
+import { auth, googleAuthProvider, signInWithPopup } from '@/lib/firebase';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -42,7 +43,69 @@ export function GoogleSignInButton() {
     }
   };
 
-  // Custom Google OAuth popup trigger via useGoogleLogin
+  // 1. Primary Bulletproof Google Auth Popup (via Firebase Auth)
+  const handleGoogleClick = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Print active domain for verification
+      if (typeof window !== 'undefined') {
+        console.log('🔒 Google OAuth Target Domain:', window.location.origin);
+      }
+
+      const result = await signInWithPopup(auth, googleAuthProvider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          credential: idToken || 'custom_access_token',
+          email: user.email,
+          name: user.displayName || user.email?.split('@')[0],
+          sub: user.uid,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setSuccess(true);
+        setTimeout(() => {
+          router.push('/dashboard');
+          router.refresh();
+        }, 600);
+      } else {
+        setError(data.error || 'Google Authentication failed.');
+        setLoading(false);
+      }
+    } catch (popupErr: any) {
+      console.warn('Firebase Google Auth popup error, trying GSI fallback:', popupErr);
+      if (popupErr?.code === 'auth/popup-closed-by-user') {
+        setError('Google Sign-In prompt was closed.');
+        setLoading(false);
+        return;
+      }
+      if (popupErr?.code === 'auth/unauthorized-domain') {
+        console.error('🚨 Unauthorized Domain in Firebase:', window.location.origin);
+        setError(`Domain ${window.location.origin} is not authorized in Firebase Console.`);
+        setLoading(false);
+        return;
+      }
+
+      // Try OAuth GSI trigger
+      try {
+        triggerGoogleLogin();
+      } catch (err) {
+        setError('Google Sign-In service unavailable.');
+        setLoading(false);
+      }
+    }
+  };
+
+  // 2. Secondary Custom Google OAuth popup trigger via useGoogleLogin
   const triggerGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       if (!tokenResponse?.access_token) return;
@@ -54,7 +117,6 @@ export function GoogleSignInButton() {
         });
         const googleUser = await userInfoRes.json();
 
-        // Send Google User Info to auth server
         const res = await fetch('/api/auth/google', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -82,12 +144,14 @@ export function GoogleSignInButton() {
         setLoading(false);
       }
     },
-    onError: () => {
-      setError('Google Sign-In prompt was dismissed.');
+    onError: (errResp: any) => {
+      console.error('🚨 Google OAuth Error Response:', errResp);
+      setError(`Google Sign-In Error: ${errResp?.error_description || errResp?.error || 'Popup closed or domain unauthorized'}`);
+      setLoading(false);
     },
   });
 
-  // Google One Tap automatic prompt on page load
+  // 3. Google One Tap automatic prompt on page load
   useGoogleOneTapLogin({
     onSuccess: handleCredentialResponse,
     onError: () => console.log('One Tap Prompt dismissed or unavailable'),
@@ -117,10 +181,10 @@ export function GoogleSignInButton() {
         </div>
       ) : (
         <div className="w-full space-y-2">
-          {/* 1. Primary Custom Branded Google Sign-In Button (100% Reliable Rendering) */}
+          {/* Custom Branded Google Sign-In Button */}
           <button
             type="button"
-            onClick={() => triggerGoogleLogin()}
+            onClick={handleGoogleClick}
             className="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-200 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 text-xs tracking-wider transition shadow-md focus:outline-none focus:ring-2 focus:ring-amber-400/40"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -132,7 +196,7 @@ export function GoogleSignInButton() {
             <span>Continue with Google</span>
           </button>
 
-          {/* 2. Standard Google GSI Button Embed */}
+          {/* GSI Fallback */}
           <div className="hidden">
             <GoogleLogin
               onSuccess={handleCredentialResponse}
