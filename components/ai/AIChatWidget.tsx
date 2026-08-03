@@ -94,10 +94,10 @@ export function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[560px] bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[560px] max-h-[80vh] bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain"
           >
-            {/* Header: Warm & Professional (No internal DB or PostgreSQL copy) */}
-            <div className="bg-slate-900 border-b border-slate-800/80 p-4 flex items-center justify-between shrink-0">
+            {/* Header */}
+            <div className="bg-slate-900 border-b border-slate-800/80 p-4 flex items-center justify-between shrink-0 select-none">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-5 h-5" />
@@ -122,8 +122,14 @@ export function AIChatWidget() {
               </button>
             </div>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Touch-optimized Scrollable Messages Container (Fixes Issue 1) */}
+            <div
+              className="flex-1 overflow-y-auto p-4 space-y-4 touch-pan-y overscroll-contain"
+              style={{
+                touchAction: 'pan-y',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
               {messages.map((m, idx) => (
                 <div
                   key={idx}
@@ -194,7 +200,7 @@ export function AIChatWidget() {
                 </div>
               ))}
 
-              {/* Polished Typing Indicator (3 Pulsing Dots) */}
+              {/* Typing Indicator */}
               {loading && (
                 <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 p-3.5 rounded-2xl rounded-bl-none w-fit text-slate-400 text-xs">
                   <div className="flex items-center gap-1">
@@ -202,7 +208,7 @@ export function AIChatWidget() {
                     <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-[11px] font-medium text-slate-300">Checking availability & details...</span>
+                  <span className="text-[11px] font-medium text-slate-300 font-sans">Checking options & database...</span>
                 </div>
               )}
 
@@ -222,7 +228,7 @@ export function AIChatWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about courses, pricing, or open slots..."
-                className="flex-1 bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-2.5 rounded-xl text-xs outline-none transition"
+                className="flex-1 bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-2.5 rounded-xl text-xs outline-none transition font-sans"
               />
               <button
                 type="submit"
