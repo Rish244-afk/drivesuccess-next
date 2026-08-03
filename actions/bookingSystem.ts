@@ -140,68 +140,15 @@ export async function createBookingTransactionAction(inputData: unknown) {
   try {
     const data = createBookingSchema.parse(inputData);
     const session = await getServerSession();
-    let studentId = session?.sub;
 
-    // If unauthenticated guest checkout, create/find student by phone/email and issue auth token
-    if (!studentId) {
-      const phoneInput = data.studentPhone?.trim() || '';
-      const cleanPhone = phoneInput.replace(/[^\d]/g, '');
-      if (cleanPhone.length < 10) {
-        return {
-          success: false,
-          error: 'Please enter a valid 10-digit mobile phone number for your booking account.',
-        };
-      }
-
-      const last10Digits = cleanPhone.slice(-10);
-      const formattedPhone = `+91${last10Digits}`;
-      const studentName = data.studentName?.trim() || `Student-${last10Digits.slice(-4)}`;
-      const emailLower = data.studentEmail?.trim().toLowerCase();
-
-      // Flexible lookup matching phone digits OR email to prevent unique constraint conflicts
-      let student = await prisma.student.findFirst({
-        where: {
-          OR: [
-            { phone: { endsWith: last10Digits } },
-            ...(emailLower ? [{ email: emailLower }] : []),
-          ],
-        },
-      });
-
-      if (!student) {
-        student = await prisma.student.create({
-          data: {
-            phone: formattedPhone,
-            name: studentName,
-            email: emailLower || `student_${last10Digits}@drivesuccess.edu`,
-            phoneVerified: true,
-            role: 'STUDENT',
-          },
-        });
-      } else {
-        // Ensure student has phone set
-        student = await prisma.student.update({
-          where: { id: student.id },
-          data: {
-            phone: student.phone || formattedPhone,
-            name: student.name.startsWith('Student-') || student.name === 'Academy Student' ? studentName : student.name,
-          },
-        });
-      }
-
-      studentId = student.id;
-
-      // Issue 30-Day Session Cookie so user is seamlessly logged into their student account!
-      const { signSessionToken, setAuthCookie } = await import('@/lib/auth');
-      const token = await signSessionToken({
-        sub: student.id,
-        phone: student.phone || formattedPhone,
-        role: student.role,
-        name: student.name,
-        email: student.email,
-      });
-      await setAuthCookie(token);
+    if (!session || !session.sub) {
+      return {
+        success: false,
+        error: 'Authentication required. Please log in with your mobile phone OTP or Google account before completing booking.',
+      };
     }
+
+    const studentId = session.sub;
 
     // Parse scheduled datetime
     const [timeStr, period] = data.timeSlot.split(' ');
