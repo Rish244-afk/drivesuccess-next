@@ -71,12 +71,12 @@ export function GoogleSignInButton() {
 
     const initGsi = () => {
       if (window.google?.accounts?.id) {
-        console.log('⚡ Initializing Google Identity Services (One Tap)...');
+        console.log('⚡ Initializing Google Identity Services (GSI)...');
 
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: (response: any) => {
-            console.log('🔑 Google One Tap / GSI Credential received:', response);
+            console.log('🔑 Google GSI Credential received:', response);
             if (response.credential) {
               processGoogleCredential({ credential: response.credential });
             }
@@ -158,45 +158,14 @@ export function GoogleSignInButton() {
     },
     onError: (errResp: any) => {
       console.error('🚨 Google OAuth Error:', errResp);
-      setError(`Google Sign-In Error: ${errResp?.error_description || errResp?.error || 'Popup closed'}`);
+      if (errResp?.error === 'origin_mismatch') {
+        setError(`Google OAuth Error 400: origin_mismatch. Please add ${typeof window !== 'undefined' ? window.location.origin : 'this domain'} to Google Cloud Console Authorized JavaScript origins.`);
+      } else {
+        setError(`Google Sign-In Error: ${errResp?.error_description || errResp?.error || 'Popup closed'}`);
+      }
       setLoading(false);
     },
   });
-
-  // 4. Primary Custom Button Handler: Triggers GSI prompt or Firebase popup
-  const handleGoogleClick = async () => {
-    setError(null);
-
-    // If GSI prompt is available, try prompt or fallback to Firebase / OAuth popup
-    if (window.google?.accounts?.id) {
-      window.google.accounts.id.prompt();
-    }
-
-    try {
-      console.log('🔒 Triggering Firebase Google Auth popup...');
-      const result = await signInWithPopup(auth, googleAuthProvider);
-      const user = result.user;
-      const idToken = await user.getIdToken();
-
-      console.log('🔑 Firebase Google Account selected:', user.email);
-      await processGoogleCredential({
-        credential: idToken || 'custom_access_token',
-        email: user.email,
-        name: user.displayName || user.email?.split('@')[0],
-        sub: user.uid,
-      });
-    } catch (popupErr: any) {
-      console.warn('Firebase popup warning, falling back to direct OAuth:', popupErr);
-      if (popupErr?.code === 'auth/popup-closed-by-user') {
-        return;
-      }
-      try {
-        triggerGoogleOAuth();
-      } catch (err) {
-        setError('Google Sign-In service unavailable.');
-      }
-    }
-  };
 
   return (
     <div className="w-full space-y-3">
@@ -222,7 +191,7 @@ export function GoogleSignInButton() {
       ) : (
         <div className="w-full flex justify-center">
           {/* Official Google Identity Services (GSI) Button Container */}
-          <div ref={gsiButtonRef} className="w-full flex justify-center overflow-hidden rounded-xl" />
+          <div ref={gsiButtonRef} className="w-full flex justify-center overflow-hidden rounded-xl min-h-[44px]" />
         </div>
       )}
     </div>
