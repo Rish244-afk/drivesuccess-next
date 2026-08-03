@@ -3,9 +3,25 @@
 import { checkAvailabilityTool, createBookingTool, getFAQAnswerTool, getUserBookingStatusTool } from '@/lib/ai';
 import { prisma } from '@/lib/prisma';
 
+export interface AIOption {
+  label: string;
+  value: string;
+}
+
+export interface AIPackageCard {
+  id: string;
+  name: string;
+  price: number;
+  sessionsCount: number;
+  description?: string;
+  badge?: string;
+}
+
 export interface AIMessage {
   role: 'user' | 'assistant' | 'tool';
   content: string;
+  options?: AIOption[];
+  packageCards?: AIPackageCard[];
   toolCall?: {
     name: string;
     args: any;
@@ -15,7 +31,7 @@ export interface AIMessage {
 }
 
 /**
- * DriveAI Assistant Production Intent Router & Guided State Machine
+ * DriveAI Assistant Production Intent Router & WhatsApp-Style Interactive State Machine
  */
 export async function processAIChatAction(userMessage: string, history: AIMessage[] = []) {
   try {
@@ -33,7 +49,13 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       console.log(`[DriveAI Router] Route: GREETING | Query: "${userMessage}"`);
       return {
         success: true,
-        message: "Hi there! Welcome to DriveSuccess Academy. I'm your DriveAI Assistant — I can help with course pricing, checking available lesson slots, or booking a training session. What would you like to know today?",
+        message: "Hi there! Welcome to DriveSuccess Academy. I'm your DriveAI Assistant — how can I help you today?",
+        options: [
+          { label: '📦 Browse Packages', value: 'Show packages' },
+          { label: '📅 Check Open Slots', value: 'Check available slots' },
+          { label: '📜 RTO License Docs', value: 'What documents do I need' },
+          { label: '💳 Check My Booking', value: 'Check my booking status' },
+        ],
       };
     }
 
@@ -55,39 +77,36 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       };
     }
 
-    // 3. NUMBER SELECTION FROM SHORT NUMBERED LIST (e.g. Replying "1", "2", "3", "option 1")
-    const isNumberSelection = /^(1|2|3|4|option\s*1|option\s*2|option\s*3|option\s*4|#1|#2|#3)$/i.test(text);
+    // 3. PACKAGE SELECTION VIA MINI CARD BUTTON OR TEXT (e.g. "Select 10 Days Training", "Select ...")
+    if (text.startsWith('select ') || (lastBotMessage.includes('matching options') && (text.includes('training') || text.includes('license') || text.includes('creta') || text.includes('combo')))) {
+      console.log(`[DriveAI Router] Route: PACKAGE_SELECTION | Query: "${userMessage}"`);
+      const searchStr = text.replace(/^select\s+/i, '').trim();
 
-    if (isNumberSelection && lastBotMessage.includes('Reply with the number')) {
-      console.log(`[DriveAI Router] Route: NUMBER_SELECTION | Choice: "${text}"`);
-      const numMatch = text.match(/\d/);
-      const selectedIndex = numMatch ? parseInt(numMatch[0], 10) - 1 : 0;
+      const dbPackages = await prisma.package.findMany({ orderBy: { price: 'asc' } });
+      const matchedPackage =
+        dbPackages.find((p) => p.name.toLowerCase().includes(searchStr)) ||
+        dbPackages.find((p) => searchStr.includes(p.slug)) ||
+        dbPackages[0];
 
-      // Extract matching package lines from previous bot message
-      const lines = lastBotMessage.split('\n').filter((l) => /^\d+\.\s+/.test(l.trim()));
-
-      if (lines[selectedIndex]) {
-        const selectedLine = lines[selectedIndex];
-        // Parse package name or find matching package in DB
-        const dbPackages = await prisma.package.findMany({ orderBy: { price: 'asc' } });
-        const matchedPackage = dbPackages.find((p) => selectedLine.toLowerCase().includes(p.name.toLowerCase().slice(0, 15))) || dbPackages[selectedIndex] || dbPackages[0];
-
-        return {
-          success: true,
-          message: `Great choice — **${matchedPackage.name}** for **₹${matchedPackage.price.toLocaleString()}** (${matchedPackage.sessionsCount} sessions).\n\nShall I proceed to create your booking reservation now?`,
-          cardData: {
-            type: 'PACKAGE_SELECTED',
-            packageId: matchedPackage.id,
-            packageName: matchedPackage.name,
-            price: matchedPackage.price,
-          },
-        };
-      }
+      return {
+        success: true,
+        message: `Great choice! **${matchedPackage.name}** for **₹${matchedPackage.price.toLocaleString()}** (${matchedPackage.sessionsCount} sessions).\n\nShall I proceed to create your booking reservation now?`,
+        options: [
+          { label: '✅ Yes, Proceed to Booking', value: 'Yes proceed' },
+          { label: '❌ Choose Another Package', value: 'Show packages' },
+        ],
+        cardData: {
+          type: 'PACKAGE_SELECTED',
+          packageId: matchedPackage.id,
+          packageName: matchedPackage.name,
+          price: matchedPackage.price,
+        },
+      };
     }
 
-    // 4. CONFIRMATION TO PROCEED TO BOOKING (e.g. "yes", "proceed", "sure", "book it")
+    // 4. CONFIRMATION TO PROCEED TO BOOKING (e.g. "Yes proceed", "yes", "confirm")
     const isBookingConfirmation =
-      (text === 'yes' || text === 'proceed' || text.includes('sure') || text.includes('confirm') || text.includes('book it') || text.includes('go ahead')) &&
+      (text === 'yes proceed' || text === 'yes' || text === 'proceed' || text.includes('sure') || text.includes('confirm') || text.includes('book it') || text.includes('go ahead')) &&
       (lastBotMessage.includes('Shall I proceed') || lastBotMessage.includes('booking reservation'));
 
     if (isBookingConfirmation) {
@@ -118,12 +137,13 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       }
     }
 
-    // 5. GUIDED CONVERSATION FLOW: VEHICLE CATEGORY (2W vs 4W)
+    // 5. GUIDED STEP 1: INITIAL BOOKING / PACKAGE INQUIRY
     const isGeneralBookingOrPackageInquiry =
       text === 'can i book a session' ||
       text === 'book a session' ||
       text === 'show packages' ||
       text === 'packages' ||
+      text === 'browse packages' ||
       (text.includes('book') && !text.includes('saturday') && !text.includes('4w') && !text.includes('2w') && !text.includes('hatchback') && !text.includes('10 day'));
 
     if (isGeneralBookingOrPackageInquiry) {
@@ -131,63 +151,85 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       return {
         success: true,
         message: 'Are you looking for 2-wheeler or 4-wheeler training?',
+        options: [
+          { label: '🏍️ 2-Wheeler', value: '2W' },
+          { label: '🚗 4-Wheeler', value: '4W' },
+        ],
       };
     }
 
-    // 6. GUIDED STEP 2: CATEGORY RESPONSE (2W OR 4W)
-    if (lastBotMessage.includes('2-wheeler or 4-wheeler')) {
-      if (text.includes('2') || text.includes('two') || text.includes('bike') || text.includes('scooter')) {
+    // 6. GUIDED STEP 2: CATEGORY SELECTION (2W vs 4W)
+    if (lastBotMessage.includes('2-wheeler or 4-wheeler') || text === '2w' || text === '4w') {
+      if (text === '2w' || text.includes('2-wheeler') || text.includes('bike') || text.includes('scooter')) {
         console.log(`[DriveAI Router] Route: GUIDED_STEP_2W | Query: "${userMessage}"`);
         const packages2W = await prisma.package.findMany({
           where: {
             OR: [
               { type: 'LICENSE_2W' },
-              { name: { contains: '2 Wheeler', mode: 'insensitive' } },
+              { type: 'COMBO' },
+              { name: { contains: '2-Wheeler', mode: 'insensitive' } },
+              { name: { contains: 'Combo', mode: 'insensitive' } },
             ],
           },
           take: 3,
           orderBy: { price: 'asc' },
         });
 
-        const list = packages2W
-          .map((p, idx) => `${idx + 1}. **${p.name}** — ${p.sessionsCount} Sessions — ₹${p.price.toLocaleString()}`)
-          .join('\n');
+        console.log(`[DriveAI Router] Found ${packages2W.length} 2-Wheeler/Combo packages in DB.`);
+
+        const packageCards: AIPackageCard[] = packages2W.map((p) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          sessionsCount: p.sessionsCount,
+          description: p.description,
+          badge: p.badge || undefined,
+        }));
 
         return {
           success: true,
-          message: `Here are your matching 2-Wheeler options:\n\n${list}\n\nReply with the number (e.g. "1") to select.`,
+          message: 'Here are our 2-Wheeler & Dual Combo Licensing options:',
+          packageCards,
         };
       } else {
         console.log(`[DriveAI Router] Route: GUIDED_STEP_4W_TIER | Query: "${userMessage}"`);
         return {
           success: true,
-          message: 'Which vehicle tier would you prefer — Standard Hatchback (WagonR/Swift), Honda City Sedan, or Hyundai Creta SUV?',
+          message: 'Which vehicle tier would you prefer?',
+          options: [
+            { label: '🚗 Standard Hatchback', value: 'Standard Hatchback' },
+            { label: '🚘 Honda City Sedan', value: 'Honda City Sedan' },
+            { label: '🚙 Hyundai Creta SUV', value: 'Hyundai Creta SUV' },
+          ],
         };
       }
     }
 
-    // 7. GUIDED STEP 3: 4W VEHICLE TIER SELECTION
-    if (lastBotMessage.includes('Standard Hatchback')) {
+    // 7. GUIDED STEP 3: 4W VEHICLE TIER SELECTION (Hatchback / Sedan / Creta SUV)
+    if (lastBotMessage.includes('Which vehicle tier') || text.includes('hatchback') || text.includes('sedan') || text.includes('creta')) {
       console.log(`[DriveAI Router] Route: GUIDED_STEP_4W_DURATION | Query: "${userMessage}"`);
       return {
         success: true,
-        message: 'Got it! Do you want just the 10-day training course, or training plus your official license processing included?',
+        message: 'Got it! Do you want just the 10-day training course, 15-day master course, or a 2W+4W Combo License?',
+        options: [
+          { label: '⏱️ 10 Days Training', value: '10 Days' },
+          { label: '📅 15 Days Master', value: '15 Days' },
+          { label: '📜 2+4 Combo License', value: 'Combo License' },
+        ],
       };
     }
 
-    // 8. GUIDED STEP 4 / SHORTCUT MATCHING: NARROWED SHORT NUMBERED LIST (Max 3-4 items)
+    // 8. GUIDED STEP 4 / SHORTCUT MATCHING: NARROWED MINI PACKAGE CARDS (Max 3-4 items)
     const isShortcutOrDurationResponse =
       lastBotMessage.includes('10-day training course') ||
-      text.includes('hatchback') ||
-      text.includes('sedan') ||
-      text.includes('suv') ||
-      text.includes('creta') ||
+      text.includes('10 days') ||
+      text.includes('15 days') ||
+      text.includes('combo license') ||
       (text.includes('10 day') && text.includes('4w'));
 
     if (isShortcutOrDurationResponse) {
-      console.log(`[DriveAI Router] Route: SHORT_NUMBERED_LIST | Query: "${userMessage}"`);
+      console.log(`[DriveAI Router] Route: SHORT_PACKAGE_CARDS | Query: "${userMessage}"`);
 
-      // Determine DB filters
       let categoryFilter = 'ANY';
       if (text.includes('hatchback') || text.includes('wagonr') || text.includes('swift')) categoryFilter = 'HATCHBACK';
       if (text.includes('sedan') || text.includes('honda') || text.includes('city') || text.includes('verna')) categoryFilter = 'HONDACITY';
@@ -199,22 +241,34 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
         orderBy: { price: 'asc' },
       });
 
-      const list = matchingPackages
-        .map((p, idx) => `${idx + 1}. **${p.name}** — ${p.sessionsCount} Sessions — ₹${p.price.toLocaleString()}`)
-        .join('\n');
+      console.log(`[DriveAI Router] Found ${matchingPackages.length} matching packages in DB for filter "${categoryFilter}".`);
+
+      const packageCards: AIPackageCard[] = matchingPackages.map((p) => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        sessionsCount: p.sessionsCount,
+        description: p.description,
+        badge: p.badge || undefined,
+      }));
 
       return {
         success: true,
-        message: `Here are your matching options:\n\n${list}\n\nReply with the number (e.g. "1") to select.`,
+        message: 'Here are your matching training options:',
+        packageCards,
       };
     }
 
-    // 9. GENERAL PRICING INQUIRY (Short guidance list)
+    // 9. GENERAL PRICING INQUIRY
     if (text.includes('price') || text.includes('cost') || text.includes('how much') || text.includes('fee')) {
       console.log(`[DriveAI Router] Route: GENERAL_PRICING | Query: "${userMessage}"`);
       return {
         success: true,
         message: 'Are you looking for 2-wheeler or 4-wheeler training?',
+        options: [
+          { label: '🏍️ 2-Wheeler', value: '2W' },
+          { label: '🚗 4-Wheeler', value: '4W' },
+        ],
       };
     }
 
@@ -233,6 +287,10 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       return {
         success: true,
         message: 'DriveSuccess Academy is a premier ISO 9001:2026 certified driving school. We offer accredited 2-wheeler and 4-wheeler practical driving courses with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), doorstep pickup, and RTO exam track preparation!',
+        options: [
+          { label: '📦 Browse Packages', value: 'Show packages' },
+          { label: '📅 Check Open Slots', value: 'Check available slots' },
+        ],
       };
     }
 
@@ -249,6 +307,9 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       return {
         success: true,
         message: 'To apply for a Driving License, you must be at least 18 years old. Required documents include: 1) Proof of Age (Aadhaar / Passport / Birth Certificate), 2) Proof of Address, 3) 4 Passport size photos, and 4) Form 1A Medical Certificate. Our team assists you with RTO slot booking and test track prep!',
+        options: [
+          { label: '📦 Select Course Package', value: 'Show packages' },
+        ],
       };
     }
 
@@ -282,6 +343,10 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
         return {
           success: true,
           message: statusRes.message || "I couldn't find an active booking under your current session. Would you like me to check open lesson slots for you?",
+          options: [
+            { label: '📅 Check Open Slots', value: 'Check available slots' },
+            { label: '📦 Browse Packages', value: 'Show packages' },
+          ],
         };
       }
     }
@@ -327,6 +392,10 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
     return {
       success: true,
       message: faqRes.answer,
+      options: [
+        { label: '📦 Browse Packages', value: 'Show packages' },
+        { label: '📅 Check Open Slots', value: 'Check available slots' },
+      ],
     };
   } catch (error) {
     console.error('processAIChatAction Error:', error);
