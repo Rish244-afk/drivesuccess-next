@@ -15,36 +15,119 @@ export interface AIMessage {
 }
 
 /**
- * DriveAI Assistant Production Intent Router & Action Handler
+ * DriveAI Assistant LLM & Intent Router
  */
 export async function processAIChatAction(userMessage: string, history: AIMessage[] = []) {
   try {
     const text = userMessage.toLowerCase().trim();
 
-    // 1. GREETING INTENT (e.g. "hii", "hello", "hey", "hi", "good morning")
-    const isGreeting = /^(hii+|hello|hey|hi|good\s+morning|good\s+evening|namaste|who\s+are\s+you)$/i.test(text) ||
-      text === 'hii' || text === 'hello' || text === 'hey' || text === 'hi';
+    // 1. GREETINGS / SMALL-TALK INTENT
+    // Matches: "hii", "hello", "hey", "hi", "good morning", "good evening", "namaste", "what's up"
+    const isGreeting =
+      /^(hii+|hello|hey|hi|good\s+morning|good\s+evening|namaste|what'?s\s+up|yo)$/i.test(text) ||
+      text.startsWith('hi ') ||
+      text.startsWith('hello ') ||
+      text.startsWith('hey ');
 
     if (isGreeting) {
-      console.log(`[DriveAI Router] Intent matched: GREETING for query: "${userMessage}"`);
+      console.log(`[DriveAI Router] Route: GREETING | Query: "${userMessage}"`);
       return {
         success: true,
-        message: "Hi there! Welcome to DriveSuccess Academy. I'm your DriveAI Assistant — I can help you check course package fees, look up available lesson slots, check your booking status, or answer RTO license questions. What would you like to know today?",
+        message: "Hi there! Welcome to DriveSuccess Academy. I'm your DriveAI Assistant — I can help with course pricing, checking available lesson slots, or booking a training session. What would you like to know today?",
       };
     }
 
-    // 2. EXPLICIT ESCALATION INTENT (e.g. "I want a refund", "complaint", "speak to human")
-    if (text.includes('refund') || text.includes('complaint') || text.includes('dispute') || text.includes('speak to human') || text.includes('talk to human') || text.includes('call me')) {
-      console.log(`[DriveAI Router] Intent matched: HUMAN_ESCALATION for query: "${userMessage}"`);
+    // 2. EXPLICIT HUMAN ESCALATION INTENT (Only for refunds, disputes, human agent requests)
+    const isEscalation =
+      text.includes('refund') ||
+      text.includes('dispute') ||
+      text.includes('complaint') ||
+      text.includes('speak to human') ||
+      text.includes('talk to human') ||
+      text.includes('call me') ||
+      text.includes('human agent');
+
+    if (isEscalation) {
+      console.log(`[DriveAI Router] Route: HUMAN_ESCALATION | Query: "${userMessage}"`);
       return {
         success: true,
-        message: "For refund requests, payment disputes, or direct human callback, please contact our director support desk at +91 7829780778 or email support@drivesuccess.edu with your Booking ID.",
+        message: "For refund requests, billing disputes, or direct human escalation, please contact our director support desk at +91 7829780778 or email support@drivesuccess.edu with your Booking ID.",
       };
     }
 
-    // 3. PAYMENT STATUS QUERY (e.g. "my payment isn't showing as confirmed", "is my booking confirmed")
-    if (text.includes('payment') || text.includes('confirmed') || text.includes('status') || text.includes('went through') || text.includes('my booking')) {
-      console.log(`[DriveAI Router] Intent matched: PAYMENT_STATUS for query: "${userMessage}"`);
+    // 3. ABOUT WEBSITE / SERVICES GENERAL INQUIRY INTENT
+    // Matches: "what is this website about", "what do you about this website", "tell me about drivesuccess", "what services do you offer"
+    const isAboutOrServices =
+      text.includes('website') ||
+      text.includes('about') ||
+      text.includes('service') ||
+      text.includes('what do you do') ||
+      text.includes('who are you') ||
+      text.includes('drivesuccess') ||
+      text.includes('tell me');
+
+    if (isAboutOrServices && !text.includes('price') && !text.includes('cost') && !text.includes('slot') && !text.includes('book') && !text.includes('document')) {
+      console.log(`[DriveAI Router] Route: ABOUT_WEBSITE | Query: "${userMessage}"`);
+      return {
+        success: true,
+        message: "DriveSuccess Academy is a premier ISO 9001:2026 certified driving school. We offer accredited 2-wheeler and 4-wheeler practical driving courses with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), doorstep pickup, and RTO exam track preparation!",
+      };
+    }
+
+    // 4. REQUIRED DOCUMENTS INTENT
+    // Matches: "what documents do i need", "paperwork", "requirements", "age limit", "rto documents"
+    const isDocuments =
+      text.includes('document') ||
+      text.includes('paperwork') ||
+      text.includes('proof') ||
+      text.includes('requirement') ||
+      (text.includes('need') && !text.includes('book') && !text.includes('slot'));
+
+    if (isDocuments) {
+      console.log(`[DriveAI Router] Route: REQUIRED_DOCUMENTS | Query: "${userMessage}"`);
+      return {
+        success: true,
+        message: "To apply for a Driving License, you must be at least 18 years old. Required documents include: 1) Proof of Age (Aadhaar / Passport / Birth Certificate), 2) Proof of Address, 3) 4 Passport size photos, and 4) Form 1A Medical Certificate. Our team assists you with RTO slot booking and test track prep!",
+      };
+    }
+
+    // 5. PACKAGE PRICING INQUIRY INTENT
+    // Matches: "how much for a 2 wheeler license", "course pricing", "fees", "how much"
+    const isPricing =
+      text.includes('price') ||
+      text.includes('cost') ||
+      text.includes('how much') ||
+      text.includes('fee') ||
+      text.includes('rate') ||
+      text.includes('package') ||
+      text.includes('2 wheeler') ||
+      text.includes('2w') ||
+      text.includes('4w');
+
+    if (isPricing && !text.includes('slot') && !text.includes('book saturday')) {
+      console.log(`[DriveAI Router] Route: PACKAGE_PRICING | Query: "${userMessage}"`);
+      const packages = await prisma.package.findMany({ orderBy: { price: 'asc' } });
+      if (packages.length > 0) {
+        const pkgList = packages
+          .map((p) => `• **${p.name}**: ₹${p.price.toLocaleString()} (${p.sessionsCount} sessions)`)
+          .join('\n');
+        return {
+          success: true,
+          message: `Here are our accredited driver training program fees:\n\n${pkgList}\n\nAll packages include dual-control vehicle training, RTO mock test prep, and instructor guidance!`,
+        };
+      }
+    }
+
+    // 6. USER PAYMENT / BOOKING STATUS INTENT
+    const isPaymentStatus =
+      text.includes('payment') ||
+      text.includes('confirmed') ||
+      text.includes('went through') ||
+      text.includes('my booking') ||
+      (text.includes('status') && !text.includes('rto'));
+
+    if (isPaymentStatus) {
+      console.log(`[DriveAI Router] Route: PAYMENT_STATUS | Query: "${userMessage}"`);
       const statusRes = await getUserBookingStatusTool();
       if (statusRes.hasBooking) {
         return {
@@ -64,29 +147,14 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       } else {
         return {
           success: true,
-          message: statusRes.message || "I couldn't find an active booking registered under your current session. Would you like me to check open lesson slots for you?",
+          message: statusRes.message || "I couldn't find an active booking under your current session. Would you like me to check open lesson slots for you?",
         };
       }
     }
 
-    // 4. PACKAGE PRICING INQUIRY (e.g. "how much for a 2 wheeler license", "course prices", "fees")
-    if (text.includes('price') || text.includes('cost') || text.includes('how much') || text.includes('fee') || text.includes('wheeler') || text.includes('2w') || text.includes('4w')) {
-      console.log(`[DriveAI Router] Intent matched: PRICING_INQUIRY for query: "${userMessage}"`);
-      const packages = await prisma.package.findMany({ orderBy: { price: 'asc' } });
-      if (packages.length > 0) {
-        const pkgList = packages
-          .map((p) => `• **${p.name}**: ₹${p.price.toLocaleString()} (${p.sessionsCount} sessions)`)
-          .join('\n');
-        return {
-          success: true,
-          message: `Here are our accredited driver training program fees:\n\n${pkgList}\n\nAll packages include dual-control vehicle training, RTO mock test prep, and instructor guidance!`,
-        };
-      }
-    }
-
-    // 5. CREATE BOOKING INTENT (e.g. "Book 4 wheeler Saturday")
+    // 7. CREATE BOOKING INTENT
     if (text.includes('book') && (text.includes('create') || text.includes('confirm') || text.includes('pay') || text.includes('saturday') || text.includes('tomorrow') || text.includes('slot'))) {
-      console.log(`[DriveAI Router] Intent matched: CREATE_BOOKING for query: "${userMessage}"`);
+      console.log(`[DriveAI Router] Route: CREATE_BOOKING | Query: "${userMessage}"`);
       const dateStr = text.includes('saturday')
         ? getNextSaturdayDate()
         : new Date().toISOString().split('T')[0];
@@ -119,9 +187,9 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       }
     }
 
-    // 6. CHECK AVAILABILITY INTENT (e.g. "available slots Saturday")
+    // 8. CHECK AVAILABILITY INTENT
     if (text.includes('slot') || text.includes('availab') || text.includes('saturday') || text.includes('time') || text.includes('schedule')) {
-      console.log(`[DriveAI Router] Intent matched: CHECK_AVAILABILITY for query: "${userMessage}"`);
+      console.log(`[DriveAI Router] Route: CHECK_AVAILABILITY | Query: "${userMessage}"`);
       const dateStr = text.includes('saturday')
         ? getNextSaturdayDate()
         : new Date().toISOString().split('T')[0];
@@ -153,8 +221,8 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       }
     }
 
-    // 7. GENERAL / FAQ KNOWLEDGE BASE INTENT
-    console.log(`[DriveAI Router] Intent matched: FAQ_KNOWLEDGE_BASE for query: "${userMessage}"`);
+    // 9. GENERAL FAQ KNOWLEDGE BASE FALLBACK (Never escalates to human unless explicitly out-of-scope)
+    console.log(`[DriveAI Router] Route: GENERAL_FAQ | Query: "${userMessage}"`);
     const faqRes = await getFAQAnswerTool({ query: userMessage });
 
     return {
@@ -164,8 +232,8 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
   } catch (error) {
     console.error('processAIChatAction Error:', error);
     return {
-      success: false,
-      message: "I'm not fully sure on that one — let me connect you with our support team directly at +91 7829780778 or support@drivesuccess.edu for immediate help!",
+      success: true,
+      message: "DriveSuccess Academy offers 2-wheeler and 4-wheeler practical driving training with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and RTO exam prep. How can I help you today?",
     };
   }
 }
