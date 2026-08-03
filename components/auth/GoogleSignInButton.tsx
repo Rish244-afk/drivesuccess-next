@@ -81,6 +81,7 @@ export function GoogleSignInButton() {
               processGoogleCredential({ credential: response.credential });
             }
           },
+          use_fedcm_for_prompt: true,
           auto_select: false,
           cancel_on_tap_outside: false,
         });
