@@ -27,6 +27,9 @@ import {
   verifyPaymentSignatureAction,
   markPaymentFailedAction,
 } from '@/actions/razorpay';
+import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/actions/auth';
+import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 
 interface WizardPackage {
   id: string;
@@ -116,6 +119,69 @@ export function BookingWizard() {
   const [studentEmail, setStudentEmail] = useState<string>('');
   const [isGuest, setIsGuest] = useState<boolean>(false);
 
+  // Inline Student Auth Portal State for Step 5
+  const [authStep, setAuthStep] = useState<'PHONE' | 'OTP'>('PHONE');
+  const [authPhone, setAuthPhone] = useState('');
+  const [authOtp, setAuthOtp] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+
+  const refreshSessionData = async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.success && data.user) {
+        setIsGuest(false);
+        if (data.user.name) setStudentName(data.user.name);
+        if (data.user.phone) setStudentPhone(data.user.phone);
+        if (data.user.email) setStudentEmail(data.user.email);
+      }
+    } catch (err) {}
+  };
+
+  const handleSendWizardOtp = async () => {
+    if (!authPhone || authPhone.length < 10) {
+      setAuthError('Please enter a valid 10-digit mobile phone number.');
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError(null);
+    setAuthMessage(null);
+
+    const res = await sendOtpAction(authPhone);
+    setAuthLoading(false);
+
+    if (!res.success) {
+      setAuthError(res.error || 'Failed to send OTP.');
+      return;
+    }
+
+    setAuthMessage(res.message || 'OTP sent successfully.');
+    setAuthStep('OTP');
+  };
+
+  const handleVerifyWizardOtp = async () => {
+    if (!authOtp || authOtp.length !== 6) {
+      setAuthError('Please enter 6-digit OTP code.');
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError(null);
+
+    const formattedPhone = authPhone.startsWith('+') ? authPhone : `+91${authPhone.replace(/[^\d]/g, '')}`;
+    const res = await verifyOtpAction(formattedPhone, authOtp);
+    setAuthLoading(false);
+
+    if (!res.success) {
+      setAuthError(res.error || 'OTP verification failed.');
+      return;
+    }
+
+    setAuthMessage('Phone authenticated successfully!');
+    await refreshSessionData();
+  };
+
   // Created Booking Record & Razorpay State
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'PAID' | 'FAILED'>('IDLE');
@@ -128,19 +194,7 @@ export function BookingWizard() {
 
   // Check current session
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.success || !data.user) {
-          setIsGuest(true);
-        } else {
-          setIsGuest(false);
-          if (data.user.name) setStudentName(data.user.name);
-          if (data.user.phone) setStudentPhone(data.user.phone);
-          if (data.user.email) setStudentEmail(data.user.email);
-        }
-      })
-      .catch(() => setIsGuest(true));
+    refreshSessionData();
   }, []);
 
   // Dynamically Load Razorpay Checkout Script
@@ -769,58 +823,134 @@ export function BookingWizard() {
               </div>
             </div>
 
-            {isGuest && (
-              <div className="pt-4 border-t border-slate-800 space-y-3">
+            {isGuest ? (
+              <div className="pt-4 border-t border-slate-800 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-extrabold uppercase text-amber-400 tracking-wider">
-                    Student Account Details
+                  <h4 className="text-xs font-extrabold uppercase text-amber-400 tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    <span>Student Authentication Required</span>
                   </h4>
-                  <span className="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                    Instant Auto-Login Account
+                  <span className="text-[10px] text-amber-400/90 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30 uppercase font-extrabold">
+                    Real OTP / Google Verification
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={studentName}
-                      onChange={(e) => setStudentName(e.target.value)}
-                      placeholder="e.g. Rahul Sharma"
-                      className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-3 py-2.5 rounded-xl text-xs outline-none focus:border-amber-400"
-                      required
-                    />
+                <p className="text-xs text-slate-400">
+                  Please log in with your Mobile Phone OTP or Google Account to verify your student identity before proceeding to payment.
+                </p>
+
+                {/* Inline Auth Errors / Messages */}
+                {authError && (
+                  <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-xl text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    <span>{authError}</span>
+                  </div>
+                )}
+                {authMessage && (
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <span>{authMessage}</span>
+                  </div>
+                )}
+
+                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
+                  {/* Phone OTP Section */}
+                  {authStep === 'PHONE' ? (
+                    <div className="space-y-3">
+                      <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                        Enter Mobile Phone Number
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="tel"
+                          placeholder="Enter 10-digit mobile number"
+                          value={authPhone}
+                          onChange={(e) => setAuthPhone(e.target.value)}
+                          className="flex-1 bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-2.5 rounded-xl outline-none text-xs"
+                        />
+                        <button
+                          type="button"
+                          disabled={authLoading}
+                          onClick={handleSendWizardOtp}
+                          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0"
+                        >
+                          {authLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Send OTP</span>}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                          Enter 6-Digit OTP Code
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setAuthStep('PHONE')}
+                          className="text-[11px] text-amber-400 hover:underline"
+                        >
+                          Change Phone
+                        </button>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          maxLength={6}
+                          placeholder="••••••"
+                          value={authOtp}
+                          onChange={(e) => setAuthOtp(e.target.value.replace(/[^\d]/g, ''))}
+                          className="flex-1 bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 text-center tracking-widest text-base font-bold py-2.5 rounded-xl outline-none"
+                        />
+                        <button
+                          type="button"
+                          disabled={authLoading}
+                          onClick={handleVerifyWizardOtp}
+                          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0"
+                        >
+                          {authLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Verify & Authenticate</span>}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Divider */}
+                  <div className="flex items-center gap-3 my-2">
+                    <div className="h-[1px] bg-slate-800 flex-1" />
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase">OR</span>
+                    <div className="h-[1px] bg-slate-800 flex-1" />
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                      Mobile Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      value={studentPhone}
-                      onChange={(e) => setStudentPhone(e.target.value)}
-                      placeholder="e.g. 9876543210"
-                      className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-3 py-2.5 rounded-xl text-xs outline-none focus:border-amber-400"
-                      required
-                    />
-                  </div>
+                  {/* Google Sign In Button */}
+                  <GoogleAuthProvider>
+                    <GoogleSignInButton />
+                  </GoogleAuthProvider>
+                </div>
+              </div>
+            ) : (
+              <div className="pt-4 border-t border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-extrabold uppercase text-emerald-400 tracking-wider flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Verified Student Account</span>
+                  </h4>
+                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30 uppercase font-extrabold">
+                    Authenticated
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-                    Email Address (Optional)
-                  </label>
-                  <input
-                    type="email"
-                    value={studentEmail}
-                    onChange={(e) => setStudentEmail(e.target.value)}
-                    placeholder="e.g. rahul@gmail.com"
-                    className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-3 py-2.5 rounded-xl text-xs outline-none focus:border-amber-400"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Student Name</span>
+                    <strong className="text-slate-100">{studentName || 'Student'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Mobile Phone</span>
+                    <strong className="text-amber-400">{studentPhone || 'N/A'}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Email Address</span>
+                    <strong className="text-slate-100">{studentEmail || 'N/A'}</strong>
+                  </div>
                 </div>
               </div>
             )}
@@ -847,12 +977,16 @@ export function BookingWizard() {
               Back
             </button>
             <button
-              disabled={loading}
+              disabled={loading || isGuest}
               onClick={handleCreatePendingBooking}
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-8 py-4 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-amber-500/20 disabled:opacity-50"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : isGuest ? (
+                <>
+                  <span>Please Log In / Verify Phone to Pay 🔒</span>
+                </>
               ) : (
                 <>
                   <span>Create Pending Booking & Pay via Razorpay</span>
