@@ -1,6 +1,7 @@
 'use server';
 
-import { checkAvailabilityTool, createBookingTool, getFAQAnswerTool } from '@/lib/ai';
+import { checkAvailabilityTool, createBookingTool, getFAQAnswerTool, getUserBookingStatusTool } from '@/lib/ai';
+import { prisma } from '@/lib/prisma';
 
 export interface AIMessage {
   role: 'user' | 'assistant' | 'tool';
@@ -14,20 +15,59 @@ export interface AIMessage {
 }
 
 /**
- * AI Assistant Function Calling Orchestrator
+ * DriveAI Assistant Production Action Handler
  */
 export async function processAIChatAction(userMessage: string, history: AIMessage[] = []) {
   try {
     const text = userMessage.toLowerCase().trim();
 
-    // Intent 1: Create Booking
+    // 1. Payment Status Query
+    if (text.includes('payment') || text.includes('confirmed') || text.includes('status') || text.includes('went through') || text.includes('booking status')) {
+      const statusRes = await getUserBookingStatusTool();
+      if (statusRes.hasBooking) {
+        return {
+          success: true,
+          message: `Your booking for **${statusRes.packageName}** is currently marked **${statusRes.paymentStatus}** (Booking Status: **${statusRes.bookingStatus}**). Your assigned instructor is **${statusRes.instructorName}** with dual-control **${statusRes.vehicleName}**.`,
+          cardData: {
+            type: 'BOOKING_STATUS',
+            bookingId: statusRes.bookingId,
+            packageName: statusRes.packageName,
+            amount: statusRes.amount,
+            paymentStatus: statusRes.paymentStatus,
+            bookingStatus: statusRes.bookingStatus,
+            instructorName: statusRes.instructorName,
+            vehicleName: statusRes.vehicleName,
+          },
+        };
+      } else {
+        return {
+          success: true,
+          message: statusRes.message || "I couldn't find an active booking under your account. Would you like me to check open slots for you?",
+        };
+      }
+    }
+
+    // 2. Package Pricing Inquiry
+    if (text.includes('price') || text.includes('cost') || text.includes('how much') || text.includes('fee') || text.includes('package')) {
+      const packages = await prisma.package.findMany({ orderBy: { price: 'asc' } });
+      if (packages.length > 0) {
+        const pkgList = packages
+          .map((p) => `• **${p.name}**: ₹${p.price.toLocaleString()} (${p.sessionsCount} sessions)`)
+          .join('\n');
+        return {
+          success: true,
+          message: `Here are our accredited driver training program fees:\n\n${pkgList}\n\nAll packages include dual-control vehicle training, RTO mock test prep, and instructor guidance!`,
+        };
+      }
+    }
+
+    // 3. Create Booking Intent
     if (text.includes('book') && (text.includes('create') || text.includes('confirm') || text.includes('pay') || text.includes('saturday') || text.includes('tomorrow') || text.includes('slot'))) {
-      // Execute Tool: createBooking()
       const dateStr = text.includes('saturday')
         ? getNextSaturdayDate()
         : new Date().toISOString().split('T')[0];
 
-      const packageType = text.includes('2') || text.includes('bike') || text.includes('wheeler') && text.includes('2')
+      const packageType = (text.includes('2') || text.includes('bike') || text.includes('wheeler'))
         ? 'LICENSE_2W'
         : 'LICENSE_4W';
 
@@ -39,12 +79,7 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       if (bookingRes.success) {
         return {
           success: true,
-          message: `I have generated your booking record! Here are your session details and secure Razorpay payment link:`,
-          toolCall: {
-            name: 'createBooking',
-            args: { date: dateStr, packageType },
-            result: bookingRes,
-          },
+          message: `I have reserved your training session for **${bookingRes.packageName}** on **${bookingRes.date}** at **${bookingRes.timeSlot}**! You can complete your deposit below:`,
           cardData: {
             type: 'BOOKING_CREATED',
             bookingId: bookingRes.bookingId,
@@ -60,17 +95,16 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       }
     }
 
-    // Intent 2: Check Availability
+    // 4. Check Availability Intent
     if (text.includes('slot') || text.includes('availab') || text.includes('saturday') || text.includes('time') || text.includes('book')) {
       const dateStr = text.includes('saturday')
         ? getNextSaturdayDate()
         : new Date().toISOString().split('T')[0];
 
-      const packageType = text.includes('2') || text.includes('bike')
+      const packageType = (text.includes('2') || text.includes('bike'))
         ? 'LICENSE_2W'
         : 'LICENSE_4W';
 
-      // Execute Tool: checkAvailability()
       const availRes = await checkAvailabilityTool({
         date: dateStr,
         packageType,
@@ -79,12 +113,7 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       if (availRes.success) {
         return {
           success: true,
-          message: `I checked live database availability for **${availRes.package?.name}** on **${dateStr}**. Here are the available instructor slots:`,
-          toolCall: {
-            name: 'checkAvailability',
-            args: { date: dateStr, packageType },
-            result: availRes,
-          },
+          message: `We have open slots for **${availRes.package?.name}** on **${dateStr}** with **${availRes.instructor?.name}** (${availRes.vehicle?.name}):`,
           cardData: {
             type: 'SLOTS_AVAILABLE',
             date: dateStr,
@@ -99,23 +128,18 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       }
     }
 
-    // Intent 3: FAQ Question
+    // 5. FAQ Knowledge Base & Fallback Escalation
     const faqRes = await getFAQAnswerTool({ query: userMessage });
 
     return {
       success: true,
       message: faqRes.answer,
-      toolCall: {
-        name: 'getFAQAnswer',
-        args: { query: userMessage },
-        result: faqRes,
-      },
     };
   } catch (error) {
     console.error('processAIChatAction Error:', error);
     return {
       success: false,
-      message: 'I encountered an error connecting to the database. Please try again.',
+      message: "I'm not fully sure on that one — let me connect you with our support team directly at +91 7829780778 or support@drivesuccess.edu for immediate help!",
     };
   }
 }

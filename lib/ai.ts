@@ -1,41 +1,45 @@
 import { prisma } from '@/lib/prisma';
-import { getAvailableSlotsAction, createBookingTransactionAction } from '@/actions/bookingSystem';
+import { getAvailableSlotsAction } from '@/actions/bookingSystem';
 import { createRazorpayOrderAction } from '@/actions/razorpay';
+import { getServerSession } from '@/lib/auth';
 import { PackageType, BookingStatus, PaymentStatus, SessionStatus } from '@prisma/client';
 
-// Knowledge Base for FAQ
+// Knowledge Base for FAQ & Customer Support
 const FAQ_KNOWLEDGE_BASE = [
   {
-    keywords: ['rto', 'license', 'age', 'eligibility', 'document', 'form'],
-    answer: 'To get a 4-Wheeler (LMV) or 2-Wheeler driver license, you must be at least 18 years old. Required documents include: 1) Proof of Age (Aadhaar/Passport/Birth Cert), 2) Proof of Address, 3) Passport size photos, 4) Learner Permit (Form 2), and 5) RTO Medical Certificate (Form 1A).',
+    keywords: ['rto', 'license', 'age', 'eligibility', 'document', 'form', 'paperwork'],
+    answer: 'To apply for a 2-Wheeler or 4-Wheeler (LMV) Driving License, you must be at least 18 years old. Required documents: 1) Proof of Age (Aadhaar / Passport / Birth Certificate), 2) Address Proof, 3) Passport Photos, and 4) Form 1A Medical Certificate. Our instructors assist you with RTO slot booking and mock track testing!',
   },
   {
-    keywords: ['vehicle', 'car', 'dual control', 'safety', 'fleet', 'gear'],
-    answer: 'All DriveSuccess Academy vehicles (WagonR, Swift, Dzire, Polo, Verna, Venue, Fronx) are equipped with dual brake & clutch control pedals on the instructor side, dual mirrors, and front/rear dashcams for 100% safety.',
+    keywords: ['vehicle', 'car', 'dual control', 'safety', 'fleet', 'pedal'],
+    answer: 'Every learning car in our fleet (WagonR, Swift, Dzire, Polo, Verna, Venue, Fronx) is fitted with instructor dual-brake & clutch control pedals, dual mirrors, and smart safety sensors for 100% peace of mind.',
+  },
+  {
+    keywords: ['payment', 'method', 'accept', 'upi', 'card', 'pay'],
+    answer: 'We accept all major payment methods including UPI (Google Pay, PhonePe, Paytm), Debit & Credit Cards, Netbanking, and EMI via our secure Razorpay gateway.',
+  },
+  {
+    keywords: ['refund', 'cancel', 'money back'],
+    answer: 'Cancellations made at least 24 hours before a scheduled session are eligible for full refund or free slot rescheduling. To process a refund, please contact our support desk directly at +91 7829780778 or email support@drivesuccess.edu with your Booking ID.',
+  },
+  {
+    keywords: ['pickup', 'drop', 'doorstep', 'home', 'location'],
+    answer: 'We provide complimentary doorstep pickup and drop-off service within a 10 km radius of our primary training tracks.',
   },
   {
     keywords: ['duration', 'time', 'hours', 'session', 'class'],
-    answer: 'Each practical driving session is 60 minutes long. Full license packages include 10 to 15 practical driving sessions plus RTO mock test preparation.',
-  },
-  {
-    keywords: ['pickup', 'drop', 'home', 'location'],
-    answer: 'We offer doorstep pickup and drop-off facilities within a 10 km radius of our main training tracks.',
-  },
-  {
-    keywords: ['refund', 'cancel', 'reschedule', 'policy'],
-    answer: 'Cancellations made 24 hours prior to a scheduled session are eligible for full refund or free rescheduling. Refunds are processed back to the original payment method via Razorpay within 3-5 business days.',
+    answer: 'Each practical driving session is 60 minutes long. Complete packages range from 10 to 15 one-on-one practical driving sessions plus RTO track preparation.',
   },
 ];
 
 /**
  * 1. Tool Implementation: checkAvailability()
- * Queries PostgreSQL database for real available slots
+ * Queries database for real available slots
  */
 export async function checkAvailabilityTool(params: { date?: string; packageType?: string }) {
   try {
     const targetDate = params.date || new Date().toISOString().split('T')[0];
 
-    // Find default package & instructor
     const pkg = await prisma.package.findFirst({
       where: params.packageType ? { type: params.packageType as PackageType } : undefined,
     });
@@ -45,11 +49,10 @@ export async function checkAvailabilityTool(params: { date?: string; packageType
     if (!pkg || !instructor || !vehicle) {
       return {
         success: false,
-        error: 'No active package or instructor available in database.',
+        error: 'No active package or instructor available.',
       };
     }
 
-    // Run real database slot calculation
     const slotsRes = await getAvailableSlotsAction({
       dateStr: targetDate,
       instructorId: instructor.id,
@@ -88,13 +91,21 @@ export async function createBookingTool(params: {
   timeSlot?: string;
 }) {
   try {
-    // 1. Get or default student
-    let student = await prisma.student.findFirst({
-      where: params.studentPhone ? { phone: params.studentPhone } : undefined,
-    });
+    const session = await getServerSession();
+    let student = null;
+
+    if (session?.sub) {
+      student = await prisma.student.findUnique({ where: { id: session.sub } });
+    }
 
     if (!student) {
-      student = await prisma.student.findFirst() || await prisma.student.create({
+      student = await prisma.student.findFirst({
+        where: params.studentPhone ? { phone: params.studentPhone } : undefined,
+      });
+    }
+
+    if (!student) {
+      student = await prisma.student.create({
         data: {
           name: params.studentName || 'Academy Student',
           phone: params.studentPhone || '+91 98765 00000',
@@ -103,7 +114,6 @@ export async function createBookingTool(params: {
       });
     }
 
-    // 2. Resolve package, instructor, vehicle
     const pkg = params.packageId
       ? await prisma.package.findUnique({ where: { id: params.packageId } })
       : await prisma.package.findFirst();
@@ -123,7 +133,6 @@ export async function createBookingTool(params: {
     const bookingDate = params.date || new Date().toISOString().split('T')[0];
     const slot = params.timeSlot || '10:00 AM';
 
-    // 3. Create Booking in database
     const newBooking = await prisma.booking.create({
       data: {
         studentId: student.id,
@@ -133,11 +142,10 @@ export async function createBookingTool(params: {
         status: BookingStatus.PENDING,
         paymentStatus: PaymentStatus.PENDING,
         totalAmount: pkg.price,
-        notes: `AI Assistant booking for ${pkg.name}`,
+        notes: `DriveAI Assistant booking for ${pkg.name}`,
       },
     });
 
-    // 4. Create initial Session record
     await prisma.session.create({
       data: {
         bookingId: newBooking.id,
@@ -151,9 +159,7 @@ export async function createBookingTool(params: {
       },
     });
 
-    // 5. Create Razorpay Payment Order
     const orderRes = await createRazorpayOrderAction(newBooking.id);
-
     const checkoutUrl = `/book?bookingId=${newBooking.id}&orderId=${orderRes.orderId || ''}`;
 
     return {
@@ -177,12 +183,57 @@ export async function createBookingTool(params: {
 }
 
 /**
- * 3. Tool Implementation: getFAQAnswer()
- * Queries knowledge base for policy, RTO, vehicle safety, and refund answers
+ * 3. Tool Implementation: getUserBookingStatus()
+ * Queries current user's booking payment and session confirmation status
+ */
+export async function getUserBookingStatusTool() {
+  try {
+    const session = await getServerSession();
+    if (!session?.sub) {
+      return {
+        success: false,
+        message: 'Please log into your Student Portal to view your live booking and payment status.',
+      };
+    }
+
+    const booking = await prisma.booking.findFirst({
+      where: { studentId: session.sub },
+      include: { package: true, instructor: true, vehicle: true, sessions: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!booking) {
+      return {
+        success: true,
+        hasBooking: false,
+        message: "You don't have any active bookings registered yet. Would you like me to check open slots for you?",
+      };
+    }
+
+    return {
+      success: true,
+      hasBooking: true,
+      bookingId: booking.id,
+      packageName: booking.package.name,
+      amount: booking.totalAmount,
+      bookingStatus: booking.status,
+      paymentStatus: booking.paymentStatus,
+      instructorName: booking.instructor?.name || 'Assigned Instructor',
+      vehicleName: booking.vehicle?.name || 'Dual-Control Vehicle',
+      sessionsCount: booking.sessions.length,
+    };
+  } catch (error) {
+    console.error('getUserBookingStatusTool Error:', error);
+    return { success: false, message: 'Failed to retrieve booking status.' };
+  }
+}
+
+/**
+ * 4. Tool Implementation: getFAQAnswer()
  */
 export async function getFAQAnswerTool(params: { query: string }) {
   const queryLower = params.query.toLowerCase();
-  
+
   const matched = FAQ_KNOWLEDGE_BASE.find((faq) =>
     faq.keywords.some((kw) => queryLower.includes(kw))
   );
@@ -193,6 +244,7 @@ export async function getFAQAnswerTool(params: { query: string }) {
 
   return {
     success: true,
-    answer: 'DriveSuccess Academy provides RTO certified 2-wheeler & 4-wheeler driving training with dual-control vehicles, flexible daily slots (9:00 AM - 6:00 PM), and automated Razorpay payments.',
+    isFallback: true,
+    answer: "I'm not fully sure on that specific detail — let me connect you directly with our senior team! You can call us at +91 7829780778 or email support@drivesuccess.edu for instant assistance.",
   };
 }
