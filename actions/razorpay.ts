@@ -11,6 +11,11 @@ import { revalidatePath } from 'next/cache';
  */
 export async function createRazorpayOrderAction(bookingId: string, idempotencyKey?: string) {
   try {
+    const session = await getServerSession();
+    if (!session || !session.sub) {
+      return { success: false, error: 'Unauthorized. Please log in.' };
+    }
+
     const effectiveKey = idempotencyKey || `idemp_${bookingId}`;
 
     // Idempotency Check: Retrieve existing booking
@@ -21,6 +26,11 @@ export async function createRazorpayOrderAction(bookingId: string, idempotencyKe
 
     if (!booking) {
       return { success: false, error: 'Booking not found.' };
+    }
+
+    // IDOR Check
+    if (booking.studentId !== session.sub && session.role !== Role.ADMIN) {
+      return { success: false, error: 'Unauthorized access to booking.' };
     }
 
     if (booking.paymentStatus === PaymentStatus.PAID) {
@@ -115,6 +125,11 @@ export async function verifyPaymentSignatureAction({
   razorpaySignature: string;
 }) {
   try {
+    const session = await getServerSession();
+    if (!session || !session.sub) {
+      return { success: false, error: 'Unauthorized. Please log in.' };
+    }
+
     // Check if booking is already processed and paid (Idempotent return)
     const existingBooking = await prisma.booking.findUnique({
       where: { id: bookingId },
@@ -123,6 +138,11 @@ export async function verifyPaymentSignatureAction({
 
     if (!existingBooking) {
       return { success: false, error: 'Booking record not found.' };
+    }
+
+    // IDOR Check
+    if (existingBooking.studentId !== session.sub && session.role !== Role.ADMIN) {
+      return { success: false, error: 'Unauthorized access to booking.' };
     }
 
     if (existingBooking.paymentStatus === PaymentStatus.PAID) {
