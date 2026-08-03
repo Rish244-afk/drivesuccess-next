@@ -12,147 +12,132 @@ export function GoogleSignInButton() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const handleCredentialResponse = async (credentialResponse: any) => {
-    if (!credentialResponse?.credential) return;
-
+  // 1. Process Google credential after user finishes account selection in popup/One Tap
+  const processGoogleCredential = async (payload: {
+    credential?: string;
+    email?: string | null;
+    name?: string | null;
+    sub?: string | null;
+  }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: credentialResponse.credential }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push('/dashboard');
-          router.refresh();
-        }, 600);
-      } else {
-        setError(data.error || 'Google Authentication failed. Please try again.');
-        setLoading(false);
-      }
-    } catch {
-      setError('Network error connecting to authentication server.');
-      setLoading(false);
-    }
-  };
-
-  // 1. Primary Bulletproof Google Auth Popup (via Firebase Auth)
-  const handleGoogleClick = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Print active domain for verification
-      if (typeof window !== 'undefined') {
-        console.log('🔒 Google OAuth Target Domain:', window.location.origin);
-      }
-
-      const result = await signInWithPopup(auth, googleAuthProvider);
-      const user = result.user;
-      const idToken = await user.getIdToken();
-
+      console.log('🔄 Sending Google token to server for backend verification...');
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          credential: idToken || 'custom_access_token',
-          email: user.email,
-          name: user.displayName || user.email?.split('@')[0],
-          sub: user.uid,
+          credential: payload.credential || 'custom_access_token',
+          email: payload.email,
+          name: payload.name,
+          sub: payload.sub,
         }),
       });
 
       const data = await res.json();
 
       if (data.success) {
+        console.log('✅ Google identity verified! Session cookie issued.');
         setSuccess(true);
         setTimeout(() => {
           router.push('/dashboard');
           router.refresh();
         }, 600);
       } else {
-        setError(data.error || 'Google Authentication failed.');
-        setLoading(false);
+        console.error('❌ Server verification rejected Google token:', data.error);
+        setError(data.error || 'Google Authentication failed. Please try again.');
       }
-    } catch (popupErr: any) {
-      console.warn('Firebase Google Auth popup error, trying GSI fallback:', popupErr);
-      if (popupErr?.code === 'auth/popup-closed-by-user') {
-        setError('Google Sign-In prompt was closed.');
-        setLoading(false);
-        return;
-      }
-      if (popupErr?.code === 'auth/unauthorized-domain') {
-        console.warn('Firebase domain unauthorized on preview URL, switching to direct Google OAuth popup:', window.location.origin);
-        triggerGoogleLogin();
-        return;
-      }
-
-      // Try OAuth GSI trigger
-      try {
-        triggerGoogleLogin();
-      } catch (err) {
-        setError('Google Sign-In service unavailable.');
-        setLoading(false);
-      }
+    } catch (err: any) {
+      console.error('🚨 Network/Server error during Google auth verification:', err);
+      setError('Network error connecting to authentication server.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 2. Secondary Custom Google OAuth popup trigger via useGoogleLogin
+  // 2. Google Identity Services (GSI) One-Tap / Standard Button Handler
+  const handleGsiCredential = (credentialResponse: any) => {
+    if (!credentialResponse?.credential) return;
+    console.log('🔑 GSI Credential received from Google Identity Services.');
+    processGoogleCredential({ credential: credentialResponse.credential });
+  };
+
+  // 3. Secondary Custom Google OAuth popup trigger via useGoogleLogin
   const triggerGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       if (!tokenResponse?.access_token) return;
+      console.log('🔑 OAuth access token received from Google Account Picker.');
       setLoading(true);
       setError(null);
+
       try {
         const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         });
         const googleUser = await userInfoRes.json();
 
-        const res = await fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            credential: 'custom_access_token',
-            email: googleUser.email,
-            name: googleUser.name,
-            sub: googleUser.sub,
-          }),
+        await processGoogleCredential({
+          credential: 'custom_access_token',
+          email: googleUser.email,
+          name: googleUser.name,
+          sub: googleUser.sub,
         });
-
-        const data = await res.json();
-        if (data.success) {
-          setSuccess(true);
-          setTimeout(() => {
-            router.push('/dashboard');
-            router.refresh();
-          }, 600);
-        } else {
-          setError(data.error || 'Google Login failed.');
-          setLoading(false);
-        }
-      } catch (e) {
+      } catch (e: any) {
+        console.error('🚨 Failed to fetch Google user profile from Google API:', e);
         setError('Failed to retrieve Google profile identity.');
         setLoading(false);
       }
     },
     onError: (errResp: any) => {
-      console.error('🚨 Google OAuth Error Response:', errResp);
+      console.error('🚨 Google OAuth Popup Error Response:', errResp);
       setError(`Google Sign-In Error: ${errResp?.error_description || errResp?.error || 'Popup closed or domain unauthorized'}`);
       setLoading(false);
     },
   });
 
-  // 3. Google One Tap automatic prompt on page load
+  // 4. Primary Button Click: Trigger Google Popup IMMEDIATELY (Do NOT set loading=true prematurely)
+  const handleGoogleClick = async () => {
+    setError(null);
+
+    try {
+      console.log('🔒 Triggering Google Account Picker popup for domain:', typeof window !== 'undefined' ? window.location.origin : '');
+
+      const result = await signInWithPopup(auth, googleAuthProvider);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      console.log('🔑 Firebase Google Account selected:', user.email);
+
+      // User has selected account in popup, NOW verify backend
+      await processGoogleCredential({
+        credential: idToken || 'custom_access_token',
+        email: user.email,
+        name: user.displayName || user.email?.split('@')[0],
+        sub: user.uid,
+      });
+    } catch (popupErr: any) {
+      console.warn('Firebase Google Auth popup warning/error:', popupErr);
+
+      if (popupErr?.code === 'auth/popup-closed-by-user') {
+        console.log('ℹ️ User closed Google Account Picker popup window.');
+        return;
+      }
+
+      // If domain unauthorized or popup blocked, fallback to useGoogleLogin directly
+      console.log('🔄 Triggering fallback Google OAuth popup...');
+      try {
+        triggerGoogleLogin();
+      } catch (err) {
+        console.error('🚨 All Google Sign-In triggers failed:', err);
+        setError('Google Sign-In service unavailable.');
+      }
+    }
+  };
+
+  // 5. Google One Tap automatic prompt on page load
   useGoogleOneTapLogin({
-    onSuccess: handleCredentialResponse,
+    onSuccess: handleGsiCredential,
     onError: () => console.log('One Tap Prompt dismissed or unavailable'),
     disabled: loading || success,
   });
@@ -195,11 +180,11 @@ export function GoogleSignInButton() {
             <span>Continue with Google</span>
           </button>
 
-          {/* GSI Fallback */}
+          {/* Official GSI Button Embed */}
           <div className="hidden">
             <GoogleLogin
-              onSuccess={handleCredentialResponse}
-              onError={() => console.log('GSI fallback')}
+              onSuccess={handleGsiCredential}
+              onError={() => console.log('GSI fallback prompt dismissed')}
             />
           </div>
         </div>
