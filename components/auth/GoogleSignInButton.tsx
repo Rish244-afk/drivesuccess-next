@@ -10,6 +10,7 @@ export function GoogleSignInButton() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(true);
 
   const handleCredentialResponse = async (credentialResponse: any) => {
     if (!credentialResponse?.credential) return;
@@ -66,21 +67,26 @@ export function GoogleSignInButton() {
       )}
 
       {loading ? (
-        <div className="w-full py-3.5 bg-slate-900 border border-slate-700 text-slate-300 rounded-full flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
+        <div className="w-full py-3.5 bg-slate-950 border border-slate-800 text-slate-300 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
           <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
           <span>Verifying Google Identity...</span>
         </div>
       ) : (
-        <div className="flex justify-center w-full">
-          <GoogleLogin
-            onSuccess={handleCredentialResponse}
-            onError={() => setError('Google Sign-In was cancelled or unavailable.')}
-            theme="filled_blue"
-            shape="pill"
-            text="continue_with"
-            width="320"
-            logo_alignment="center"
-          />
+        <div className="flex flex-col items-center justify-center w-full min-h-[44px]">
+          {/* Official Google Identity Button Wrapper */}
+          <div className="w-full flex justify-center">
+            <GoogleLogin
+              onSuccess={handleCredentialResponse}
+              onError={() => {
+                console.warn('Google GSI iframe blocked or error.');
+                setIframeLoaded(false);
+              }}
+              theme="filled_black"
+              shape="rectangular"
+              text="continue_with"
+              logo_alignment="center"
+            />
+          </div>
         </div>
       )}
     </div>
