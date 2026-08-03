@@ -2,14 +2,32 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, ArrowUpRight, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationBell } from '@/components/NotificationBell';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+
+  const handleStudentPortalClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.success && data.user) {
+        router.push('/dashboard');
+      } else {
+        setAuthModalOpen(true);
+      }
+    } catch {
+      setAuthModalOpen(true);
+    }
+  };
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -75,12 +93,12 @@ export function Navbar() {
 
           <NotificationBell />
 
-          <Link
-            href="/dashboard"
-            className="text-xs tracking-wider uppercase font-medium text-slate-300 hover:text-amber-400 px-3 py-2 transition-colors"
+          <button
+            onClick={handleStudentPortalClick}
+            className="text-xs tracking-wider uppercase font-medium text-slate-300 hover:text-amber-400 px-3 py-2 transition-colors focus:outline-none"
           >
             <span>Student Portal</span>
-          </Link>
+          </button>
 
           <Link
             href="/admin"
@@ -145,13 +163,15 @@ export function Navbar() {
                 <span>Call Helpline: 7829780778</span>
               </a>
 
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
+              <button
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  handleStudentPortalClick(e);
+                }}
                 className="w-full text-center py-3.5 border border-slate-800 text-slate-200 font-medium text-xs tracking-wider uppercase rounded-full bg-slate-900/60"
               >
                 Student Portal
-              </Link>
+              </button>
 
               <Link
                 href="/admin"
@@ -172,6 +192,13 @@ export function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Student Auth Overlay Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        redirectToDashboard={true}
+      />
     </header>
   );
 }

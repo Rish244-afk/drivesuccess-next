@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, CheckCheck, Clock } from 'lucide-react';
 import { markNotificationAsReadAction, markAllNotificationsAsReadAction } from '@/actions/notification';
 
@@ -8,6 +8,32 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
+
+  // Click-Outside & Escape Key to Close
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     let isMounted = true;
@@ -49,7 +75,7 @@ export function NotificationBell() {
   };
 
   return (
-    <div className="relative">
+    <div ref={bellRef} className="relative">
       
       {/* Bell Button */}
       <button
