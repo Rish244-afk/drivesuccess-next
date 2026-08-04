@@ -2,8 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, MapPin, Phone, Clock, ArrowUpRight } from 'lucide-react';
 
-const ADDRESS_URL =
-  'https://www.google.com/search?sca_esv=cc5c7de7f204be12&sxsrf=APpeQnvSblA8BBZPvtpmkX5lAdEmE4GQjg:1785817012598&q=vahathi+motor+driving+school+address&ludocid=17252816017518154739&sa=X&ved=2ahUKEwjcwK3ljoaWAxVnSmwGHZ8UJW8Q6BN6BAgfEAI';
+const GOOGLE_MAPS_URL =
+  'https://www.google.com/maps/search/?api=1&query=Vahathi+Motor+Driving+School+Kasavanahalli+Main+Rd+near+max+Kasavanahalli+Owners+Court+Layout+Eastwood+Twp+Bengaluru+Karnataka+560035';
 
 const PHONE_URL =
   'https://www.google.com/search?q=Vahathi+Motor+Driving+School&oq=vaha&gs_lcrp=EgZjaHJvbWUqCAgAEEUYJxg7MggIABBFGCcYOzIGCAEQRRg7MgYIAhBFGDkyDQgDEAAYgwEYsQMYgAQyDQgEEAAYgwEYsQMYgAQyBggFEEUYPTIGCAYQRRg9MgYIBxBFGD3SAQgxMzc4ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8#';
@@ -127,26 +127,26 @@ export function Footer() {
               Locate Us
             </h4>
             <div className="space-y-3.5 text-slate-400 leading-relaxed">
-              <div className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <a
+                href={GOOGLE_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 group p-2 -m-2 rounded-xl hover:bg-slate-900/60 transition-colors cursor-pointer"
+              >
+                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                 <div>
-                  <p className="text-slate-200 font-semibold">Vahathi Motor Driving School</p>
-                  <p>
-                    <a
-                      href={ADDRESS_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-amber-400 font-bold hover:underline"
-                    >
-                      Address
-                    </a>
-                    : Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
+                  <p className="text-slate-200 font-semibold group-hover:text-amber-400 transition-colors">
+                    Vahathi Motor Driving School
+                  </p>
+                  <p className="mt-0.5">
+                    <span className="text-amber-400 font-bold group-hover:underline">Address</span>:
+                    Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
                   </p>
                   <p className="text-[11px] text-amber-400/90 pt-1.5 font-mono">
-                    Creta SUV & Honda City Certified Track
+                    📍 Open in Google Maps →
                   </p>
                 </div>
-              </div>
+              </a>
             </div>
           </div>
 
