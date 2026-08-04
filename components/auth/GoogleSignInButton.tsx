@@ -64,8 +64,20 @@ export function GoogleSignInButton() {
     }
   };
 
-  // 2. Initialize Google Identity Services (GSI) Master Suite
+  // 2. Initialize Google Identity Services (GSI) ONLY on Authorized Origins
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const hostname = window.location.hostname;
+    const isAuthorizedOrigin =
+      hostname === 'drivesuccess-next.vercel.app' || hostname.includes('localhost') || hostname === '127.0.0.1';
+
+    // On preview URLs, do not render GSI iframe to avoid Google 400 origin_mismatch
+    if (!isAuthorizedOrigin) {
+      setGsiLoaded(false);
+      return;
+    }
+
     const clientId =
       process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
       '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
@@ -73,7 +85,7 @@ export function GoogleSignInButton() {
     const initGsi = () => {
       if (window.google?.accounts?.id) {
         try {
-          console.log('⚡ Initializing Google Identity Services (GSI) Master Suite...');
+          console.log('⚡ Initializing Google Identity Services (GSI)...');
 
           window.google.accounts.id.initialize({
             client_id: clientId,
@@ -107,7 +119,7 @@ export function GoogleSignInButton() {
       }
     };
 
-    if (typeof window !== 'undefined' && !window.google?.accounts?.id) {
+    if (!window.google?.accounts?.id) {
       const existingScript = document.getElementById('google-gsi-script');
       if (!existingScript) {
         const script = document.createElement('script');
@@ -125,38 +137,18 @@ export function GoogleSignInButton() {
     }
   }, []);
 
-  // 3. Popup Google Auth Trigger for Fallback or Unregistered Preview Domains
+  // 3. Fallback Popup Auth via Firebase Authorized Domain for Preview URLs
   const handleGoogleClick = async () => {
     setError(null);
-
-    // If on non-authorized preview domain, redirect to canonical production domain for seamless OAuth
-    if (
-      typeof window !== 'undefined' &&
-      !window.location.hostname.includes('localhost') &&
-      window.location.hostname !== 'drivesuccess-next.vercel.app'
-    ) {
-      console.log('✈️ Redirecting to primary production domain for Google OAuth authorization...');
-      window.location.href = `https://drivesuccess-next.vercel.app/auth/login?from=${encodeURIComponent(
-        window.location.pathname
-      )}`;
-      return;
-    }
-
-    if (window.google?.accounts?.id) {
-      try {
-        window.google.accounts.id.prompt();
-      } catch (e) {
-        console.warn('Prompt error:', e);
-      }
-    }
+    setLoading(true);
 
     try {
-      console.log('🔒 Triggering Google Account Chooser popup...');
+      console.log('🔒 Triggering Firebase Authorized Google popup...');
       const result = await signInWithPopup(auth, googleAuthProvider);
       const user = result.user;
       const idToken = await user.getIdToken();
 
-      console.log('🔑 Google Account selected:', user.email);
+      console.log('🔑 Google Account authenticated:', user.email);
       await processGoogleCredential({
         credential: idToken || 'custom_access_token',
         email: user.email,
@@ -165,47 +157,25 @@ export function GoogleSignInButton() {
       });
     } catch (popupErr: any) {
       console.warn('Google popup notice:', popupErr);
+      setLoading(false);
       if (popupErr?.code === 'auth/popup-closed-by-user') return;
-      try {
-        triggerGoogleOAuth();
-      } catch (err) {
-        setError('Please log in using Mobile OTP or visit https://drivesuccess-next.vercel.app');
+
+      // On non-authorized preview URLs, redirect to canonical production domain
+      if (
+        typeof window !== 'undefined' &&
+        !window.location.hostname.includes('localhost') &&
+        window.location.hostname !== 'drivesuccess-next.vercel.app'
+      ) {
+        console.log('✈️ Redirecting to primary production domain for Google OAuth authorization...');
+        window.location.href = `https://drivesuccess-next.vercel.app/auth/login?from=${encodeURIComponent(
+          window.location.pathname
+        )}`;
+        return;
       }
+
+      setError('Authentication failed. Please log in via Mobile OTP or test on https://drivesuccess-next.vercel.app');
     }
   };
-
-  // 4. Secondary OAuth Popup fallback
-  const triggerGoogleOAuth = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      if (!tokenResponse?.access_token) return;
-      setLoading(true);
-      setError(null);
-
-      try {
-        const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        });
-        const googleUser = await userInfoRes.json();
-
-        await processGoogleCredential({
-          credential: 'custom_access_token',
-          email: googleUser.email,
-          name: googleUser.name,
-          sub: googleUser.sub,
-        });
-      } catch (e: any) {
-        console.error('🚨 Failed to fetch user profile:', e);
-        setError('Failed to retrieve Google profile identity.');
-        setLoading(false);
-      }
-    },
-    onError: (errResp: any) => {
-      console.error('🚨 Google OAuth Error:', errResp);
-      if (typeof window !== 'undefined') {
-        window.location.href = 'https://drivesuccess-next.vercel.app/auth/login';
-      }
-    },
-  });
 
   return (
     <div className="w-full space-y-3 font-sans">
@@ -230,11 +200,11 @@ export function GoogleSignInButton() {
         </div>
       ) : (
         <div className="w-full">
-          {/* SINGLE Official Google Identity Services (GSI) Button Container */}
-          <div ref={gsiButtonRef} className="w-full flex justify-center overflow-hidden rounded-xl min-h-[44px]" />
-
-          {/* Only show custom button if GSI failed to load */}
-          {!gsiLoaded && (
+          {/* Official Google Identity Services (GSI) Button Container (Only shown on authorized domains) */}
+          {gsiLoaded ? (
+            <div ref={gsiButtonRef} className="w-full flex justify-center overflow-hidden rounded-xl min-h-[44px]" />
+          ) : (
+            /* Custom Branded Google Button (Triggers Firebase OAuth popup / Canonical Redirect) */
             <button
               type="button"
               onClick={handleGoogleClick}
