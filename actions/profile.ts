@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@/lib/auth';
+import { getServerSession, removeAuthCookie } from '@/lib/auth';
 import { Role } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
@@ -29,6 +29,8 @@ export async function getStudentProfileDataAction() {
     });
 
     if (!student) {
+      console.warn(`⚠️ Stale JWT token for missing student ID ${session.sub}. Clearing auth cookie.`);
+      await removeAuthCookie();
       redirect('/auth/login');
     }
 
@@ -115,9 +117,7 @@ export async function deleteStudentAccountAction() {
       where: { id: studentId },
     });
 
-    const { removeAuthCookie } = await import('@/lib/auth');
     await removeAuthCookie();
-
     revalidatePath('/');
 
     return {

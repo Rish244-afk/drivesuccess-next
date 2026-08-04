@@ -78,99 +78,88 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
 
     return {
       success: true,
-      message: 'Authentication successful',
-      user: {
-        id: student.id,
-        name: student.name,
-        email: student.email,
-        phone: student.phone,
-      },
+      student,
     };
   } catch (error) {
     console.error('loginWithVerifiedPhoneAction Error:', error);
-    return { success: false, error: 'Authentication failed. Please try again.' };
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.errors[0].message };
+    }
+    return { success: false, error: 'Phone login failed' };
   }
 }
 
 /**
- * 2. Send SMS OTP Action (Hardened Production Hardening: 60s Resend Cooldown, Bcrypt Hash, 5m Expiry)
+ * 2. Send SMS OTP Action with 60s Resend Cooldown
  */
 export async function sendOtpAction(phoneInput: string) {
   try {
     const phone = phoneInput.trim().replace(/[^\d+]/g, '');
     phoneSchema.parse(phone);
 
-    const now = new Date();
+    // 1. Cooldown Enforcement: Check if an unexpired OTP was sent in the last 60 seconds
     const existingOtp = await prisma.otpVerification.findUnique({
       where: { phone },
     });
 
-    // 1. Resend Cooldown Check (60 Seconds)
     if (existingOtp) {
-      const secondsSinceLastSent = (now.getTime() - existingOtp.lastSentAt.getTime()) / 1000;
-      if (secondsSinceLastSent < 60) {
-        const waitSeconds = Math.ceil(60 - secondsSinceLastSent);
+      const now = new Date();
+      const secondsSinceSent = Math.floor((now.getTime() - existingOtp.createdAt.getTime()) / 1000);
+      if (secondsSinceSent < 60) {
+        const remainingCooldown = 60 - secondsSinceSent;
         return {
           success: false,
-          error: `Please wait ${waitSeconds} seconds before requesting a new verification code.`,
-        };
-      }
-
-      // 2. Max Requests Rate Limit (5 requests per 10 minutes)
-      const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
-      if (existingOtp.lastSentAt > tenMinutesAgo && existingOtp.attempts >= 5) {
-        return {
-          success: false,
-          error: 'Maximum verification code requests exceeded. Please try again in 10 minutes.',
+          error: `Please wait ${remainingCooldown} second${remainingCooldown === 1 ? '' : 's'} before requesting a new code.`,
         };
       }
     }
 
-    // 3. Generate Cryptographically Secure 6-Digit OTP
-    const rawOtp = generateOtp();
-    const otpHash = await bcrypt.hash(rawOtp, 10);
-    const expiresAt = new Date(now.getTime() + 5 * 60 * 1000); // 5 Minutes Expiry
+    // 2. Generate Cryptographically Secure 6-Digit OTP
+    const otp = generateOtp();
 
-    // 4. Store ONLY Hashed OTP in DB
+    // 3. Hash OTP using bcrypt (Salt Rounds = 10) before Database Storage
+    const otpHash = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 Minutes Expiry
+
+    // 4. Upsert OTP record in Database with 0 initial failed attempts
     await prisma.otpVerification.upsert({
       where: { phone },
       update: {
         otpHash,
-        attempts: 0,
         expiresAt,
-        lastSentAt: now,
+        attempts: 0,
+        createdAt: new Date(),
       },
       create: {
         phone,
         otpHash,
-        attempts: 0,
         expiresAt,
-        lastSentAt: now,
+        attempts: 0,
       },
     });
 
-    // 5. Dispatch SMS via Gateway (Zero OTP leakage in server/client response)
-    await sendSmsOtp(phone, rawOtp);
+    // 5. Dispatch SMS via Provider (Masked Phone for Logging)
+    const smsResult = await sendSmsOtp(phone, otp);
 
-    const maskedPhone = phone.length >= 10
-      ? `${phone.slice(0, 3)}******${phone.slice(-4)}`
-      : phone;
+    const maskedPhone = phone.replace(/(\+\d{2}\d{4})\d{4}(\d{2})/, '$1****$2');
+    console.log(`🔒 Secure OTP generated for ${maskedPhone}. Expiration: 5m.`);
 
     return {
       success: true,
-      message: `We've sent a 6-digit verification code to ${maskedPhone}.`,
+      message: `Verification code sent to ${maskedPhone}. Valid for 5 minutes.`,
+      smsDelivered: smsResult.success,
     };
   } catch (error) {
     console.error('sendOtpAction Error:', error);
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message };
     }
-    return { success: false, error: 'Failed to send verification code. Please try again.' };
+    return { success: false, error: 'Failed to send OTP code. Please try again.' };
   }
 }
 
 /**
- * 3. Verify OTP Action (Hardened Production Verification: Brute-force Limit, Anti-Replay Deletion, Single-Use)
+ * 3. Verify SMS OTP Action with 5-Attempt Lockout & Anti-Replay Deletion
  */
 export async function verifyOtpAction(phoneInput: string, otpInput: string) {
   try {
@@ -180,23 +169,22 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
     phoneSchema.parse(phone);
     otpSchema.parse(otp);
 
+    // 1. Fetch OTP record from Database
     const otpRecord = await prisma.otpVerification.findUnique({
       where: { phone },
     });
 
     if (!otpRecord) {
-      return { success: false, error: 'No active verification request found. Please request a new code.' };
+      return { success: false, error: 'Verification code expired or not requested. Please request a new code.' };
     }
 
-    const now = new Date();
-
-    // 1. Check Expiry
-    if (now > otpRecord.expiresAt) {
+    // Check Expiry (5 Minutes)
+    if (new Date() > otpRecord.expiresAt) {
       await prisma.otpVerification.delete({ where: { phone } });
       return { success: false, error: 'Verification code has expired. Please request a new code.' };
     }
 
-    // 2. Check Attempt Limit (Max 5 Attempts Lockout)
+    // 2. Lockout Check: Max 5 Failed Attempts
     if (otpRecord.attempts >= 5) {
       await prisma.otpVerification.delete({ where: { phone } });
       return { success: false, error: 'Maximum verification attempts exceeded. Please request a new code.' };
@@ -249,12 +237,24 @@ export async function logoutAction(): Promise<void> {
 }
 
 /**
- * 5. Get Current User Session
+ * 5. Get Current User Session (Database Validated)
  */
 export async function getCurrentUserAction() {
   const session = await getServerSession();
-  if (!session) {
+  if (!session || !session.sub) {
     return { success: false, user: null };
   }
-  return { success: true, user: session };
+
+  // Verify student record actually exists in Prisma DB
+  const student = await prisma.student.findUnique({
+    where: { id: session.sub },
+    select: { id: true, role: true, phone: true, email: true, name: true },
+  });
+
+  if (!student) {
+    await removeAuthCookie();
+    return { success: false, user: null };
+  }
+
+  return { success: true, user: { ...session, role: student.role } };
 }
