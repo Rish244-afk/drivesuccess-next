@@ -30,7 +30,7 @@ export function GoogleSignInButton() {
     setError(null);
 
     try {
-      console.log('🔄 Sending Google ID token to backend for verification...');
+      console.log('🔄 Verifying Google Identity Token with backend...');
       const res = await fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,12 +45,12 @@ export function GoogleSignInButton() {
       const data = await res.json();
 
       if (data.success) {
-        console.log('✅ Google Identity verified! Session issued.');
+        console.log('✅ Google Identity verified! Unified 30-day session issued.');
         setSuccess(true);
         setTimeout(() => {
           router.push('/dashboard');
           router.refresh();
-        }, 600);
+        }, 500);
       } else {
         console.error('❌ Server verification rejected token:', data.error);
         setError(data.error || 'Google Authentication failed. Please try again.');
@@ -63,7 +63,7 @@ export function GoogleSignInButton() {
     }
   };
 
-  // 2. Initialize Google Identity Services (GSI) One Tap + Official Rendered Button
+  // 2. Initialize Google Identity Services (GSI) One Tap + Account Chooser Button
   useEffect(() => {
     const clientId =
       process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
@@ -71,29 +71,29 @@ export function GoogleSignInButton() {
 
     const initGsi = () => {
       if (window.google?.accounts?.id) {
-        console.log('⚡ Initializing Google Identity Services (GSI)...');
+        console.log('⚡ Initializing Google Identity Services (GSI) Master Suite...');
 
         window.google.accounts.id.initialize({
           client_id: clientId,
           callback: (response: any) => {
-            console.log('🔑 Google GSI Credential received:', response);
+            console.log('🔑 Google GSI Credential response received');
             if (response.credential) {
               processGoogleCredential({ credential: response.credential });
             }
           },
+          auto_select: true,
           use_fedcm_for_prompt: true,
-          auto_select: false,
           cancel_on_tap_outside: false,
         });
 
-        // Trigger Google One Tap UI prompt (top-right corner prompt)
+        // Trigger Google One Tap Prompt automatically for unauthenticated users
         window.google.accounts.id.prompt((notification: any) => {
           if (notification.isNotDisplayed()) {
-            console.log('ℹ️ One Tap not displayed reason:', notification.getNotDisplayedReason());
+            console.log('ℹ️ One Tap prompt status:', notification.getNotDisplayedReason());
           }
         });
 
-        // Render official GSI button in container if present
+        // Render Official Google Sign-In Button with dark luxury theme
         if (gsiButtonRef.current) {
           gsiButtonRef.current.innerHTML = '';
           window.google.accounts.id.renderButton(gsiButtonRef.current, {
@@ -107,7 +107,7 @@ export function GoogleSignInButton() {
       }
     };
 
-    // Load GSI script if not present
+    // Script injection & load handler
     if (typeof window !== 'undefined' && !window.google?.accounts?.id) {
       const existingScript = document.getElementById('google-gsi-script');
       if (!existingScript) {
@@ -126,22 +126,21 @@ export function GoogleSignInButton() {
     }
   }, []);
 
-  // 3. Bulletproof Firebase Google Auth Popup (routes via drivesuccess-academy.firebaseapp.com to bypass preview origin_mismatch)
+  // 3. Fallback Popup Auth via Static Domain Firebase Handler
   const handleGoogleClick = async () => {
     setError(null);
 
-    // Try GSI prompt first
     if (window.google?.accounts?.id) {
       window.google.accounts.id.prompt();
     }
 
     try {
-      console.log('🔒 Triggering Firebase static domain Google Auth popup...');
+      console.log('🔒 Triggering Google Account Chooser popup...');
       const result = await signInWithPopup(auth, googleAuthProvider);
       const user = result.user;
       const idToken = await user.getIdToken();
 
-      console.log('🔑 Firebase Google Account selected:', user.email);
+      console.log('🔑 Google Account selected:', user.email);
       await processGoogleCredential({
         credential: idToken || 'custom_access_token',
         email: user.email,
@@ -149,23 +148,20 @@ export function GoogleSignInButton() {
         sub: user.uid,
       });
     } catch (popupErr: any) {
-      console.warn('Firebase popup warning:', popupErr);
-      if (popupErr?.code === 'auth/popup-closed-by-user') {
-        return;
-      }
+      console.warn('Google popup notice:', popupErr);
+      if (popupErr?.code === 'auth/popup-closed-by-user') return;
       try {
         triggerGoogleOAuth();
       } catch (err) {
-        setError('Please sign in on the main domain https://drivesuccess-next.vercel.app or use Mobile OTP.');
+        setError('Please test on https://drivesuccess-next.vercel.app or log in via Mobile OTP.');
       }
     }
   };
 
-  // 4. Fallback OAuth Popup trigger via useGoogleLogin
+  // 4. Secondary OAuth Popup fallback
   const triggerGoogleOAuth = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       if (!tokenResponse?.access_token) return;
-      console.log('🔑 Google OAuth access token received.');
       setLoading(true);
       setError(null);
 
@@ -189,17 +185,13 @@ export function GoogleSignInButton() {
     },
     onError: (errResp: any) => {
       console.error('🚨 Google OAuth Error:', errResp);
-      if (errResp?.error === 'origin_mismatch') {
-        setError('Preview domain not authorized for OAuth. Please test on https://drivesuccess-next.vercel.app or log in via Mobile OTP.');
-      } else {
-        setError(`Google Sign-In Error: ${errResp?.error_description || errResp?.error || 'Popup closed'}`);
-      }
+      setError(`Google Sign-In Error: ${errResp?.error_description || errResp?.error || 'Popup closed'}`);
       setLoading(false);
     },
   });
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-3 font-sans">
       {error && (
         <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
@@ -215,20 +207,20 @@ export function GoogleSignInButton() {
       )}
 
       {loading ? (
-        <div className="w-full py-3 bg-slate-950 border border-slate-800 text-slate-300 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
+        <div className="w-full py-3.5 bg-slate-950 border border-slate-800 text-slate-300 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
           <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-          <span>Verifying Google Identity...</span>
+          <span>Verifying Google Account...</span>
         </div>
       ) : (
         <div className="w-full space-y-2">
           {/* Official Google Identity Services (GSI) Button Container */}
           <div ref={gsiButtonRef} className="w-full flex justify-center overflow-hidden rounded-xl min-h-[44px]" />
 
-          {/* Fallback Custom Branded Google Button */}
+          {/* Custom Branded Google Fallback Button */}
           <button
             type="button"
             onClick={handleGoogleClick}
-            className="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-200 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 text-xs tracking-wider transition shadow-md focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+            className="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-200 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 text-xs tracking-wider transition shadow-md focus:outline-none focus:ring-2 focus:ring-amber-400/40 cursor-pointer"
           >
             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -236,7 +228,7 @@ export function GoogleSignInButton() {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
             </svg>
-            <span>Continue with Google</span>
+            <span>Sign in with Google</span>
           </button>
         </div>
       )}
