@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 export async function GET(
   req: NextRequest,
@@ -36,100 +35,104 @@ export async function GET(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Generate PDF using pdf-lib
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([600, 800]);
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const { width, height } = page.getSize();
-    
-    const margin = 50;
-    let cursorY = height - margin;
-
-    // Helper for writing text
-    const drawText = (text: string, x: number, y: number, f = font, size = 12, color = rgb(0.1, 0.1, 0.1)) => {
-      page.drawText(text, { x, y, size, font: f, color });
-    };
-
-    // Header
-    drawText('DRIVESUCCESS ACADEMY', margin, cursorY, boldFont, 24, rgb(0.96, 0.62, 0.04)); // Amber color
-    cursorY -= 30;
-    drawText('Official Booking Receipt', margin, cursorY, boldFont, 16);
-    cursorY -= 40;
-
-    // Receipt details
-    drawText(`Receipt Date: ${new Date().toLocaleDateString()}`, margin, cursorY, font, 10);
-    drawText(`Booking ID: ${booking.id}`, width - margin - 250, cursorY, font, 10);
-    cursorY -= 40;
-
-    // Divider
-    page.drawLine({
-      start: { x: margin, y: cursorY },
-      end: { x: width - margin, y: cursorY },
-      thickness: 1,
-      color: rgb(0.8, 0.8, 0.8),
-    });
-    cursorY -= 30;
-
-    // Student Info
-    drawText('Student Information:', margin, cursorY, boldFont, 14);
-    cursorY -= 25;
-    drawText(`Name: ${booking.student.name}`, margin, cursorY);
-    cursorY -= 20;
-    drawText(`Phone: ${booking.student.phone}`, margin, cursorY);
-    cursorY -= 40;
-
-    // Package & Instructor Info
-    drawText('Booking Details:', margin, cursorY, boldFont, 14);
-    cursorY -= 25;
-    drawText(`Package: ${booking.package.name} (${booking.package.sessionsCount} Sessions)`, margin, cursorY);
-    cursorY -= 20;
-    drawText(`Instructor: ${booking.instructor?.name || 'Pending Assignment'}`, margin, cursorY);
-    cursorY -= 20;
-    drawText(`Vehicle: ${booking.vehicle?.name || 'Standard Vehicle'}`, margin, cursorY);
-    cursorY -= 20;
-
     const firstSession = booking.sessions[0];
-    const scheduledStr = firstSession 
-      ? `${firstSession.scheduledAt.toLocaleDateString()} at ${firstSession.scheduledAt.toLocaleTimeString()}`
+    const scheduledStr = firstSession
+      ? `${new Date(firstSession.scheduledAt).toLocaleDateString()} at ${new Date(firstSession.scheduledAt).toLocaleTimeString()}`
       : 'Pending Schedule';
-    drawText(`First Session: ${scheduledStr}`, margin, cursorY);
-    cursorY -= 40;
 
-    // Payment Info
-    drawText('Payment Summary:', margin, cursorY, boldFont, 14);
-    cursorY -= 25;
-    drawText(`Total Paid: INR ${booking.totalAmount.toLocaleString()}`, margin, cursorY, boldFont, 14, rgb(0.06, 0.72, 0.5)); // Emerald
-    cursorY -= 20;
-    drawText(`Status: ${booking.paymentStatus}`, margin, cursorY);
-    cursorY -= 60;
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>Receipt #${booking.id.slice(-8)} | DriveSuccess Academy</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #060913; color: #f8fafc; margin: 0; padding: 40px; }
+            .card { max-width: 650px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+            .header { text-align: center; padding-bottom: 24px; border-bottom: 1px solid #1e293b; }
+            .logo { font-size: 26px; font-weight: 800; color: #fbbf24; text-decoration: none; }
+            .badge { background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 9999px; text-transform: uppercase; display: inline-block; margin-top: 12px; }
+            .details { margin: 28px 0; background-color: #020617; border-radius: 14px; padding: 24px; border: 1px solid #1e293b; }
+            .row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 14px; border-bottom: 1px border-slate-900; }
+            .label { color: #94a3b8; }
+            .value { font-weight: 700; color: #f8fafc; }
+            .price { color: #fbbf24; font-size: 20px; font-weight: 800; }
+            .footer { text-align: center; margin-top: 32px; font-size: 12px; color: #64748b; line-height: 1.6; }
+            .btn { display: inline-block; background-color: #fbbf24; color: #020617; font-weight: 800; padding: 12px 24px; border-radius: 12px; text-decoration: none; margin-top: 20px; cursor: pointer; border: none; }
+            @media print {
+              body { background-color: #fff; color: #000; padding: 0; }
+              .card { border: none; shadow: none; color: #000; background: #fff; }
+              .details { background: #f8fafc; border: 1px solid #e2e8f0; }
+              .label { color: #64748b; }
+              .value { color: #0f172a; }
+              .btn { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <div class="header">
+              <a href="https://drivesuccess-next.vercel.app" class="logo">Vahathi DriveSuccess Academy</a>
+              <h2 style="color: #f8fafc; margin-top: 16px; font-size: 20px;">Official Training Booking Receipt</h2>
+              <span class="badge">Payment Confirmed (${booking.paymentStatus})</span>
+            </div>
 
-    // Divider
-    page.drawLine({
-      start: { x: margin, y: cursorY },
-      end: { x: width - margin, y: cursorY },
-      thickness: 1,
-      color: rgb(0.8, 0.8, 0.8),
-    });
-    cursorY -= 30;
+            <div class="details">
+              <div class="row">
+                <span class="label">Receipt ID:</span>
+                <span class="value">${booking.id}</span>
+              </div>
+              <div class="row">
+                <span class="label">Student Name:</span>
+                <span class="value">${booking.student.name}</span>
+              </div>
+              <div class="row">
+                <span class="label">Student Phone:</span>
+                <span class="value">${booking.student.phone || 'N/A'}</span>
+              </div>
+              <div class="row">
+                <span class="label">Training Program:</span>
+                <span class="value">${booking.package.name} (${booking.package.sessionsCount} Sessions)</span>
+              </div>
+              <div class="row">
+                <span class="label">Assigned Instructor:</span>
+                <span class="value">${booking.instructor?.name || 'Senior Driving Instructor'}</span>
+              </div>
+              <div class="row">
+                <span class="label">Assigned Vehicle:</span>
+                <span class="value">${booking.vehicle?.name || 'Dual-Control SUV'}</span>
+              </div>
+              <div class="row">
+                <span class="label">First Scheduled Session:</span>
+                <span class="value">${scheduledStr}</span>
+              </div>
+              <div class="row" style="margin-top: 10px; border-top: 1px solid #334155; padding-top: 14px;">
+                <span class="label" style="font-size: 16px; font-weight: 700;">Total Paid:</span>
+                <span class="price">₹${booking.totalAmount.toLocaleString()}</span>
+              </div>
+            </div>
 
-    // Footer Note
-    drawText('This is a computer-generated receipt.', margin, cursorY, font, 10, rgb(0.5, 0.5, 0.5));
-    cursorY -= 15;
-    drawText('For queries, contact support@drivesuccess.edu or +91 7829780778.', margin, cursorY, font, 10, rgb(0.5, 0.5, 0.5));
+            <div style="text-align: center;">
+              <button onclick="window.print()" class="btn">🖨️ Print / Save as PDF</button>
+            </div>
 
-    const pdfBytes = await pdfDoc.save();
+            <div class="footer">
+              This is an official computer-generated receipt for Vahathi Motor Driving School.<br/>
+              Support: support@drivesuccess.edu | Helpline: +91 7829780778
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
 
-    return new NextResponse(pdfBytes as any, {
+    return new NextResponse(htmlContent, {
       status: 200,
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="receipt_${booking.id.slice(-8)}.pdf"`,
+        'Content-Type': 'text/html; charset=utf-8',
       },
     });
-
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    console.error('Error generating receipt:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
