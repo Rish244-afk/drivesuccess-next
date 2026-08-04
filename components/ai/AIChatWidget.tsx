@@ -5,6 +5,7 @@ import { ShieldCheck, X, Send, Sparkles, CheckCircle2, CreditCard, ArrowRight } 
 import { motion, AnimatePresence } from 'framer-motion';
 import { processAIChatAction, AIMessage, AIOption, AIPackageCard } from '@/actions/aiAssistant';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { useRazorpayCheckout } from '@/hooks/useRazorpayCheckout';
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,6 +13,8 @@ export function AIChatWidget() {
   const [loading, setLoading] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null);
+  const [checkoutBookingId, setCheckoutBookingId] = useState<string | null>(null);
+  const { launchRazorpayCheckout } = useRazorpayCheckout();
 
   const [messages, setMessages] = useState<AIMessage[]>([
     {
@@ -83,30 +86,54 @@ export function AIChatWidget() {
   };
 
   // Intercept Proceed to Checkout to check authentication first
-  const handleProceedToCheckout = async (e: React.MouseEvent, paymentUrl: string) => {
+  const handleProceedToCheckout = async (e: React.MouseEvent, paymentUrl: string, bookingId: string) => {
     e.preventDefault();
 
     try {
       const res = await fetch('/api/auth/me');
       const data = await res.json();
       if (data.success && data.user) {
-        // Already authenticated! Proceed directly to payment checkout URL
-        window.location.href = paymentUrl;
+        // Already authenticated! Launch Razorpay directly over chat widget
+        await launchRazorpayCheckout(bookingId, {
+          onLoading: setLoading,
+          onSuccess: (msg) => {
+            setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
+          },
+          onError: (err) => {
+            setMessages((prev) => [...prev, { role: 'assistant', content: `Payment issue: ${err}` }]);
+          },
+        });
       } else {
         // Unauthenticated! Prompt Auth Modal first
         setPendingPaymentUrl(paymentUrl);
+        setCheckoutBookingId(bookingId);
         setIsAuthModalOpen(true);
       }
     } catch {
       setPendingPaymentUrl(paymentUrl);
+      setCheckoutBookingId(bookingId);
       setIsAuthModalOpen(true);
     }
   };
 
   const handleAuthSuccess = () => {
-    if (pendingPaymentUrl) {
-      window.location.href = pendingPaymentUrl;
+    // If they were trying to checkout a previously created booking
+    if (checkoutBookingId) {
+      launchRazorpayCheckout(checkoutBookingId, {
+        onLoading: setLoading,
+        onSuccess: (msg) => {
+          setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
+        },
+        onError: (err) => {
+          setMessages((prev) => [...prev, { role: 'assistant', content: `Payment issue: ${err}` }]);
+        },
+      });
+      setCheckoutBookingId(null);
       setPendingPaymentUrl(null);
+    } else {
+      // Just logged in mid-flow (e.g. AUTH_REQUIRED prompt)
+      // Auto-trigger "Yes proceed" to resume the booking
+      handleSendMessage('Yes proceed');
     }
   };
 
@@ -289,6 +316,19 @@ export function AIChatWidget() {
                   )}
 
                   {/* Interactive Booking Confirmation Card */}
+                  {m.cardData && m.cardData.type === 'AUTH_REQUIRED' && (
+                    <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
+                      <button
+                        type="button"
+                        onClick={() => setIsAuthModalOpen(true)}
+                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition cursor-pointer"
+                      >
+                        <span>Sign In to Continue →</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Interactive Booking Confirmation Card */}
                   {m.cardData && m.cardData.type === 'BOOKING_CREATED' && (
                     <div className="w-full bg-slate-900 border border-amber-500/40 rounded-2xl p-4 space-y-3 shadow-xl">
                       <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
@@ -305,7 +345,7 @@ export function AIChatWidget() {
 
                       <button
                         type="button"
-                        onClick={(e) => handleProceedToCheckout(e, m.cardData.paymentUrl)}
+                        onClick={(e) => handleProceedToCheckout(e, m.cardData.paymentUrl, m.cardData.bookingId)}
                         className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition cursor-pointer"
                       >
                         <CreditCard className="w-4 h-4" />

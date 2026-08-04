@@ -111,6 +111,21 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
 
     if (isBookingConfirmation) {
       console.log(`[DriveAI Router] Route: BOOKING_CONFIRMATION | Query: "${userMessage}"`);
+
+      // Authentication check before creating booking
+      const { getServerSession } = await import('@/lib/auth');
+      const session = await getServerSession();
+
+      if (!session?.sub) {
+        return {
+          success: true,
+          message: "To lock in this session, you'll need to sign in first — it takes 30 seconds with your phone number or Google account.",
+          cardData: {
+            type: 'AUTH_REQUIRED',
+          },
+        };
+      }
+
       const dateStr = getNextSaturdayDate();
 
       const bookingRes = await createBookingTool({
