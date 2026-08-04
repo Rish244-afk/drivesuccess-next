@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { razorpay, RAZORPAY_KEY_ID, verifyRazorpaySignature } from '@/lib/razorpay';
 import { getServerSession } from '@/lib/auth';
+import { getAdminSession } from '@/actions/admin';
 import { BookingStatus, PaymentStatus, Role } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 
@@ -28,7 +29,7 @@ export async function createRazorpayOrderAction(bookingId: string, idempotencyKe
       return { success: false, error: 'Booking not found.' };
     }
 
-    // IDOR Check
+    // IDOR Check: Ensure booking belongs to authenticated student or admin
     if (booking.studentId !== session.sub && session.role !== Role.ADMIN) {
       return { success: false, error: 'Unauthorized access to booking.' };
     }
@@ -140,7 +141,7 @@ export async function verifyPaymentSignatureAction({
       return { success: false, error: 'Booking record not found.' };
     }
 
-    // IDOR Check
+    // IDOR Check: Ensure booking belongs to authenticated student or admin
     if (existingBooking.studentId !== session.sub && session.role !== Role.ADMIN) {
       return { success: false, error: 'Unauthorized access to booking.' };
     }
@@ -253,10 +254,28 @@ export async function verifyPaymentSignatureAction({
 }
 
 /**
- * 3. Handle Payment Failure
+ * 3. Handle Payment Failure (Strict IDOR Validation)
  */
 export async function markPaymentFailedAction(bookingId: string, reason?: string) {
   try {
+    const session = await getServerSession();
+    if (!session || !session.sub) {
+      return { success: false, error: 'Unauthorized. Please log in.' };
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+    });
+
+    if (!booking) {
+      return { success: false, error: 'Booking record not found.' };
+    }
+
+    // IDOR Validation
+    if (booking.studentId !== session.sub && session.role !== Role.ADMIN) {
+      return { success: false, error: 'Unauthorized access to booking.' };
+    }
+
     await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -278,12 +297,22 @@ export async function markPaymentFailedAction(bookingId: string, reason?: string
  */
 export async function retryPaymentAction(bookingId: string) {
   try {
+    const session = await getServerSession();
+    if (!session || !session.sub) {
+      return { success: false, error: 'Unauthorized. Please log in.' };
+    }
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
     });
 
     if (!booking) {
       return { success: false, error: 'Booking not found.' };
+    }
+
+    // IDOR Check
+    if (booking.studentId !== session.sub && session.role !== Role.ADMIN) {
+      return { success: false, error: 'Unauthorized access to booking.' };
     }
 
     if (booking.paymentStatus === PaymentStatus.PAID) {
@@ -299,7 +328,7 @@ export async function retryPaymentAction(bookingId: string) {
 }
 
 /**
- * 5. Refund Support Structure via Razorpay API
+ * 5. Refund Support Structure via Razorpay API (Admin Authorized Only)
  */
 export async function processBookingRefundAction({
   bookingId,
@@ -311,6 +340,12 @@ export async function processBookingRefundAction({
   reason?: string;
 }) {
   try {
+    // Admin Authorization Check (Prevents BOLA/IDOR on refund trigger)
+    const admin = await getAdminSession();
+    if (!admin) {
+      return { success: false, error: 'Admin authorization required to process refunds.' };
+    }
+
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
     });
