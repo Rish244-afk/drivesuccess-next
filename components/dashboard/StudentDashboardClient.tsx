@@ -41,6 +41,35 @@ export function StudentDashboardClient({
 }: StudentDashboardClientProps) {
   const [activeTab, setActiveTab] = useState<'bookings' | 'sessions' | 'payments' | 'documents' | 'skills'>('bookings');
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [uploadingType, setUploadingType] = useState<string | null>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingType(type);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+
+      const res = await fetch('/api/documents/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        alert('Failed to upload document');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error uploading document');
+    } finally {
+      setUploadingType(null);
+    }
+  };
 
   const handleRetryPayment = async (bookingId: string) => {
     setRetryingId(bookingId);
@@ -264,21 +293,57 @@ export function StudentDashboardClient({
         {activeTab === 'documents' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {[
-              { name: 'Government Driver ID / Passport', status: 'VERIFIED' },
-              { name: 'RTO Form 20 (Registration)', status: 'APPROVED' },
-              { name: 'Learner License Permit', status: 'ACTIVE' },
-              { name: 'Medical Certificate (Form 1A)', status: 'SUBMITTED' },
-            ].map((doc) => (
-              <div key={doc.name} className="bg-[#070B19] border border-slate-800/60 p-6 rounded-2xl flex items-center justify-between">
-                <div>
-                  <h4 className="font-serif text-lg text-slate-100 font-normal">{doc.name}</h4>
-                  <span className="text-[10px] text-slate-500 uppercase tracking-widest font-medium">RTO Document</span>
+              { type: 'government_id', name: 'Government Driver ID / Passport' },
+              { type: 'rto_form_20', name: 'RTO Form 20 (Registration)' },
+              { type: 'learner_license', name: 'Learner License Permit' },
+              { type: 'medical_certificate', name: 'Medical Certificate (Form 1A)' },
+            ].map((docType) => {
+              const userDoc = student.documents?.find((d: any) => d.type === docType.type);
+              const status = userDoc?.status || 'not_uploaded';
+              const isUploading = uploadingType === docType.type;
+
+              return (
+                <div key={docType.type} className="bg-[#070B19] border border-slate-800/60 p-6 rounded-2xl flex flex-col justify-between space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h4 className="font-serif text-lg text-slate-100 font-normal">{docType.name}</h4>
+                      <span className="text-[10px] text-slate-500 uppercase tracking-widest font-medium">RTO Document</span>
+                    </div>
+                    <span className={`text-[10px] uppercase tracking-widest font-semibold px-3 py-1 rounded-full border ${
+                      status === 'verified' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/5' :
+                      status === 'rejected' ? 'border-red-500/30 text-red-400 bg-red-500/5' :
+                      status === 'submitted' ? 'border-amber-500/30 text-amber-400 bg-amber-500/5' :
+                      'border-slate-500/30 text-slate-400 bg-slate-500/5'
+                    }`}>
+                      {status === 'not_uploaded' ? 'Pending Upload' : status}
+                    </span>
+                  </div>
+                  
+                  {status === 'not_uploaded' || status === 'rejected' ? (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={(e) => handleFileUpload(e, docType.type)}
+                        disabled={isUploading}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                      />
+                      <button disabled={isUploading} className="w-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 font-bold px-4 py-2.5 rounded-full text-xs uppercase tracking-wider flex items-center justify-center transition-all disabled:opacity-50">
+                        {isUploading ? 'Uploading...' : 'Upload Document'}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end">
+                      {userDoc?.fileUrl && (
+                        <a href={userDoc.fileUrl} target="_blank" rel="noreferrer" className="text-xs text-amber-400 hover:underline">
+                          View File
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <span className="text-[10px] uppercase tracking-widest font-semibold px-3 py-1 rounded-full border border-emerald-500/30 text-emerald-400 bg-emerald-500/5">
-                  {doc.status}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -287,26 +352,8 @@ export function StudentDashboardClient({
           <div className="bg-[#070B19] border border-slate-800/60 rounded-3xl p-8 space-y-6">
             <h3 className="font-serif text-2xl text-slate-100 font-normal">Pedagogical Driving Skill Matrix</h3>
             
-            <div className="space-y-5">
-              {[
-                { skill: 'Parallel Parking & Reversing', score: 90 },
-                { skill: 'Clutch & Hill Start Control', score: 85 },
-                { skill: 'Highway Merging & Traffic Rules', score: 80 },
-                { skill: 'Night Vision Practical Navigation', score: 75 },
-              ].map((item) => (
-                <div key={item.skill} className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-300 font-medium">{item.skill}</span>
-                    <span className="text-amber-400 font-serif italic text-sm">{item.score}%</span>
-                  </div>
-                  <div className="h-1 bg-slate-900 rounded-full overflow-hidden border border-slate-800/60">
-                    <div
-                      className="h-full bg-amber-400 rounded-full transition-all duration-500"
-                      style={{ width: `${item.score}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+            <div className="text-center py-8">
+              <p className="text-slate-400 font-light text-sm">Your instructor will update your skill matrix after your practical sessions begin.</p>
             </div>
           </div>
         )}

@@ -26,6 +26,9 @@ export async function getStudentProfileDataAction() {
     // 1. Fetch Student profile
     const student = await prisma.student.findUnique({
       where: { id: session.sub },
+      include: {
+        documents: true,
+      },
     });
 
     if (!student) {

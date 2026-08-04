@@ -617,3 +617,50 @@ export async function deleteInstructorAction(instructorId: string) {
     return { success: false, error: 'Cannot delete instructor with assigned bookings.' };
   }
 }
+
+/**
+ * 7. DOCUMENTS MANAGEMENT
+ */
+export async function getAdminDocumentsAction() {
+  try {
+    const admin = await getAdminSession();
+    if (!admin) return { success: false, error: 'Admin access denied.', data: [] };
+
+    const documents = await prisma.studentDocument.findMany({
+      include: {
+        student: true,
+      },
+      orderBy: {
+        uploadedAt: 'desc',
+      },
+    });
+
+    return { success: true, data: documents };
+  } catch (error) {
+    console.error('getAdminDocumentsAction Error:', error);
+    return { success: false, error: 'Failed to load documents.', data: [] };
+  }
+}
+
+export async function updateDocumentStatusAction(documentId: string, status: string) {
+  try {
+    const admin = await getAdminSession();
+    if (!admin) return { success: false, error: 'Admin access denied.' };
+
+    await prisma.studentDocument.update({
+      where: { id: documentId },
+      data: {
+        status,
+        reviewedAt: new Date(),
+        reviewedBy: admin.sub,
+      },
+    });
+
+    revalidatePath('/admin/documents');
+    return { success: true, message: `Document status updated to ${status}.` };
+  } catch (error) {
+    console.error('updateDocumentStatusAction Error:', error);
+    return { success: false, error: 'Failed to update document status.' };
+  }
+}
+
