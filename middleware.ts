@@ -18,7 +18,6 @@ export async function middleware(req: NextRequest) {
   // 1. CSRF PROTECTION: Validate Origin & Referer on mutating HTTP methods
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
     const origin = req.headers.get('origin');
-    const referer = req.headers.get('referer');
     const host = req.headers.get('host');
 
     if (origin && host && !origin.includes(host)) {
@@ -37,9 +36,22 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // 3. ADMIN ROUTE AUTHORIZATION
+  const token = req.cookies.get(COOKIE_NAME)?.value;
+
+  // 3. RETURNING USER AUTO-REDIRECT: Instant server redirect if already authenticated visiting /auth/login
+  if (pathname === '/auth/login' && token) {
+    try {
+      await jwtVerify(token, JWT_SECRET);
+      const fromUrl = req.nextUrl.searchParams.get('from') || '/dashboard';
+      return NextResponse.redirect(new URL(fromUrl, req.url));
+    } catch {
+      // Invalid token, allow access to login page
+    }
+  }
+
+  // 4. ADMIN ROUTE AUTHORIZATION
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
-    const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value || req.cookies.get(COOKIE_NAME)?.value;
+    const adminToken = req.cookies.get(ADMIN_COOKIE_NAME)?.value || token;
     if (!adminToken) {
       return NextResponse.redirect(new URL('/admin/login', req.url));
     }
@@ -54,8 +66,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // 4. STUDENT PROTECTED ROUTES
-  const token = req.cookies.get(COOKIE_NAME)?.value;
+  // 5. STUDENT PROTECTED ROUTES
   const isProtectedPage = PROTECTED_PAGES.some((path) => pathname.startsWith(path));
   const isProtectedApi = PROTECTED_API_ROUTES.some((path) => pathname.startsWith(path));
 
@@ -76,6 +87,7 @@ export async function middleware(req: NextRequest) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
 
     const response = NextResponse.next();
+    // Rolling 30-day session extension
     response.cookies.set(COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -108,6 +120,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    '/auth/login',
     '/dashboard/:path*',
     '/profile/:path*',
     '/admin/:path*',
