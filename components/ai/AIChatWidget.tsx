@@ -4,12 +4,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ShieldCheck, X, Send, Sparkles, CheckCircle2, CreditCard, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { processAIChatAction, AIMessage, AIOption, AIPackageCard } from '@/actions/aiAssistant';
-import Link from 'next/link';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null);
+
   const [messages, setMessages] = useState<AIMessage[]>([
     {
       role: 'assistant',
@@ -78,13 +81,41 @@ export function AIChatWidget() {
     }
   };
 
+  // Intercept Proceed to Checkout to check authentication first
+  const handleProceedToCheckout = async (e: React.MouseEvent, paymentUrl: string) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.success && data.user) {
+        // Already authenticated! Proceed directly to payment checkout URL
+        window.location.href = paymentUrl;
+      } else {
+        // Unauthenticated! Prompt Auth Modal first
+        setPendingPaymentUrl(paymentUrl);
+        setIsAuthModalOpen(true);
+      }
+    } catch {
+      setPendingPaymentUrl(paymentUrl);
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    if (pendingPaymentUrl) {
+      window.location.href = pendingPaymentUrl;
+      setPendingPaymentUrl(null);
+    }
+  };
+
   return (
     <>
       {/* Floating Toggle Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 p-4 rounded-full shadow-2xl shadow-amber-500/30 hover:scale-105 transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 p-4 rounded-full shadow-2xl shadow-amber-500/30 hover:scale-105 transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-amber-400/40 cursor-pointer"
         aria-label="Toggle DriveAI Assistant chat"
       >
         <Sparkles className="w-5 h-5 text-slate-950 animate-pulse" />
@@ -92,6 +123,14 @@ export function AIChatWidget() {
           DriveAI Assistant
         </span>
       </button>
+
+      {/* Auth Modal for Login Handoff */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+        redirectToDashboard={false}
+      />
 
       {/* Chat Window Drawer */}
       <AnimatePresence>
@@ -122,20 +161,22 @@ export function AIChatWidget() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-slate-100 p-2 rounded-full hover:bg-slate-800/60 transition"
+                className="text-slate-400 hover:text-slate-100 p-2 rounded-full hover:bg-slate-800/60 transition cursor-pointer"
                 aria-label="Close chat"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Touch-optimized Scrollable Messages Container */}
+            {/* Touch-optimized Scrollable Messages Container (Fixes Touch/Finger Scrolling on Mobile) */}
             <div
-              className="flex-1 overflow-y-auto p-4 space-y-4 touch-pan-y overscroll-contain"
+              className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 touch-pan-y overscroll-contain"
               style={{
                 touchAction: 'pan-y',
                 WebkitOverflowScrolling: 'touch',
               }}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
             >
               {messages.map((m, idx) => (
                 <div
@@ -234,7 +275,7 @@ export function AIChatWidget() {
                           <button
                             key={sIdx}
                             onClick={() => handleSendMessage(`Book ${m.cardData.packageName} for ${m.cardData.date} at ${slot}`)}
-                            className="bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-200 border border-slate-800 text-xs py-2 px-3 rounded-xl font-semibold transition flex items-center justify-between"
+                            className="bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-200 border border-slate-800 text-xs py-2 px-3 rounded-xl font-semibold transition flex items-center justify-between cursor-pointer"
                           >
                             <span>{slot}</span>
                             <ArrowRight className="w-3 h-3" />
@@ -259,13 +300,14 @@ export function AIChatWidget() {
                         <p><strong className="text-slate-400">Schedule:</strong> {m.cardData.date} at {m.cardData.timeSlot}</p>
                       </div>
 
-                      <Link
-                        href={m.cardData.paymentUrl}
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition"
+                      <button
+                        type="button"
+                        onClick={(e) => handleProceedToCheckout(e, m.cardData.paymentUrl)}
+                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition cursor-pointer"
                       >
                         <CreditCard className="w-4 h-4" />
                         <span>Proceed to Secure Checkout →</span>
-                      </Link>
+                      </button>
                     </div>
                   )}
                 </div>
