@@ -11,6 +11,41 @@ interface BookingEmailParams {
   razorpayPaymentId?: string;
 }
 
+export async function sendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  try {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (resendApiKey) {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'DriveSuccess Academy <onboarding@resend.dev>',
+          to: [to],
+          subject,
+          html,
+        }),
+      });
+      return { success: response.ok };
+    }
+    console.log(`[SIMULATION] Email dispatched to ${to}: ${subject}`);
+    return { success: true, simulated: true };
+  } catch (error) {
+    console.error('sendEmail Error:', error);
+    return { success: false, error: 'Email dispatch failed.' };
+  }
+}
+
 export async function sendBookingConfirmationEmail({
   studentEmail,
   studentName,
@@ -20,7 +55,6 @@ export async function sendBookingConfirmationEmail({
   razorpayPaymentId,
 }: BookingEmailParams) {
   try {
-    const resendApiKey = process.env.RESEND_API_KEY;
     const subject = `🚗 Booking Confirmed! DriveSuccess Academy - #${bookingId.slice(-8)}`;
 
     const htmlContent = `
@@ -82,33 +116,11 @@ export async function sendBookingConfirmationEmail({
       </html>
     `;
 
-    if (resendApiKey) {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: 'DriveSuccess Academy <onboarding@resend.dev>',
-          to: [studentEmail],
-          subject,
-          html: htmlContent,
-        }),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.warn('Resend API HTTP Error:', errText);
-      } else {
-        const resData = await response.json();
-        console.log('✅ Resend Confirmation Email Sent:', resData);
-      }
-      return { success: true };
-    } else {
-      console.log(`[SIMULATION] Resend Confirmation Email dispatched to ${studentEmail} for Booking #${bookingId}`);
-      return { success: true, simulated: true };
-    }
+    return await sendEmail({
+      to: studentEmail,
+      subject,
+      html: htmlContent,
+    });
   } catch (error) {
     console.error('sendBookingConfirmationEmail Error:', error);
     return { success: false, error: 'Email dispatch failed.' };
