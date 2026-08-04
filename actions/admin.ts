@@ -21,8 +21,12 @@ export async function adminLoginAction(formData: FormData) {
       return { success: false, error: 'Email and password are required.' };
     }
 
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@drivesuccess.edu').toLowerCase().trim();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'REDACTED_ADMIN_PASSWORD';
+    const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase().trim();
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      return { success: false, error: 'Admin credentials not configured on the server.' };
+    }
 
     if (email.toLowerCase().trim() !== adminEmail || password !== adminPassword) {
       return { success: false, error: 'Invalid admin credentials.' };
