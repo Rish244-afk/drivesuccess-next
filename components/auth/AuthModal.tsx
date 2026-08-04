@@ -56,7 +56,11 @@ export function AuthModal({
     setError(null);
     setMessage(null);
 
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/[^\d]/g, '')}`;
+    const cleanDigits = phone.replace(/[^\d]/g, '');
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${cleanDigits}`;
+    const maskedPhone = cleanDigits.length >= 10
+      ? `+91 ******${cleanDigits.slice(-4)}`
+      : formattedPhone;
 
     try {
       // CAPTCHA-protected Firebase Phone SMS Auth
@@ -64,7 +68,7 @@ export function AuthModal({
       if (appVerifier) {
         const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
         setConfirmationResult(confirmation);
-        setMessage(`OTP sent successfully via SMS to ${formattedPhone}. Valid for 5 minutes.`);
+        setMessage(`We've sent a 6-digit verification code to ${maskedPhone}.`);
         setStep('OTP');
         setLoading(false);
         return;
@@ -73,23 +77,23 @@ export function AuthModal({
       console.warn('Firebase SMS Auth fallback triggered:', err);
     }
 
-    // Fallback OTP action
+    // Fallback Server OTP Action
     const res = await sendOtpAction(phone);
     setLoading(false);
 
     if (!res.success) {
-      setError(res.error || 'Failed to send OTP.');
+      setError(res.error || 'Failed to send verification code.');
       return;
     }
 
-    setMessage(res.message || 'OTP sent successfully.');
+    setMessage(res.message || `We've sent a 6-digit verification code to ${maskedPhone}.`);
     setStep('OTP');
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otp || otp.length !== 6) {
-      setError('Please enter 6-digit OTP code.');
+      setError('Please enter 6-digit verification code.');
       return;
     }
 
@@ -122,7 +126,7 @@ export function AuthModal({
     setLoading(false);
 
     if (!res.success) {
-      setError(res.error || 'OTP verification failed.');
+      setError(res.error || 'Verification code failed.');
       return;
     }
 
@@ -149,13 +153,13 @@ export function AuthModal({
       }
       maxWidth="max-w-md"
     >
-      <div className="space-y-5">
+      <div className="space-y-5 font-sans">
         <div className="text-center space-y-1">
           <h3 className="font-heading font-extrabold text-xl text-slate-100">
             Access Your Student Portal
           </h3>
-          <p className="text-xs text-slate-400">
-            Log in using your Mobile Phone OTP or Google Account.
+          <p className="text-xs text-slate-400 font-light">
+            Log in securely using Mobile Phone OTP or Google Account.
           </p>
         </div>
 
@@ -199,7 +203,7 @@ export function AuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
+              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -216,7 +220,7 @@ export function AuthModal({
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                  Enter 6-Digit OTP Code *
+                  Enter 6-Digit Verification Code *
                 </label>
                 <button
                   type="button"
@@ -243,7 +247,7 @@ export function AuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
+              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
