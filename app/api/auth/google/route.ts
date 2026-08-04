@@ -212,3 +212,52 @@ export async function POST(req: NextRequest) {
     return handleApiError(error, '/api/auth/google');
   }
 }
+
+/**
+ * Handle Google OAuth GET Redirect Callback (Code & Implicit Flow)
+ */
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const code = searchParams.get('code');
+  const idToken = searchParams.get('id_token');
+
+  if (idToken) {
+    try {
+      const postReq = new NextRequest(req.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: idToken }),
+      });
+      await POST(postReq);
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    } catch {
+      return NextResponse.redirect(new URL('/auth/login', req.url));
+    }
+  }
+
+  if (code) {
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri = `${req.nextUrl.origin}/api/auth/google`;
+
+    if (googleClientId && clientSecret) {
+      try {
+        const client = new OAuth2Client(googleClientId, clientSecret, redirectUri);
+        const { tokens } = await client.getToken(code);
+        if (tokens.id_token) {
+          const postReq = new NextRequest(req.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: tokens.id_token }),
+          });
+          await POST(postReq);
+          return NextResponse.redirect(new URL('/dashboard', req.url));
+        }
+      } catch (err) {
+        console.error('Google OAuth Code Exchange Error:', err);
+      }
+    }
+  }
+
+  return NextResponse.redirect(new URL('/dashboard', req.url));
+}

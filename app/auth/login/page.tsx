@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ShieldCheck, Phone, KeyRound, ArrowRight, RefreshCw, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { ShieldCheck, Phone, KeyRound, ArrowRight, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/actions/auth';
 import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
@@ -22,8 +22,47 @@ function LoginFormContent() {
   const [cooldown, setCooldown] = useState(0);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  // Auto-redirect if student is already logged in
+  // Auto-redirect if student is already logged in or returning from Google OAuth Redirect
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // 1. Check URL Hash for Google OAuth Implicit Token (e.g. #access_token=... or #id_token=...)
+      const hash = window.location.hash;
+      if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        const idToken = params.get('id_token');
+
+        if (accessToken || idToken) {
+          fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken || idToken}` },
+          })
+            .then((res) => res.json())
+            .then((user) => {
+              if (user.email) {
+                fetch('/api/auth/google', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    credential: idToken || accessToken || 'custom_access_token',
+                    email: user.email,
+                    name: user.name || user.email.split('@')[0],
+                    sub: user.sub,
+                  }),
+                })
+                  .then((r) => r.json())
+                  .then((data) => {
+                    if (data.success) {
+                      router.push(fromPath);
+                    }
+                  });
+              }
+            })
+            .catch(() => {});
+          return;
+        }
+      }
+    }
+
     fetch('/api/auth/me')
       .then((res) => res.json())
       .then((data) => {
