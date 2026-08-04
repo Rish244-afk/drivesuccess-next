@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
+import { Role } from '@prisma/client';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 
@@ -16,6 +17,11 @@ export async function getStudentProfileDataAction() {
     redirect('/auth/login?from=/dashboard');
   }
 
+  // Cross-Role Access Handling: If logged in as ADMIN, redirect to /admin
+  if (session.role === Role.ADMIN) {
+    redirect('/admin');
+  }
+
   try {
     // 1. Fetch Student profile
     const student = await prisma.student.findUnique({
@@ -24,6 +30,10 @@ export async function getStudentProfileDataAction() {
 
     if (!student) {
       redirect('/auth/login');
+    }
+
+    if (student.role === Role.ADMIN) {
+      redirect('/admin');
     }
 
     // 2. Fetch Student's own Bookings only (Student Scope Enforcement)
