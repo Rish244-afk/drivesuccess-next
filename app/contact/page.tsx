@@ -2,7 +2,13 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle2, MessageSquare } from 'lucide-react';
+import { MapPin, Phone, Mail, CheckCircle2, MessageSquare } from 'lucide-react';
+
+const ADDRESS_URL =
+  'https://www.google.com/search?sca_esv=cc5c7de7f204be12&sxsrf=APpeQnvSblA8BBZPvtpmkX5lAdEmE4GQjg:1785817012598&q=vahathi+motor+driving+school+address&ludocid=17252816017518154739&sa=X&ved=2ahUKEwjcwK3ljoaWAxVnSmwGHZ8UJW8Q6BN6BAgfEAI';
+
+const PHONE_URL =
+  'https://www.google.com/search?q=Vahathi+Motor+Driving+School&oq=vaha&gs_lcrp=EgZjaHJvbWUqCAgAEEUYJxg7MggIABBFGCcYOzIGCAEQRRg7MgYIAhBFGDkyDQgDEAAYgwEYsQMYgAQyDQgEEAAYgwEYsQMYgAQyBggFEEUYPTIGCAYQRRg9MgYIBxBFGD3SAQgxMzc4ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8#';
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -18,7 +24,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16 font-sans">
       
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -26,49 +32,63 @@ export default function ContactPage() {
         <h1 className="font-heading font-extrabold text-4xl sm:text-5xl text-slate-100">
           Contact Our Driving Advisors
         </h1>
-        <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
+        <p className="text-sm sm:text-base text-slate-400 leading-relaxed font-light">
           Have questions about program eligibility, license transfers, or vehicle fleet availability? Reach out to our team today.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
         
-        {/* Left 2 Cols: Contact Info & Details */}
+        {/* Left 1 Col: Contact Info & Details */}
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-            <div className="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center">
+          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
+            <div className="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center shrink-0">
               <MapPin className="w-6 h-6" />
             </div>
             <div>
               <h3 className="font-heading font-extrabold text-lg text-slate-100">Vahathi Motor Driving School</h3>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                29th Main Road, BTM 2nd Stage<br />
-                Bengaluru, Karnataka 560076
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                <a
+                  href={ADDRESS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-400 font-bold hover:underline"
+                >
+                  Address
+                </a>
+                : Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
               </p>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-            <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
+          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
+            <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center shrink-0">
               <Phone className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-lg text-slate-100">Call Us (Direct Line)</h3>
-              <a href="tel:7829780778" className="text-amber-400 font-bold text-sm hover:underline block mt-1">
-                +91 7829780778
-              </a>
-              <p className="text-[11px] text-slate-500 mt-0.5">Mon - Sat: 6:00 AM - 8:00 PM IST</p>
+              <h3 className="font-heading font-extrabold text-lg text-slate-100">Phone</h3>
+              <p className="mt-1">
+                <a
+                  href={PHONE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-400 font-bold text-base hover:underline"
+                >
+                  078297 80778
+                </a>
+              </p>
+              <p className="text-[11px] text-slate-500 mt-1">Mon - Sat: 6:00 AM - 8:00 PM IST</p>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center">
+          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
+            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center shrink-0">
               <Mail className="w-6 h-6" />
             </div>
             <div>
               <h3 className="font-heading font-extrabold text-lg text-slate-100">Email & Enquiries</h3>
-              <p className="text-xs text-slate-400 mt-1">contact@vahathidriving.com</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Instant WhatsApp / Phone support</p>
+              <p className="text-xs text-slate-300 mt-1 font-mono">support@drivesuccess.edu</p>
+              <p className="text-[11px] text-slate-500 mt-1">Instant Phone & WhatsApp support</p>
             </div>
           </div>
         </div>
@@ -93,7 +113,7 @@ export default function ContactPage() {
               </p>
               <button
                 onClick={() => setSubmitted(false)}
-                className="text-xs font-bold text-amber-400 hover:underline pt-2 inline-block"
+                className="text-xs font-bold text-amber-400 hover:underline pt-2 inline-block cursor-pointer"
               >
                 Send another message
               </button>
@@ -120,7 +140,7 @@ export default function ContactPage() {
                   <input
                     type="tel"
                     required
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+91 078297 80778"
                     className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition"
                   />
                 </div>
@@ -153,9 +173,9 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-sm shadow-xl shadow-amber-500/20 transition disabled:opacity-50"
+                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-sm shadow-xl shadow-amber-500/20 transition disabled:opacity-50 cursor-pointer"
               >
-                <Send className="w-4 h-4" />
+                <MessageSquare className="w-4 h-4" />
                 <span>{loading ? 'Sending Message...' : 'Submit Inquiry'}</span>
               </button>
             </form>
