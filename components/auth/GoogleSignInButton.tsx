@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
 import { auth, googleAuthProvider, signInWithPopup } from '@/lib/firebase';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -64,19 +63,9 @@ export function GoogleSignInButton() {
     }
   };
 
-  // 2. Initialize Google Identity Services (GSI) ONLY on Authorized Origins
+  // 2. Initialize Google Identity Services (GSI)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    const hostname = window.location.hostname;
-    const isAuthorizedOrigin =
-      hostname === 'drivesuccess-next.vercel.app' || hostname.includes('localhost') || hostname === '127.0.0.1';
-
-    // On preview URLs, do not render GSI iframe to avoid Google 400 origin_mismatch
-    if (!isAuthorizedOrigin) {
-      setGsiLoaded(false);
-      return;
-    }
 
     const clientId =
       process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
@@ -85,12 +74,9 @@ export function GoogleSignInButton() {
     const initGsi = () => {
       if (window.google?.accounts?.id) {
         try {
-          console.log('⚡ Initializing Google Identity Services (GSI)...');
-
           window.google.accounts.id.initialize({
             client_id: clientId,
             callback: (response: any) => {
-              console.log('🔑 Google GSI Credential response received');
               if (response.credential) {
                 processGoogleCredential({ credential: response.credential });
               }
@@ -100,7 +86,6 @@ export function GoogleSignInButton() {
             cancel_on_tap_outside: false,
           });
 
-          // Render Official Google Sign-In Button inside container
           if (gsiButtonRef.current) {
             gsiButtonRef.current.innerHTML = '';
             window.google.accounts.id.renderButton(gsiButtonRef.current, {
@@ -113,7 +98,7 @@ export function GoogleSignInButton() {
             setGsiLoaded(true);
           }
         } catch (err) {
-          console.warn('GSI render error:', err);
+          console.warn('GSI render notice:', err);
           setGsiLoaded(false);
         }
       }
@@ -137,10 +122,17 @@ export function GoogleSignInButton() {
     }
   }, []);
 
-  // 3. Fallback Popup Auth via Firebase Authorized Domain for Preview URLs
+  // 3. Fail-Safe Google Authentication Trigger
   const handleGoogleClick = async () => {
     setError(null);
     setLoading(true);
+
+    // Try Google One Tap / GSI Prompt first if initialized
+    if (window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.prompt();
+      } catch (e) {}
+    }
 
     try {
       console.log('🔒 Triggering Firebase Authorized Google popup...');
@@ -158,9 +150,17 @@ export function GoogleSignInButton() {
     } catch (popupErr: any) {
       console.warn('Google popup notice:', popupErr);
       setLoading(false);
-      if (popupErr?.code === 'auth/popup-closed-by-user') return;
 
-      // On non-authorized preview URLs, redirect to canonical production domain
+      // Silently return if user intentionally closed the popup
+      if (
+        popupErr?.code === 'auth/popup-closed-by-user' ||
+        popupErr?.message?.includes('closed-by-user') ||
+        popupErr?.code === 'auth/cancelled-popup-request'
+      ) {
+        return;
+      }
+
+      // If on non-authorized preview hostname, redirect to production domain
       if (
         typeof window !== 'undefined' &&
         !window.location.hostname.includes('localhost') &&
@@ -173,7 +173,16 @@ export function GoogleSignInButton() {
         return;
       }
 
-      setError('Authentication failed. Please log in via Mobile OTP or test on https://drivesuccess-next.vercel.app');
+      // Popup blocked fallback: Direct Google OAuth redirect
+      const clientId = '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
+      const redirectUri = encodeURIComponent(`${window.location.origin}/auth/login`);
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=email%20profile`;
+      
+      try {
+        window.location.href = googleAuthUrl;
+      } catch {
+        setError('Popup blocked by browser. Please enable popups or log in via Mobile OTP.');
+      }
     }
   };
 
@@ -200,11 +209,9 @@ export function GoogleSignInButton() {
         </div>
       ) : (
         <div className="w-full">
-          {/* Official Google Identity Services (GSI) Button Container (Only shown on authorized domains) */}
           {gsiLoaded ? (
             <div ref={gsiButtonRef} className="w-full flex justify-center overflow-hidden rounded-xl min-h-[44px]" />
           ) : (
-            /* Custom Branded Google Button (Triggers Firebase OAuth popup / Canonical Redirect) */
             <button
               type="button"
               onClick={handleGoogleClick}
