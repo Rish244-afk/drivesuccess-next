@@ -76,7 +76,7 @@ export function useRazorpayCheckout() {
         }
 
         callbacks?.onSuccess?.('Payment verified & Booking status set to CONFIRMED!');
-        setTimeout(() => router.push('/dashboard'), 1500);
+        setTimeout(() => router.push(`/booking/${bookingId}/confirmation`), 1500);
       },
       modal: {
         ondismiss: async function () {
@@ -108,7 +108,7 @@ export function useRazorpayCheckout() {
       
       if (verifyRes.success) {
         callbacks?.onSuccess?.('Payment verified & Booking status set to CONFIRMED!');
-        setTimeout(() => router.push('/dashboard'), 1500);
+        setTimeout(() => router.push(`/booking/${bookingId}/confirmation`), 1500);
       }
     }
   };

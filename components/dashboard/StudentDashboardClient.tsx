@@ -239,6 +239,17 @@ export function StudentDashboardClient({
                         </button>
                       </div>
                     )}
+                    {b.paymentStatus === 'PAID' && (
+                      <div className="flex justify-end pt-2">
+                        <Link
+                          href={`/booking/${b.id}/confirmation`}
+                          className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold px-5 py-2.5 rounded-full text-xs uppercase tracking-wider flex items-center gap-2 transition"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>View Confirmation</span>
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
