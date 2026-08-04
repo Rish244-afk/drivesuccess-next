@@ -128,7 +128,7 @@ export async function getAvailableSlotsAction({
   dateStr: z.string().min(1, 'Date is required'),
   timeSlot: z.string().min(1, 'Time slot is required'),
   studentName: z.string().optional(),
-  studentPhone: z.string().optional(),
+  studentPhone: z.string().min(10, 'A valid 10-digit mobile number is required'),
   studentEmail: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -190,6 +190,13 @@ export async function createBookingTransactionAction(inputData: unknown) {
 
       if (conflictSession) {
         throw new Error('DOUBLE_BOOKING_CONFLICT');
+      }
+
+      if (data.studentPhone) {
+        await tx.student.update({
+          where: { id: studentId },
+          data: { phone: data.studentPhone },
+        });
       }
 
       // 2. Create Booking (Status: PENDING)

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShieldCheck, LayoutDashboard, Calendar, Package, Car, UserCheck, LogOut } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Calendar, Package, Car, UserCheck, LogOut, FileText } from 'lucide-react';
 import { adminLogoutAction } from '@/actions/admin';
 
 export function AdminHeader() {
@@ -12,6 +12,7 @@ export function AdminHeader() {
   const links = [
     { name: 'Overview', href: '/admin', icon: LayoutDashboard },
     { name: 'Bookings & Assignments', href: '/admin/bookings', icon: Calendar },
+    { name: 'Student Documents', href: '/admin/documents', icon: FileText },
     { name: 'Packages (CRUD)', href: '/admin/packages', icon: Package },
     { name: 'Vehicles (CRUD)', href: '/admin/vehicles', icon: Car },
     { name: 'Instructors (CRUD)', href: '/admin/instructors', icon: UserCheck },

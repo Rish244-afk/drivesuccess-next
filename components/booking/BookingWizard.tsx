@@ -117,6 +117,7 @@ export function BookingWizard() {
   const [notes, setNotes] = useState<string>('');
   const [studentName, setStudentName] = useState<string>('');
   const [studentPhone, setStudentPhone] = useState<string>('');
+  const [initialPhone, setInitialPhone] = useState<string>('');
   const [studentEmail, setStudentEmail] = useState<string>('');
   const [isGuest, setIsGuest] = useState<boolean>(false);
 
@@ -150,6 +151,7 @@ export function BookingWizard() {
         setIsGuest(false);
         setStudentName(data.user.name || '');
         setStudentPhone(data.user.phone || '');
+        setInitialPhone(data.user.phone || '');
         setStudentEmail(data.user.email || '');
       } else {
         setIsGuest(true);
@@ -161,6 +163,7 @@ export function BookingWizard() {
       setIsGuest(true);
       setStudentName('');
       setStudentPhone('');
+      setInitialPhone('');
       setStudentEmail('');
     }
   };
@@ -318,7 +321,7 @@ export function BookingWizard() {
       return;
     }
 
-    if (isGuest && (!studentPhone || studentPhone.length < 10)) {
+    if (!studentPhone || studentPhone.length < 10) {
       setError('Please enter a valid 10-digit mobile phone number for your student account.');
       return;
     }
@@ -1019,14 +1022,14 @@ export function BookingWizard() {
 
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Mobile Phone *</span>
-                    {studentPhone ? (
+                    {initialPhone ? (
                       <strong className="text-amber-400">{studentPhone}</strong>
                     ) : (
                       <input
                         type="tel"
-                        placeholder="Complete Mobile Phone"
+                        placeholder="Add a contact number to continue"
                         value={studentPhone}
-                        onChange={(e) => setStudentPhone(e.target.value)}
+                        onChange={(e) => setStudentPhone(e.target.value.replace(/[^\d+]/g, ''))}
                         className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-amber-400"
                         required
                       />

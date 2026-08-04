@@ -256,5 +256,5 @@ export async function getCurrentUserAction() {
     return { success: false, user: null };
   }
 
-  return { success: true, user: { ...session, role: student.role } };
+  return { success: true, user: { ...session, ...student } };
 }

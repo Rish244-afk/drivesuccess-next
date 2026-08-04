@@ -112,6 +112,7 @@ model Student {
   bookings      Booking[]
   sessions      Session[]
   notifications Notification[]
+  documents     StudentDocument[]
 
   @@index([email])
   @@index([phone])
@@ -134,6 +135,21 @@ model Notification {
   @@index([studentId])
   @@index([isRead])
   @@map("notifications")
+}
+
+model StudentDocument {
+  id          String    @id @default(cuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type        String    // "government_id" | "rto_form_20" | "learner_license" | "medical_certificate"
+  fileUrl     String?
+  status      String    @default("not_uploaded") // "not_uploaded" | "submitted" | "verified" | "rejected"
+  uploadedAt  DateTime?
+  reviewedAt  DateTime?
+  reviewedBy  String?   // admin id who verified/rejected
+
+  @@index([studentId])
+  @@map("student_documents")
 }
 
 model Instructor {
