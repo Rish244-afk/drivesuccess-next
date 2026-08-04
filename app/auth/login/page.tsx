@@ -205,7 +205,6 @@ function LoginFormContent() {
       try {
         await confirmationResult.confirm(otp);
         const res = await loginWithVerifiedPhoneAction(formattedPhone);
-        setLoading(false);
 
         if (res.success) {
           setMessage('Phone Authentication successful! Redirecting...');
@@ -214,6 +213,7 @@ function LoginFormContent() {
           }, 800);
           return;
         } else {
+          setLoading(false);
           setError(res.error || 'Authentication failed.');
           return;
         }
@@ -227,9 +227,9 @@ function LoginFormContent() {
 
     // 2. Server Action OTP verification
     const res = await verifyOtpAction(formattedPhone, otp);
-    setLoading(false);
 
     if (!res.success) {
+      setLoading(false);
       setError(res.error || 'Verification failed. Invalid OTP code.');
       return;
     }

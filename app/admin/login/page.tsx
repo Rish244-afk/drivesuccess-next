@@ -22,14 +22,14 @@ export default function AdminLoginPage() {
     formData.append('password', password);
 
     const res = await adminLoginAction(formData);
-    setLoading(false);
 
     if (!res.success) {
+      setLoading(false);
       setError(res.error || 'Authentication failed.');
       return;
     }
 
-    router.push('/admin');
+    window.location.href = '/admin';
   };
 
   return (

@@ -233,15 +233,16 @@ export function BookingWizard() {
     }
 
     const res = await verifyOtpAction(formattedPhone, authOtp);
-    setAuthLoading(false);
 
     if (!res.success) {
+      setAuthLoading(false);
       setAuthError(res.error || 'OTP verification failed.');
       return;
     }
 
     setAuthMessage('Phone authenticated successfully!');
     await refreshSessionData();
+    setAuthLoading(false);
   };
 
   // Created Booking Record & Razorpay State

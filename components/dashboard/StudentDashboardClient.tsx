@@ -61,13 +61,13 @@ export function StudentDashboardClient({
       if (res.ok) {
         window.location.reload();
       } else {
+        setUploadingType(null);
         alert('Failed to upload document');
       }
     } catch (error) {
+      setUploadingType(null);
       console.error(error);
       alert('Error uploading document');
-    } finally {
-      setUploadingType(null);
     }
   };
 

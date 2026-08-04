@@ -131,14 +131,15 @@ export function AdminBookingsClient({
     setLoadingId(bookingId);
     setMessage(null);
     const res = await updateBookingAssignmentAction({ bookingId, ...updates });
-    setLoadingId(null);
     if (res.success && res.booking) {
       setBookings((prev) =>
         prev.map((b) => (b.id === bookingId ? { ...b, ...res.booking } : b))
       );
       setMessage('Booking updated successfully!');
+      setLoadingId(null);
       setTimeout(() => setMessage(null), 3000);
     } else {
+      setLoadingId(null);
       alert(res.error || 'Failed to update assignment.');
     }
   };
@@ -147,7 +148,6 @@ export function AdminBookingsClient({
     setLoadingId(bookingId);
     setMessage(null);
     const res = await markSessionCompleteAction(bookingId);
-    setLoadingId(null);
     if (res.success) {
       setBookings((prev) =>
         prev.map((b) => {
@@ -159,8 +159,10 @@ export function AdminBookingsClient({
         })
       );
       setMessage(res.message || 'Session marked completed!');
+      setLoadingId(null);
       setTimeout(() => setMessage(null), 3000);
     } else {
+      setLoadingId(null);
       alert(res.error || 'Failed to complete session.');
     }
   };
@@ -169,7 +171,6 @@ export function AdminBookingsClient({
     setLoadingId(bookingId);
     setMessage(null);
     const res = await removeCompletedSessionAction(bookingId);
-    setLoadingId(null);
     if (res.success) {
       setBookings((prev) =>
         prev.map((b) => {
@@ -183,8 +184,10 @@ export function AdminBookingsClient({
         })
       );
       setMessage(res.message || 'Completed session undone!');
+      setLoadingId(null);
       setTimeout(() => setMessage(null), 3000);
     } else {
+      setLoadingId(null);
       alert(res.error || 'Failed to remove session.');
     }
   };
@@ -193,11 +196,12 @@ export function AdminBookingsClient({
     setLoadingId(bookingId);
     setMessage(null);
     const res = await markBookingNoShowAction(bookingId);
-    setLoadingId(null);
     if (res.success) {
       setMessage('Session marked as NO-SHOW!');
+      setLoadingId(null);
       setTimeout(() => setMessage(null), 3000);
     } else {
+      setLoadingId(null);
       alert(res.error || 'Failed to mark no-show.');
     }
   };
@@ -214,7 +218,6 @@ export function AdminBookingsClient({
       bookingId: cancelModalBooking.id,
       cancelReason: cancelReason.trim(),
     });
-    setLoadingId(null);
     if (res.success && res.booking) {
       setBookings((prev) =>
         prev.map((b) => (b.id === cancelModalBooking.id ? { ...b, ...res.booking } : b))
@@ -222,8 +225,10 @@ export function AdminBookingsClient({
       setMessage('Booking cancelled with logged reason.');
       setCancelModalBooking(null);
       setCancelReason('');
+      setLoadingId(null);
       setTimeout(() => setMessage(null), 3000);
     } else {
+      setLoadingId(null);
       alert(res.error || 'Failed to cancel booking.');
     }
   };
