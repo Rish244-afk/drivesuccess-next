@@ -21,7 +21,17 @@ export async function middleware(req: NextRequest) {
     const host = req.headers.get('host');
 
     if (origin && host && !origin.includes(host)) {
-      return NextResponse.json({ success: false, error: 'CSRF Forbidden: Origin mismatch' }, { status: 403 });
+      const isAuthPath = pathname.startsWith('/api/auth');
+      const isTrustedOrigin =
+        origin.includes('vercel.app') ||
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1') ||
+        origin.includes('google.com') ||
+        origin.includes('firebaseapp.com');
+
+      if (!isAuthPath && !isTrustedOrigin) {
+        return NextResponse.json({ success: false, error: 'CSRF Forbidden: Origin mismatch' }, { status: 403 });
+      }
     }
   }
 
