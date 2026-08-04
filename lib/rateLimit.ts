@@ -7,7 +7,7 @@ interface RateLimitRecord {
   resetTime: number;
 }
 
-class RateLimiter {
+export class RateLimiter {
   private store = new Map<string, RateLimitRecord>();
   private windowMs: number;
   private maxRequests: number;
@@ -74,3 +74,15 @@ class RateLimiter {
 export const authRateLimiter = new RateLimiter(5, 60 * 1000);     // 5 OTP requests / min
 export const bookingRateLimiter = new RateLimiter(10, 60 * 1000);  // 10 bookings / min
 export const apiRateLimiter = new RateLimiter(60, 60 * 1000);      // 60 requests / min
+
+/**
+ * Universal Rate Check Helper
+ */
+export function checkRateLimit(identifier: string, options?: { limit?: number; windowMs?: number }) {
+  const result = authRateLimiter.check(identifier);
+  return {
+    allowed: result.success,
+    remaining: result.remaining,
+    resetMs: result.reset - Date.now(),
+  };
+}
