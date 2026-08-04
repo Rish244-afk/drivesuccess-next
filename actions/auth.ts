@@ -34,7 +34,7 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
     }
 
     if (student) {
-      // Update existing Google account with verified phone
+      // Update existing account with verified phone
       student = await prisma.student.update({
         where: { id: student.id },
         data: {
@@ -79,7 +79,12 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
     return {
       success: true,
       message: 'Authentication successful',
-      user: student,
+      user: {
+        id: student.id,
+        name: student.name,
+        email: student.email,
+        phone: student.phone,
+      },
     };
   } catch (error) {
     console.error('loginWithVerifiedPhoneAction Error:', error);
@@ -88,7 +93,7 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
 }
 
 /**
- * 2. Send SMS OTP Action with 10-minute Rate Limiting
+ * 2. Send SMS OTP Action (Hardened Production Hardening: 60s Resend Cooldown, Bcrypt Hash, 5m Expiry)
  */
 export async function sendOtpAction(phoneInput: string) {
   try {
@@ -100,30 +105,33 @@ export async function sendOtpAction(phoneInput: string) {
       where: { phone },
     });
 
-    // Rate Limiting: 60s cooldown & max 3 requests in 10 minutes
+    // 1. Resend Cooldown Check (60 Seconds)
     if (existingOtp) {
       const secondsSinceLastSent = (now.getTime() - existingOtp.lastSentAt.getTime()) / 1000;
       if (secondsSinceLastSent < 60) {
         const waitSeconds = Math.ceil(60 - secondsSinceLastSent);
         return {
           success: false,
-          error: `Please wait ${waitSeconds} seconds before requesting a new OTP.`,
+          error: `Please wait ${waitSeconds} seconds before requesting a new verification code.`,
         };
       }
 
+      // 2. Max Requests Rate Limit (5 requests per 10 minutes)
       const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
-      if (existingOtp.lastSentAt > tenMinutesAgo && existingOtp.attempts >= 3) {
+      if (existingOtp.lastSentAt > tenMinutesAgo && existingOtp.attempts >= 5) {
         return {
           success: false,
-          error: 'Maximum OTP requests exceeded. Please try again in 10 minutes.',
+          error: 'Maximum verification code requests exceeded. Please try again in 10 minutes.',
         };
       }
     }
 
+    // 3. Generate Cryptographically Secure 6-Digit OTP
     const rawOtp = generateOtp();
     const otpHash = await bcrypt.hash(rawOtp, 10);
-    const expiresAt = new Date(now.getTime() + 5 * 60 * 1000);
+    const expiresAt = new Date(now.getTime() + 5 * 60 * 1000); // 5 Minutes Expiry
 
+    // 4. Store ONLY Hashed OTP in DB
     await prisma.otpVerification.upsert({
       where: { phone },
       update: {
@@ -141,24 +149,28 @@ export async function sendOtpAction(phoneInput: string) {
       },
     });
 
+    // 5. Dispatch SMS via Gateway (Zero OTP leakage in server/client response)
     await sendSmsOtp(phone, rawOtp);
+
+    const maskedPhone = phone.length >= 10
+      ? `${phone.slice(0, 3)}******${phone.slice(-4)}`
+      : phone;
 
     return {
       success: true,
-      message: `OTP sent to ${phone}. (Instant Test OTP: ${rawOtp})`,
-      testOtp: rawOtp,
+      message: `We've sent a 6-digit verification code to ${maskedPhone}.`,
     };
   } catch (error) {
     console.error('sendOtpAction Error:', error);
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message };
     }
-    return { success: false, error: 'Failed to send OTP. Please try again.' };
+    return { success: false, error: 'Failed to send verification code. Please try again.' };
   }
 }
 
 /**
- * 3. Verify OTP Action with Demo Fallback
+ * 3. Verify OTP Action (Hardened Production Verification: Brute-force Limit, Anti-Replay Deletion, Single-Use)
  */
 export async function verifyOtpAction(phoneInput: string, otpInput: string) {
   try {
@@ -173,40 +185,58 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
     });
 
     if (!otpRecord) {
-      return { success: false, error: 'No OTP request found. Please request a new OTP.' };
+      return { success: false, error: 'No active verification request found. Please request a new code.' };
     }
 
     const now = new Date();
 
-    if (otpRecord) {
-      if (now > otpRecord.expiresAt) {
-        await prisma.otpVerification.delete({ where: { phone } });
-        return { success: false, error: 'OTP has expired. Please request a new OTP.' };
-      }
-
-      const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
-
-      if (!isValid) {
-        await prisma.otpVerification.update({
-          where: { phone },
-          data: { attempts: otpRecord.attempts + 1 },
-        });
-        return {
-          success: false,
-          error: `Invalid OTP code. ${3 - otpRecord.attempts} attempts remaining.`,
-        };
-      }
-
+    // 1. Check Expiry
+    if (now > otpRecord.expiresAt) {
       await prisma.otpVerification.delete({ where: { phone } });
+      return { success: false, error: 'Verification code has expired. Please request a new code.' };
     }
 
+    // 2. Check Attempt Limit (Max 5 Attempts Lockout)
+    if (otpRecord.attempts >= 5) {
+      await prisma.otpVerification.delete({ where: { phone } });
+      return { success: false, error: 'Maximum verification attempts exceeded. Please request a new code.' };
+    }
+
+    // 3. Validate Bcrypt OTP Hash
+    const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
+
+    if (!isValid) {
+      const updatedAttempts = otpRecord.attempts + 1;
+      if (updatedAttempts >= 5) {
+        await prisma.otpVerification.delete({ where: { phone } });
+        return {
+          success: false,
+          error: 'Maximum verification attempts exceeded. Please request a new code.',
+        };
+      } else {
+        await prisma.otpVerification.update({
+          where: { phone },
+          data: { attempts: updatedAttempts },
+        });
+        const remainingAttempts = 5 - updatedAttempts;
+        return {
+          success: false,
+          error: `Invalid verification code. ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.`,
+        };
+      }
+    }
+
+    // 4. Invalidate & Delete OTP Record Immediately (Prevents Replay Attacks)
+    await prisma.otpVerification.delete({ where: { phone } });
+
+    // 5. Issue Logged-In Session
     return await loginWithVerifiedPhoneAction(phone);
   } catch (error) {
     console.error('verifyOtpAction Error:', error);
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message };
     }
-    return { success: false, error: 'Failed to verify OTP. Please try again.' };
+    return { success: false, error: 'Failed to verify code. Please try again.' };
   }
 }
 
