@@ -22,56 +22,110 @@ function LoginFormContent() {
   const [cooldown, setCooldown] = useState(0);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  // Auto-redirect if student is already logged in or returning from Google OAuth Redirect
+  // Auto-redirect & OAuth Callback Handler
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // 1. Check URL Hash for Google OAuth Implicit Token (e.g. #access_token=... or #id_token=...)
-      const hash = window.location.hash;
-      if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get('access_token');
-        const idToken = params.get('id_token');
+    if (typeof window === 'undefined') return;
 
-        if (accessToken || idToken) {
-          fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${accessToken || idToken}` },
-          })
-            .then((res) => res.json())
-            .then((user) => {
-              if (user.email) {
-                fetch('/api/auth/google', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    credential: idToken || accessToken || 'custom_access_token',
-                    email: user.email,
-                    name: user.name || user.email.split('@')[0],
-                    sub: user.sub,
-                  }),
-                })
-                  .then((r) => r.json())
-                  .then((data) => {
-                    if (data.success) {
-                      router.push(fromPath);
-                    }
-                  });
-              }
-            })
-            .catch(() => {});
-          return;
-        }
-      }
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeParam = urlParams.get('code');
+    const hash = window.location.hash;
+
+    console.log('🔍 [OAuth Audit] Page Load Check:', {
+      hasCode: !!codeParam,
+      hasHash: !!hash,
+      search: window.location.search,
+      fromPath,
+    });
+
+    // 1. Handle Google Authorization Code Callback (?code=...)
+    if (codeParam) {
+      console.log('🔑 [OAuth Audit] Step 1. Code parameter received on /auth/login:', codeParam.slice(0, 12) + '...');
+      setMessage('Verifying Google credentials & issuing session...');
+      setLoading(true);
+
+      fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: codeParam }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          console.log('🔄 [OAuth Audit] Step 2. API Response from /api/auth/google:', data);
+          if (data.success) {
+            console.log('✅ [OAuth Audit] Step 3. Session cookie created successfully! Performing hard redirect to:', fromPath);
+            setMessage('Authenticated via Google! Redirecting to student portal...');
+            // Hard redirect so browser transmits fresh HTTP-only auth_token cookie
+            window.location.href = fromPath;
+          } else {
+            console.error('❌ [OAuth Audit] Token exchange error:', data.error);
+            setError(data.error || 'Google Sign-In failed. Please try again.');
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.error('🚨 [OAuth Audit] Network error sending code to API:', err);
+          setError('Network error completing Google authentication.');
+          setLoading(false);
+        });
+      return;
     }
 
+    // 2. Handle Google Implicit Token Callback (#access_token=... or #id_token=...)
+    if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
+      console.log('🔑 [OAuth Audit] Step 1. Implicit Google tokens received in URL hash');
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get('access_token');
+      const idToken = params.get('id_token');
+
+      setMessage('Verifying Google Identity profile...');
+      setLoading(true);
+
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken || idToken}` },
+      })
+        .then((res) => res.json())
+        .then((user) => {
+          if (user.email) {
+            fetch('/api/auth/google', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                credential: idToken || accessToken || 'custom_access_token',
+                email: user.email,
+                name: user.name || user.email.split('@')[0],
+                sub: user.sub,
+              }),
+            })
+              .then((r) => r.json())
+              .then((data) => {
+                if (data.success) {
+                  console.log('✅ [OAuth Audit] Session created! Performing hard redirect to:', fromPath);
+                  window.location.href = fromPath;
+                } else {
+                  setError(data.error || 'Google Sign-In failed.');
+                  setLoading(false);
+                }
+              });
+          }
+        })
+        .catch((err) => {
+          console.error('🚨 UserInfo fetch error:', err);
+          setError('Failed to fetch Google profile.');
+          setLoading(false);
+        });
+      return;
+    }
+
+    // 3. Normal session check if student is already authenticated
     fetch('/api/auth/me')
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.user) {
-          router.push(fromPath);
+          window.location.href = fromPath;
         }
       })
       .catch(() => {});
-  }, [fromPath, router]);
+  }, [fromPath]);
 
   // Resend cooldown timer
   useEffect(() => {
@@ -177,7 +231,9 @@ function LoginFormContent() {
 
         if (res.success) {
           setMessage('Phone Authentication successful! Redirecting...');
-          setTimeout(() => router.push(fromPath), 800);
+          setTimeout(() => {
+            window.location.href = fromPath;
+          }, 800);
           return;
         } else {
           setError(res.error || 'Authentication failed.');
@@ -202,7 +258,7 @@ function LoginFormContent() {
 
     setMessage('Verification successful! Redirecting to student portal...');
     setTimeout(() => {
-      router.push(fromPath);
+      window.location.href = fromPath;
     }, 800);
   };
 
@@ -230,7 +286,7 @@ function LoginFormContent() {
 
       {message && (
         <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl text-xs flex items-start gap-3">
-          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+          <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
           <span>{message}</span>
         </div>
       )}

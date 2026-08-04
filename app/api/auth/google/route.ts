@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     // 1. Rate Limiting Check
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
-    const rateLimit = checkRateLimit(`google_auth_${ip}`, { limit: 10, windowMs: 60 * 1000 });
+    const rateLimit = checkRateLimit(`google_auth_${ip}`, { limit: 15, windowMs: 60 * 1000 });
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { success: false, error: 'Too many authentication attempts. Please wait a minute and try again.' },
@@ -18,17 +18,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Parse & Validate Credential
+    // 2. Parse Request Body
     const body = await req.json().catch(() => null);
-    if (!body || !body.credential) {
+    if (!body || (!body.credential && !body.email && !body.code)) {
       return NextResponse.json(
-        { success: false, error: 'Missing required Google ID token credential.' },
+        { success: false, error: 'Missing required Google ID token or code credential.' },
         { status: 400 }
       );
     }
 
-    const { credential, email: customEmail, name: customName, sub: customSub } = body;
-    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const googleClientId =
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+      '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
 
     let googleUser = {
       sub: '',
@@ -38,74 +39,119 @@ export async function POST(req: NextRequest) {
       emailVerified: false,
     };
 
-    if (customEmail) {
-      googleUser = {
-        sub: customSub || `g_${Date.now()}`,
-        email: customEmail,
-        name: customName || customEmail.split('@')[0],
-        picture: '',
-        emailVerified: true,
-      };
-    } else if (googleClientId && googleClientId !== 'YOUR_GOOGLE_CLIENT_ID') {
+    // 2A. Authorization Code Exchange Flow (if body.code is provided)
+    if (body.code) {
+      console.log('🔄 [OAuth Audit] Step 2. Exchanging Authorization Code with Google Token Endpoint...');
+      const redirectUri = `${req.nextUrl.origin}/auth/login`;
+
       try {
-        const client = new OAuth2Client(googleClientId);
-        const ticket = await client.verifyIdToken({
-          idToken: credential,
-          audience: googleClientId,
+        const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            code: body.code,
+            client_id: googleClientId,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
+            redirect_uri: redirectUri,
+            grant_type: 'authorization_code',
+          }),
         });
 
-        const payload = ticket.getPayload();
-        if (payload && payload.email) {
-          googleUser = {
-            sub: payload.sub,
-            email: payload.email,
-            name: payload.name || payload.email.split('@')[0],
-            picture: payload.picture || '',
-            emailVerified: payload.email_verified || false,
-          };
-        }
-      } catch (verifyErr) {
-        console.warn('Google verifyIdToken fallback to token decoding:', verifyErr);
-        try {
-          const parts = credential.split('.');
+        const tokenData = await tokenRes.json();
+        console.log('🔄 [OAuth Audit] Step 3. Token exchange response status:', tokenRes.status);
+
+        if (tokenData.access_token) {
+          const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${tokenData.access_token}` },
+          });
+          const profile = await userRes.json();
+          if (profile && profile.email) {
+            console.log('✅ [OAuth Audit] Step 3. Google Profile fetched successfully:', profile.email);
+            googleUser = {
+              sub: profile.sub || `g_${Date.now()}`,
+              email: profile.email,
+              name: profile.name || profile.email.split('@')[0],
+              picture: profile.picture || '',
+              emailVerified: profile.email_verified ?? true,
+            };
+          }
+        } else if (tokenData.id_token) {
+          const parts = tokenData.id_token.split('.');
           const decoded = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
           googleUser = {
-            sub: decoded.sub || decoded.user_id || `g_${Date.now()}`,
-            email: decoded.email || 'student@drivesuccess.edu',
-            name: decoded.name || decoded.email?.split('@')[0] || 'Student',
+            sub: decoded.sub || `g_${Date.now()}`,
+            email: decoded.email,
+            name: decoded.name || decoded.email?.split('@')[0],
             picture: decoded.picture || '',
             emailVerified: true,
           };
-        } catch {
-          return NextResponse.json(
-            { success: false, error: 'Failed to verify Google ID token.' },
-            { status: 401 }
-          );
+        } else {
+          console.warn('⚠️ Google Token Exchange returned no tokens:', tokenData);
         }
+      } catch (codeErr) {
+        console.error('🚨 Error exchanging Google Code:', codeErr);
       }
-    } else {
-      // Decode JWT payload for dev fallback when client ID is placeholder
-      try {
-        const parts = credential.split('.');
-        const decoded = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-        googleUser = {
-          sub: decoded.sub || `g_${Date.now()}`,
-          email: decoded.email || 'user@example.com',
-          name: decoded.name || 'Google Student',
-          picture: decoded.picture || '',
-          emailVerified: decoded.email_verified ?? true,
-        };
-      } catch {
-        return NextResponse.json(
-          { success: false, error: 'Failed to verify Google ID token format.' },
-          { status: 400 }
-        );
+    }
+
+    // 2B. Direct Email Payload / Token Verification
+    if (!googleUser.email && body.email) {
+      googleUser = {
+        sub: body.sub || `g_${Date.now()}`,
+        email: body.email,
+        name: body.name || body.email.split('@')[0],
+        picture: '',
+        emailVerified: true,
+      };
+    } else if (!googleUser.email && body.credential) {
+      if (googleClientId && googleClientId !== 'YOUR_GOOGLE_CLIENT_ID') {
+        try {
+          const client = new OAuth2Client(googleClientId);
+          const ticket = await client.verifyIdToken({
+            idToken: body.credential,
+            audience: googleClientId,
+          });
+          const payload = ticket.getPayload();
+          if (payload && payload.email) {
+            googleUser = {
+              sub: payload.sub,
+              email: payload.email,
+              name: payload.name || payload.email.split('@')[0],
+              picture: payload.picture || '',
+              emailVerified: payload.email_verified || false,
+            };
+          }
+        } catch (verifyErr) {
+          console.warn('Google verifyIdToken fallback to JWT decode:', verifyErr);
+          try {
+            const parts = body.credential.split('.');
+            const decoded = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+            googleUser = {
+              sub: decoded.sub || `g_${Date.now()}`,
+              email: decoded.email || 'student@drivesuccess.edu',
+              name: decoded.name || decoded.email?.split('@')[0] || 'Student',
+              picture: decoded.picture || '',
+              emailVerified: true,
+            };
+          } catch {
+            return NextResponse.json(
+              { success: false, error: 'Failed to verify Google ID token format.' },
+              { status: 401 }
+            );
+          }
+        }
       }
     }
 
     const { sub: googleId, email, name, picture, emailVerified } = googleUser;
 
-    logger.info('Processing Google Identity Login', { email, googleId });
+    if (!email) {
+      return NextResponse.json(
+        { success: false, error: 'Could not extract valid email from Google response.' },
+        { status: 400 }
+      );
+    }
+
+    console.log('👤 [OAuth Audit] Step 4. Finding or Creating Student in Database:', { email, googleId });
 
     // Check if user is currently logged in via Phone session to link accounts
     const currentSession = await getServerSession();
@@ -118,21 +164,21 @@ export async function POST(req: NextRequest) {
     }
 
     if (!student) {
-      // 3A. Priority 1: Lookup by googleId
+      // 3A. Lookup by googleId
       student = await prisma.student.findUnique({
         where: { googleId },
       });
     }
 
     if (!student) {
-      // 3B. Priority 2: Lookup by Email
+      // 3B. Lookup by Email
       student = await prisma.student.findUnique({
         where: { email },
       });
     }
 
     if (student) {
-      logger.info('Linking/Updating Google credentials on Student account', { studentId: student.id });
+      console.log('✅ [OAuth Audit] Step 4. Existing Student found. Updating Google credentials...', { studentId: student.id });
       student = await prisma.student.update({
         where: { id: student.id },
         data: {
@@ -143,7 +189,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Check if another dummy student record exists with placeholder email for this student's phone, and merge it
+      // Merge duplicate phone record if necessary
       if (student.phone) {
         const dummyStudent = await prisma.student.findFirst({
           where: {
@@ -153,7 +199,6 @@ export async function POST(req: NextRequest) {
         });
 
         if (dummyStudent) {
-          logger.info('Merging duplicate dummy phone student into main Google student', { dummyId: dummyStudent.id, mainId: student.id });
           await prisma.booking.updateMany({
             where: { studentId: dummyStudent.id },
             data: { studentId: student.id },
@@ -172,8 +217,8 @@ export async function POST(req: NextRequest) {
         }
       }
     } else {
-      // 3C. Priority 3: Create New Student
-      logger.info('Creating new Student account from Google Sign-In', { email });
+      // 3C. Create New Student
+      console.log('✨ [OAuth Audit] Step 4. Creating New Student account from Google credentials:', { email });
       student = await prisma.student.create({
         data: {
           email,
@@ -187,6 +232,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Issue Unified 30-Day Session JWT Cookie
+    console.log('🔒 [OAuth Audit] Step 5. Signing & Setting 30-Day Auth Session Cookie for:', student.id);
     const token = await signSessionToken({
       sub: student.id,
       phone: student.phone || '',
@@ -196,6 +242,8 @@ export async function POST(req: NextRequest) {
     });
 
     await setAuthCookie(token);
+
+    console.log('🚀 [OAuth Audit] Step 6. Authentication Complete! Returning success response to client.');
 
     return NextResponse.json({
       success: true,
@@ -214,50 +262,34 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * Handle Google OAuth GET Redirect Callback (Code & Implicit Flow)
+ * Handle Google OAuth GET Redirect Callback
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get('code');
   const idToken = searchParams.get('id_token');
 
-  if (idToken) {
+  console.log('📥 [OAuth Audit] GET /api/auth/google received callback:', {
+    codeReceived: !!code,
+    idTokenReceived: !!idToken,
+  });
+
+  if (code || idToken) {
     try {
       const postReq = new NextRequest(req.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: idToken }),
+        body: JSON.stringify({ code: code || undefined, credential: idToken || undefined }),
       });
-      await POST(postReq);
-      return NextResponse.redirect(new URL('/dashboard', req.url));
-    } catch {
-      return NextResponse.redirect(new URL('/auth/login', req.url));
-    }
-  }
-
-  if (code) {
-    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-    const redirectUri = `${req.nextUrl.origin}/api/auth/google`;
-
-    if (googleClientId && clientSecret) {
-      try {
-        const client = new OAuth2Client(googleClientId, clientSecret, redirectUri);
-        const { tokens } = await client.getToken(code);
-        if (tokens.id_token) {
-          const postReq = new NextRequest(req.url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ credential: tokens.id_token }),
-          });
-          await POST(postReq);
-          return NextResponse.redirect(new URL('/dashboard', req.url));
-        }
-      } catch (err) {
-        console.error('Google OAuth Code Exchange Error:', err);
+      const res = await POST(postReq);
+      const data = await res.json();
+      if (data.success) {
+        return NextResponse.redirect(new URL('/dashboard', req.url));
       }
+    } catch (err) {
+      console.error('Error handling GET OAuth callback:', err);
     }
   }
 
-  return NextResponse.redirect(new URL('/dashboard', req.url));
+  return NextResponse.redirect(new URL('/auth/login', req.url));
 }
