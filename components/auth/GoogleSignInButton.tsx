@@ -83,7 +83,7 @@ export function GoogleSignInButton() {
                 processGoogleCredential({ credential: response.credential });
               }
             },
-            auto_select: true,
+            auto_select: false,
             use_fedcm_for_prompt: true,
             cancel_on_tap_outside: false,
           });
@@ -125,9 +125,22 @@ export function GoogleSignInButton() {
     }
   }, []);
 
-  // 3. Popup Google Auth Trigger for Fallback
+  // 3. Popup Google Auth Trigger for Fallback or Unregistered Preview Domains
   const handleGoogleClick = async () => {
     setError(null);
+
+    // If on non-authorized preview domain, redirect to canonical production domain for seamless OAuth
+    if (
+      typeof window !== 'undefined' &&
+      !window.location.hostname.includes('localhost') &&
+      window.location.hostname !== 'drivesuccess-next.vercel.app'
+    ) {
+      console.log('✈️ Redirecting to primary production domain for Google OAuth authorization...');
+      window.location.href = `https://drivesuccess-next.vercel.app/auth/login?from=${encodeURIComponent(
+        window.location.pathname
+      )}`;
+      return;
+    }
 
     if (window.google?.accounts?.id) {
       try {
@@ -156,9 +169,7 @@ export function GoogleSignInButton() {
       try {
         triggerGoogleOAuth();
       } catch (err) {
-        setError(
-          'Google Client ID origin mismatch on preview URL. Please log in using Mobile OTP or on https://drivesuccess-next.vercel.app'
-        );
+        setError('Please log in using Mobile OTP or visit https://drivesuccess-next.vercel.app');
       }
     }
   };
@@ -190,8 +201,9 @@ export function GoogleSignInButton() {
     },
     onError: (errResp: any) => {
       console.error('🚨 Google OAuth Error:', errResp);
-      setError('Please log in via Mobile Phone OTP or test on canonical domain https://drivesuccess-next.vercel.app');
-      setLoading(false);
+      if (typeof window !== 'undefined') {
+        window.location.href = 'https://drivesuccess-next.vercel.app/auth/login';
+      }
     },
   });
 
