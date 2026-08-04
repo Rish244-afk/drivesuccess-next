@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, CheckCircle2, MessageSquare } from 'lucide-react';
 
-const ADDRESS_URL =
-  'https://www.google.com/search?sca_esv=cc5c7de7f204be12&sxsrf=APpeQnvSblA8BBZPvtpmkX5lAdEmE4GQjg:1785817012598&q=vahathi+motor+driving+school+address&ludocid=17252816017518154739&sa=X&ved=2ahUKEwjcwK3ljoaWAxVnSmwGHZ8UJW8Q6BN6BAgfEAI';
+const GOOGLE_MAPS_URL =
+  'https://www.google.com/maps/search/?api=1&query=Vahathi+Motor+Driving+School+Kasavanahalli+Main+Rd+near+max+Kasavanahalli+Owners+Court+Layout+Eastwood+Twp+Bengaluru+Karnataka+560035';
 
 const PHONE_URL =
   'https://www.google.com/search?q=Vahathi+Motor+Driving+School&oq=vaha&gs_lcrp=EgZjaHJvbWUqCAgAEEUYJxg7MggIABBFGCcYOzIGCAEQRRg7MgYIAhBFGDkyDQgDEAAYgwEYsQMYgAQyDQgEEAAYgwEYsQMYgAQyBggFEEUYPTIGCAYQRRg9MgYIBxBFGD3SAQgxMzc4ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8#';
@@ -41,25 +41,26 @@ export default function ContactPage() {
         
         {/* Left 1 Col: Contact Info & Details */}
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
-            <div className="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center shrink-0">
+          <a
+            href={GOOGLE_MAPS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl hover:border-amber-500/50 transition cursor-pointer group"
+          >
+            <div className="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <MapPin className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-lg text-slate-100">Vahathi Motor Driving School</h3>
+              <h3 className="font-heading font-extrabold text-lg text-slate-100 group-hover:text-amber-400 transition-colors">Vahathi Motor Driving School</h3>
               <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                <a
-                  href={ADDRESS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-amber-400 font-bold hover:underline"
-                >
-                  Address
-                </a>
-                : Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
+                <span className="text-amber-400 font-bold group-hover:underline">Address</span>:
+                Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
+              </p>
+              <p className="text-[11px] text-amber-400 font-semibold mt-2">
+                📍 Open in Google Maps →
               </p>
             </div>
-          </div>
+          </a>
 
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
             <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center shrink-0">
