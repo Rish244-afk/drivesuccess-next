@@ -38,15 +38,15 @@ export function AdminVehiclesClient({ initialVehicles }: AdminVehiclesClientProp
       status: 'AVAILABLE',
     });
 
-    setLoading(false);
-
     if (res.success && res.vehicle) {
       setMessage('Vehicle added to fleet successfully!');
       setVehicles((prev) => [res.vehicle, ...prev]);
       setShowModal(false);
       setName('');
       setPlateNumber('');
+      setLoading(false);
     } else {
+      setLoading(false);
       alert(res.error || 'Failed to create vehicle.');
     }
   };

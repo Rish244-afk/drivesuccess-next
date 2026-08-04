@@ -9,9 +9,11 @@ export function AdminDocumentsClient({ documents }: { documents: any[] }) {
   const handleStatusUpdate = async (id: string, status: string) => {
     setLoadingId(id);
     const res = await updateDocumentStatusAction(id, status);
-    setLoadingId(null);
     if (!res.success) {
+      setLoadingId(null);
       alert(res.error);
+    } else {
+      setLoadingId(null);
     }
   };
 

@@ -37,15 +37,15 @@ export function AdminPackagesClient({ initialPackages }: AdminPackagesClientProp
       badge,
     });
 
-    setLoading(false);
-
     if (res.success && res.package) {
       setMessage('Package created successfully!');
       setPackages((prev) => [res.package, ...prev]);
       setShowCreateModal(false);
       setName('');
       setDescription('');
+      setLoading(false);
     } else {
+      setLoading(false);
       alert(res.error || 'Failed to create package.');
     }
   };

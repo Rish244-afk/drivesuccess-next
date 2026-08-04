@@ -38,8 +38,6 @@ export function AdminInstructorsClient({ initialInstructors }: AdminInstructorsC
       bio,
     });
 
-    setLoading(false);
-
     if (res.success && res.instructor) {
       setMessage('Instructor profile created successfully!');
       setInstructors((prev) => [res.instructor, ...prev]);
@@ -47,7 +45,9 @@ export function AdminInstructorsClient({ initialInstructors }: AdminInstructorsC
       setName('');
       setEmail('');
       setPhone('');
+      setLoading(false);
     } else {
+      setLoading(false);
       alert(res.error || 'Failed to create instructor.');
     }
   };
