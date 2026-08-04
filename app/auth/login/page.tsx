@@ -30,93 +30,56 @@ function LoginFormContent() {
     const codeParam = urlParams.get('code');
     const hash = window.location.hash;
 
+    let tokenToVerify: string | null = null;
+    if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
+      const hashParams = new URLSearchParams(hash.substring(1));
+      tokenToVerify = hashParams.get('id_token') || hashParams.get('access_token');
+    }
+
     console.log('🔍 [OAuth Audit] Page Load Check:', {
       hasCode: !!codeParam,
-      hasHash: !!hash,
+      hasToken: !!tokenToVerify,
       search: window.location.search,
+      hash: window.location.hash,
       fromPath,
     });
 
-    // 1. Handle Google Authorization Code Callback (?code=...)
-    if (codeParam) {
-      console.log('🔑 [OAuth Audit] Step 1. Code parameter received on /auth/login:', codeParam.slice(0, 12) + '...');
+    // Handle Google Authorization Code or Implicit Token Callback
+    if (codeParam || tokenToVerify) {
+      console.log('🔑 [OAuth Audit] Google credentials detected. Forwarding to backend for verification...');
       setMessage('Verifying Google credentials & issuing session...');
       setLoading(true);
 
       fetch('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: codeParam }),
+        body: JSON.stringify({
+          code: codeParam || undefined,
+          credential: tokenToVerify || undefined,
+        }),
       })
         .then((r) => r.json())
         .then((data) => {
-          console.log('🔄 [OAuth Audit] Step 2. API Response from /api/auth/google:', data);
+          console.log('🔄 [OAuth Audit] Response from /api/auth/google:', data);
           if (data.success) {
-            console.log('✅ [OAuth Audit] Step 3. Session cookie created successfully! Performing hard redirect to:', fromPath);
+            console.log('✅ [OAuth Audit] Session created! Performing hard redirect to:', fromPath);
             setMessage('Authenticated via Google! Redirecting to student portal...');
-            // Hard redirect so browser transmits fresh HTTP-only auth_token cookie
             window.location.href = fromPath;
           } else {
-            console.error('❌ [OAuth Audit] Token exchange error:', data.error);
+            console.error('❌ [OAuth Audit] Verification error:', data.error);
             setError(data.error || 'Google Sign-In failed. Please try again.');
             setLoading(false);
           }
         })
         .catch((err) => {
-          console.error('🚨 [OAuth Audit] Network error sending code to API:', err);
+          console.error('🚨 [OAuth Audit] Network error sending credential to API:', err);
           setError('Network error completing Google authentication.');
           setLoading(false);
         });
       return;
     }
 
-    // 2. Handle Google Implicit Token Callback (#access_token=... or #id_token=...)
-    if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
-      console.log('🔑 [OAuth Audit] Step 1. Implicit Google tokens received in URL hash');
-      const params = new URLSearchParams(hash.substring(1));
-      const accessToken = params.get('access_token');
-      const idToken = params.get('id_token');
-
-      setMessage('Verifying Google Identity profile...');
-      setLoading(true);
-
-      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: `Bearer ${accessToken || idToken}` },
-      })
-        .then((res) => res.json())
-        .then((user) => {
-          if (user.email) {
-            fetch('/api/auth/google', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                credential: idToken || accessToken || 'custom_access_token',
-                email: user.email,
-                name: user.name || user.email.split('@')[0],
-                sub: user.sub,
-              }),
-            })
-              .then((r) => r.json())
-              .then((data) => {
-                if (data.success) {
-                  console.log('✅ [OAuth Audit] Session created! Performing hard redirect to:', fromPath);
-                  window.location.href = fromPath;
-                } else {
-                  setError(data.error || 'Google Sign-In failed.');
-                  setLoading(false);
-                }
-              });
-          }
-        })
-        .catch((err) => {
-          console.error('🚨 UserInfo fetch error:', err);
-          setError('Failed to fetch Google profile.');
-          setLoading(false);
-        });
-      return;
-    }
-
-    // 3. Normal session check if student is already authenticated
+    // Normal session check if student is already authenticated
     fetch('/api/auth/me')
       .then((res) => res.json())
       .then((data) => {
