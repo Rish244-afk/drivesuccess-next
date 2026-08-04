@@ -32,6 +32,52 @@
   }
 }
 
+/* Custom CSS Loader Animations */
+@keyframes spin-ring {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-ring-reverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes loader-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.6)); }
+}
+
+@keyframes loader-progress {
+  0% { width: 0%; opacity: 0.4; }
+  50% { width: 75%; opacity: 1; }
+  100% { width: 100%; opacity: 0.8; }
+}
+
+.css-loader-ring {
+  border: 3px solid rgba(245, 158, 11, 0.15);
+  border-top-color: #fbbf24;
+  border-right-color: rgba(245, 158, 11, 0.7);
+  border-radius: 50%;
+  animation: spin-ring 0.9s cubic-bezier(0.53, 0.21, 0.29, 0.67) infinite;
+}
+
+.css-loader-ring-inner {
+  border: 2.5px solid rgba(255, 255, 255, 0.05);
+  border-bottom-color: #f59e0b;
+  border-left-color: rgba(245, 158, 11, 0.6);
+  border-radius: 50%;
+  animation: spin-ring-reverse 0.75s linear infinite;
+}
+
+.css-loader-glow {
+  animation: loader-pulse 1.8s ease-in-out infinite;
+}
+
+.css-loader-bar {
+  animation: loader-progress 1.5s ease-in-out infinite;
+}
+
 /* Linear/Stripe Premium Design Utilities */
 .glass-panel {
   background: rgba(15, 23, 42, 0.65);
