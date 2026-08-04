@@ -128,7 +128,7 @@ export async function getAvailableSlotsAction({
   dateStr: z.string().min(1, 'Date is required'),
   timeSlot: z.string().min(1, 'Time slot is required'),
   studentName: z.string().optional(),
-  studentPhone: z.string().min(10, 'A valid 10-digit mobile number is required'),
+  studentPhone: z.string().regex(/^\+?\d{10,15}$/, 'A valid 10-digit mobile number is required'),
   studentEmail: z.string().optional(),
   notes: z.string().optional(),
 });

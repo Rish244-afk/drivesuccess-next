@@ -6,11 +6,11 @@ export async function POST(req: NextRequest) {
   try {
     // 1. IP & Endpoint Rate Limiting (Phase 7)
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
-    const rateCheck = checkRateLimit(`send_otp_${ip}`, { limit: 5, windowMs: 60 * 1000 });
+    const rateCheck = checkRateLimit(`send_otp_${ip}`, { limit: 3, windowMs: 10 * 60 * 1000 });
 
     if (!rateCheck.allowed) {
       return NextResponse.json(
-        { success: false, error: 'Too many OTP requests. Please wait a minute before requesting a new code.' },
+        { success: false, error: 'Too many OTP requests. Please wait a few minutes before requesting a new code.' },
         { status: 429 }
       );
     }

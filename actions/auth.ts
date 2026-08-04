@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { Role } from '@prisma/client';
 
-const phoneSchema = z.string().min(10, 'Phone number must be at least 10 digits');
+const phoneSchema = z.string().regex(/^\+?\d{10,15}$/, 'Please enter a valid 10-digit mobile number');
 const otpSchema = z.string().length(6, 'OTP must be exactly 6 digits');
 
 /**
