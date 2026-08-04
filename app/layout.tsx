@@ -9,6 +9,7 @@ import { JsonLdSchemas } from '@/components/seo/JsonLdSchemas';
 
 const AIChatWidget = dynamic(() => import('@/components/ai/AIChatWidget').then((mod) => mod.AIChatWidget), { ssr: false });
 const CookieConsentBanner = dynamic(() => import('@/components/privacy/CookieConsentBanner').then((mod) => mod.CookieConsentBanner), { ssr: false });
+const BackToTop = dynamic(() => import('@/components/ui/BackToTop').then((mod) => mod.BackToTop), { ssr: false });
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', style: ['normal', 'italic'] });
@@ -89,6 +90,7 @@ export default function RootLayout({
           <Footer />
           <AIChatWidget />
           <CookieConsentBanner />
+          <BackToTop />
         </SmoothScrollProvider>
       </body>
     </html>
