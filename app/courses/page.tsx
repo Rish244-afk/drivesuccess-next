@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { ShieldCheck, Award, CheckCircle2, ArrowRight, Star, Sparkles, SlidersHorizontal, BookOpen, Clock } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 import { getPackagesAction } from '@/actions/package';
 import { BoneyardWrapper, CourseCardSkeleton } from '@/components/ui/Skeleton';
 import { InspiraCard } from '@/components/ui/InspiraCard';
 import { AnimatedIcon } from '@/components/ui/AnimatedIcon';
+import { Pagination } from '@/components/ui/Pagination';
 
 interface DbPackage {
   id: string;
@@ -22,10 +23,21 @@ interface DbPackage {
   isPopular: boolean;
 }
 
-export default function CoursesPage() {
+const ITEMS_PER_PAGE = 6; // 6 cards per page (2 rows of 3 on desktop)
+
+function CoursesContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const initialFilter = searchParams.get('filter') || 'ALL';
+  const initialPage = parseInt(searchParams.get('page') || '1', 10);
+
   const [packages, setPackages] = useState<DbPackage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeFilter, setActiveFilter] = useState<string>('ALL');
+  const [activeFilter, setActiveFilter] = useState<string>(initialFilter);
+  const [currentPage, setCurrentPage] = useState<number>(initialPage);
+
+  const gridContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadPackages() {
@@ -39,6 +51,7 @@ export default function CoursesPage() {
     loadPackages();
   }, []);
 
+  // Filter packages by active category
   const filteredPackages = packages.filter((pkg) => {
     if (activeFilter === 'ALL') return true;
     if (activeFilter === 'LICENSE') return pkg.type.includes('LICENSE') || pkg.type.includes('COMBO');
@@ -47,6 +60,27 @@ export default function CoursesPage() {
     return true;
   });
 
+  // Calculate Total Pages & Current Page Slice
+  const totalPages = Math.max(1, Math.ceil(filteredPackages.length / ITEMS_PER_PAGE));
+  const validPage = Math.min(currentPage, totalPages);
+  const paginatedPackages = filteredPackages.slice((validPage - 1) * ITEMS_PER_PAGE, validPage * ITEMS_PER_PAGE);
+
+  // Handle Category Filter Change (Resets to Page 1)
+  const handleFilterChange = (filterId: string) => {
+    setActiveFilter(filterId);
+    setCurrentPage(1);
+    router.push(`/courses?filter=${filterId}&page=1`, { scroll: false });
+  };
+
+  // Handle Page Change with Smooth Scroll
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    router.push(`/courses?filter=${activeFilter}&page=${page}`, { scroll: false });
+
+    // Smooth scroll back to top of course grid section
+    gridContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="space-y-0 overflow-hidden bg-[#0A1128]">
       
@@ -54,7 +88,7 @@ export default function CoursesPage() {
       <section className="relative py-24 lg:py-32 border-b border-slate-800/60 text-center overflow-hidden">
         <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-amber-500/10 rounded-full blur-[160px] pointer-events-none" />
         
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-6 relative z-10">
+        <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-6 relative z-10 font-sans">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-400/30 text-amber-400 text-xs font-medium tracking-widest uppercase bg-amber-400/5 backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Accredited Curriculum</span>
@@ -70,8 +104,8 @@ export default function CoursesPage() {
       </section>
 
       {/* 2. CREATIVE PACKAGES GRID SECTION (Dark Glassmorphic Luxury Theme) */}
-      <section className="py-24 lg:py-32 relative">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
+      <section ref={gridContainerRef} className="py-24 lg:py-32 relative font-sans scroll-mt-12">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-12">
           
           {/* Category Filter Tabs */}
           <div className="flex justify-center">
@@ -84,8 +118,8 @@ export default function CoursesPage() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveFilter(tab.id)}
-                  className={`px-6 py-3 rounded-full text-xs font-sans uppercase tracking-widest transition-all ${
+                  onClick={() => handleFilterChange(tab.id)}
+                  className={`px-6 py-3 rounded-full text-xs font-sans uppercase tracking-widest transition-all cursor-pointer ${
                     activeFilter === tab.id
                       ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/20'
                       : 'text-slate-400 hover:text-slate-100 font-medium'
@@ -98,96 +132,113 @@ export default function CoursesPage() {
           </div>
 
           <BoneyardWrapper loading={loading} skeleton={<CourseCardSkeleton count={6} />}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-              {filteredPackages.map((pkg) => {
-                const isHighlight = pkg.isPopular || pkg.badge === 'Best Seller' || pkg.badge === 'Best Value';
-                
-                return (
-                  <InspiraCard
-                    key={pkg.id}
-                    isHighlight={isHighlight}
-                    className="p-8 space-y-8 flex flex-col justify-between"
-                  >
-                    <div className="space-y-6">
-                      
-                      {/* Top Row: Badge & Price */}
-                      <div className="flex justify-between items-start gap-4">
-                        <span
-                          className={`text-[10px] uppercase tracking-widest font-bold px-3.5 py-1 rounded-full border ${
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeFilter}-${validPage}`}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.25 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
+                {paginatedPackages.map((pkg) => {
+                  const isHighlight = pkg.isPopular || pkg.badge === 'Best Seller' || pkg.badge === 'Best Value';
+                  
+                  return (
+                    <InspiraCard
+                      key={pkg.id}
+                      isHighlight={isHighlight}
+                      className="p-8 space-y-8 flex flex-col justify-between"
+                    >
+                      <div className="space-y-6">
+                        
+                        {/* Top Row: Badge & Price */}
+                        <div className="flex justify-between items-start gap-4">
+                          <span
+                            className={`text-[10px] uppercase tracking-widest font-bold px-3.5 py-1 rounded-full border ${
+                              isHighlight
+                                ? 'bg-amber-400 text-slate-950 border-amber-400 font-extrabold shadow-md'
+                                : 'bg-slate-900 text-amber-400 border-amber-400/30'
+                            }`}
+                          >
+                            {pkg.badge || 'Accredited'}
+                          </span>
+                          <div className="text-right">
+                            <span className="font-serif text-3xl font-normal text-amber-400 block font-mono">
+                              ₹{pkg.price.toLocaleString()}
+                            </span>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-widest block font-medium">All-Inclusive Fee</span>
+                          </div>
+                        </div>
+
+                        {/* Title & Description */}
+                        <div className="space-y-2.5">
+                          <h3 className="font-serif text-3xl text-slate-100 font-normal tracking-tight">
+                            {pkg.name}
+                          </h3>
+                          <p className="text-xs text-slate-300 font-light leading-relaxed">
+                            {pkg.description}
+                          </p>
+                        </div>
+
+                        {/* Feature Bullet List with Animated Icons */}
+                        <div className="space-y-2.5 pt-4 border-t border-slate-800/80 text-xs text-slate-300 font-light">
+                          <div className="flex items-center gap-2.5">
+                            <AnimatedIcon animation="scale">
+                              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                            </AnimatedIcon>
+                            <span>{pkg.sessionsCount} Practical 1-on-1 Sessions</span>
+                          </div>
+                          <div className="flex items-center gap-2.5">
+                            <AnimatedIcon animation="scale">
+                              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                            </AnimatedIcon>
+                            <span>Dual-Control Fleet Vehicle Included</span>
+                          </div>
+                          <div className="flex items-center gap-2.5">
+                            <AnimatedIcon animation="scale">
+                              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                            </AnimatedIcon>
+                            <span>Mock RTO Exam Track Prep</span>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Bottom CTA Button */}
+                      <div className="pt-6">
+                        <Link
+                          href="/book"
+                          className={`block text-center w-full py-4 font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 ${
                             isHighlight
-                              ? 'bg-amber-400 text-slate-950 border-amber-400 font-extrabold shadow-md'
-                              : 'bg-slate-900 text-amber-400 border-amber-400/30'
+                              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 hover:scale-[1.02]'
+                              : 'bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-400'
                           }`}
                         >
-                          {pkg.badge || 'Accredited'}
-                        </span>
-                        <div className="text-right">
-                          <span className="font-serif text-3xl font-normal text-amber-400 block">
-                            ₹{pkg.price.toLocaleString()}
-                          </span>
-                          <span className="text-[10px] text-slate-500 uppercase tracking-widest block font-medium">All-Inclusive Fee</span>
-                        </div>
+                          Reserve Package Now
+                        </Link>
                       </div>
 
-                      {/* Title & Description */}
-                      <div className="space-y-2.5">
-                        <h3 className="font-serif text-3xl text-slate-100 font-normal tracking-tight">
-                          {pkg.name}
-                        </h3>
-                        <p className="text-xs text-slate-300 font-light leading-relaxed">
-                          {pkg.description}
-                        </p>
-                      </div>
-
-                      {/* Feature Bullet List with Animated Icons */}
-                      <div className="space-y-2.5 pt-4 border-t border-slate-800/80 text-xs text-slate-300 font-light">
-                        <div className="flex items-center gap-2.5">
-                          <AnimatedIcon animation="scale">
-                            <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-                          </AnimatedIcon>
-                          <span>{pkg.sessionsCount} Practical 1-on-1 Sessions</span>
-                        </div>
-                        <div className="flex items-center gap-2.5">
-                          <AnimatedIcon animation="scale">
-                            <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-                          </AnimatedIcon>
-                          <span>Dual-Control Fleet Vehicle Included</span>
-                        </div>
-                        <div className="flex items-center gap-2.5">
-                          <AnimatedIcon animation="scale">
-                            <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-                          </AnimatedIcon>
-                          <span>Mock RTO Exam Track Prep</span>
-                        </div>
-                      </div>
-
-                    </div>
-
-                    {/* Bottom CTA Button */}
-                    <div className="pt-6">
-                      <Link
-                        href="/book"
-                        className={`block text-center w-full py-4 font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 ${
-                          isHighlight
-                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 hover:scale-[1.02]'
-                            : 'bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-400'
-                        }`}
-                      >
-                        Reserve Package Now
-                      </Link>
-                    </div>
-
-                  </InspiraCard>
-                );
-              })}
-            </div>
+                    </InspiraCard>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
           </BoneyardWrapper>
+
+          {/* Numbered Pagination Controls */}
+          <Pagination
+            currentPage={validPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            variant="dark"
+          />
 
         </div>
       </section>
 
       {/* 3. CTA BAND */}
-      <section className="bg-[#070B19] py-28 text-center border-t border-slate-800/60 relative overflow-hidden">
+      <section className="bg-[#070B19] py-28 text-center border-t border-slate-800/60 relative overflow-hidden font-sans">
         <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[160px] pointer-events-none" />
         <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-8 relative z-10">
           <h2 className="font-serif text-4xl sm:text-5xl font-normal text-slate-100 tracking-tight">
@@ -207,5 +258,13 @@ export default function CoursesPage() {
       </section>
 
     </div>
+  );
+}
+
+export default function CoursesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0A1128] text-slate-400 p-12 text-center text-sm">Loading Curriculum Packages...</div>}>
+      <CoursesContent />
+    </Suspense>
   );
 }
