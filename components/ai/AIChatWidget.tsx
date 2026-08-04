@@ -26,6 +26,7 @@ export function AIChatWidget() {
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevMessagesLengthRef = useRef(messages.length);
 
   // Escape key close listener
   useEffect(() => {
@@ -41,13 +42,13 @@ export function AIChatWidget() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Auto-scroll to bottom ONLY when a new message is appended or loading begins
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
+    if (messages.length > prevMessagesLengthRef.current || loading) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages.length, loading]);
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || input;
@@ -168,13 +169,15 @@ export function AIChatWidget() {
               </button>
             </div>
 
-            {/* Touch-optimized Scrollable Messages Container (Fixes Touch/Finger Scrolling on Mobile) */}
+            {/* Continuous Touch & Wheel Scrollable Messages Container (with Lenis Exception) */}
             <div
+              data-lenis-prevent
               className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 touch-pan-y overscroll-contain"
               style={{
                 touchAction: 'pan-y',
                 WebkitOverflowScrolling: 'touch',
               }}
+              onWheel={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchMove={(e) => e.stopPropagation()}
             >
