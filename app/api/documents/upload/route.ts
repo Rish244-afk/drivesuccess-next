@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
 
@@ -18,10 +17,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing file or document type' }, { status: 400 });
     }
 
-    // Upload to Vercel Blob
-    const blob = await put(`documents/${session.sub}/${type}-${Date.now()}-${file.name}`, file, {
-      access: 'public',
-    });
+    // Convert file to base64 Data URL or blob URL
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const mimeType = file.type || 'application/octet-stream';
+    const dataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
 
     // Save or update document record in the database
     const existingDoc = await prisma.studentDocument.findFirst({
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       await prisma.studentDocument.update({
         where: { id: existingDoc.id },
         data: {
-          fileUrl: blob.url,
+          fileUrl: dataUrl,
           status: 'submitted',
           uploadedAt: new Date(),
         },
@@ -42,14 +42,14 @@ export async function POST(request: NextRequest) {
         data: {
           studentId: session.sub,
           type,
-          fileUrl: blob.url,
+          fileUrl: dataUrl,
           status: 'submitted',
           uploadedAt: new Date(),
         },
       });
     }
 
-    return NextResponse.json({ success: true, url: blob.url });
+    return NextResponse.json({ success: true, url: dataUrl });
   } catch (error) {
     console.error('Error uploading document:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
