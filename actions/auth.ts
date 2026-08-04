@@ -147,7 +147,7 @@ export async function sendOtpAction(phoneInput: string) {
     return {
       success: true,
       message: `Verification code sent to ${maskedPhone}. Valid for 5 minutes.`,
-      smsDelivered: smsResult.success,
+      smsDelivered: smsResult,
     };
   } catch (error) {
     console.error('sendOtpAction Error:', error);
