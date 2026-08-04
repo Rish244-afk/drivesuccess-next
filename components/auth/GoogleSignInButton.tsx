@@ -11,7 +11,15 @@ declare global {
   }
 }
 
-export function GoogleSignInButton() {
+export function GoogleSignInButton({ 
+  onSuccess,
+  mode = 'popup', 
+  returnTo 
+}: { 
+  onSuccess?: () => void;
+  mode?: 'redirect' | 'popup';
+  returnTo?: string;
+} = {}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,10 +55,14 @@ export function GoogleSignInButton() {
       if (data.success) {
         console.log('✅ Google Identity verified! Unified 30-day session issued.');
         setSuccess(true);
-        setTimeout(() => {
-          router.push('/dashboard');
-          router.refresh();
-        }, 500);
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          setTimeout(() => {
+            router.push(returnTo || '/dashboard');
+            router.refresh();
+          }, 500);
+        }
       } else {
         console.error('❌ Server verification rejected token:', data.error);
         setError(data.error || 'Google Authentication failed. Please try again.');
@@ -173,13 +185,49 @@ export function GoogleSignInButton() {
         return;
       }
 
-      // Popup blocked fallback: Direct Google OAuth redirect
+      // Popup blocked fallback or Native Popup Flow: Authorization Code Exchange
       const clientId = '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
       const redirectUri = encodeURIComponent(`${window.location.origin}/auth/login`);
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=email%20profile`;
+      const stateObj = { mode, returnTo: returnTo || window.location.pathname };
+      const stateStr = encodeURIComponent(JSON.stringify(stateObj));
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile&state=${stateStr}`;
       
       try {
-        window.location.href = googleAuthUrl;
+        if (mode === 'popup') {
+          const width = 500;
+          const height = 600;
+          const left = window.screen.width / 2 - width / 2;
+          const top = window.screen.height / 2 - height / 2;
+          
+          window.open(
+            googleAuthUrl,
+            'Google Auth',
+            `width=${width},height=${height},left=${left},top=${top}`
+          );
+
+          const messageListener = (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data?.type === 'OAUTH_COMPLETE') {
+              window.removeEventListener('message', messageListener);
+              if (event.data.success) {
+                setSuccess(true);
+                if (onSuccess) {
+                  onSuccess();
+                } else {
+                  setTimeout(() => {
+                    router.push(returnTo || '/dashboard');
+                    router.refresh();
+                  }, 500);
+                }
+              } else {
+                setError('Google Authentication failed.');
+              }
+            }
+          };
+          window.addEventListener('message', messageListener);
+        } else {
+          window.location.href = googleAuthUrl;
+        }
       } catch {
         setError('Popup blocked by browser. Please enable popups or log in via Mobile OTP.');
       }

@@ -62,9 +62,24 @@ function LoginFormContent() {
         .then((data) => {
           console.log('🔄 [OAuth Audit] Response from /api/auth/google:', data);
           if (data.success) {
-            console.log('✅ [OAuth Audit] Session created! Performing hard redirect to:', fromPath);
-            setMessage('Authenticated via Google! Redirecting to student portal...');
-            window.location.href = fromPath;
+            console.log('✅ [OAuth Audit] Session created! Checking window type...');
+            setMessage('Authenticated via Google! Redirecting...');
+            
+            const stateParam = urlParams.get('state');
+            let stateData: any = null;
+            try {
+              if (stateParam) stateData = JSON.parse(stateParam);
+            } catch (e) {}
+
+            const isPopup = stateData?.mode === 'popup' || window.opener;
+            const targetPath = stateData?.returnTo || fromPath;
+
+            if (isPopup && window.opener) {
+              window.opener.postMessage({ type: 'OAUTH_COMPLETE', success: true }, window.location.origin);
+              window.close();
+            } else {
+              window.location.href = targetPath;
+            }
           } else {
             console.error('❌ [OAuth Audit] Verification error:', data.error);
             setError(data.error || 'Google Sign-In failed. Please try again.');

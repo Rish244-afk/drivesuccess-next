@@ -987,7 +987,12 @@ export function BookingWizard() {
 
                   {/* Google Sign In Button */}
                   <GoogleAuthProvider>
-                    <GoogleSignInButton />
+                    <GoogleSignInButton 
+                      mode="popup"
+                      onSuccess={async () => {
+                        await refreshSessionData();
+                      }}
+                    />
                   </GoogleAuthProvider>
                 </div>
               </div>
