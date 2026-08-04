@@ -20,8 +20,15 @@ export function Navbar() {
       const res = await fetch('/api/auth/me');
       const data = await res.json();
       if (data.success && data.user) {
-        router.push('/dashboard');
+        if (data.user.role === 'ADMIN') {
+          // Logged in as Admin -> Redirect cleanly to Admin Portal
+          router.push('/admin');
+        } else {
+          // Logged in as Student -> Redirect to Student Dashboard
+          router.push('/dashboard');
+        }
       } else {
+        // Unauthenticated -> Prompt Student Sign In modal
         setAuthModalOpen(true);
       }
     } catch {
@@ -38,7 +45,7 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-xl border-b border-slate-800/80 text-slate-100">
+    <header className="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-xl border-b border-slate-800/80 text-slate-100 font-sans">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between">
         
         {/* Editorial Brand Mark */}
@@ -95,7 +102,7 @@ export function Navbar() {
 
           <button
             onClick={handleStudentPortalClick}
-            className="text-xs tracking-wider uppercase font-medium text-slate-300 hover:text-amber-400 px-3 py-2 transition-colors focus:outline-none"
+            className="text-xs tracking-wider uppercase font-medium text-slate-300 hover:text-amber-400 px-3 py-2 transition-colors focus:outline-none cursor-pointer"
           >
             <span>Student Portal</span>
           </button>
@@ -168,7 +175,7 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   handleStudentPortalClick(e);
                 }}
-                className="w-full text-center py-3.5 border border-slate-800 text-slate-200 font-medium text-xs tracking-wider uppercase rounded-full bg-slate-900/60"
+                className="w-full text-center py-3.5 border border-slate-800 text-slate-200 font-medium text-xs tracking-wider uppercase rounded-full bg-slate-900/60 cursor-pointer"
               >
                 Student Portal
               </button>
