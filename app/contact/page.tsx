@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, CheckCircle2, MessageSquare } from 'lucide-react';
+import { MapPin, Phone, Mail, CheckCircle2, MessageSquare, AlertCircle } from 'lucide-react';
+import { submitContactInquiryAction } from '@/actions/contact';
 
 const GOOGLE_MAPS_URL =
   'https://www.google.com/maps/search/?api=1&query=Vahathi+Motor+Driving+School+Kasavanahalli+Main+Rd+near+max+Kasavanahalli+Owners+Court+Layout+Eastwood+Twp+Bengaluru+Karnataka+560035';
@@ -13,14 +14,32 @@ const PHONE_URL =
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [inquiry, setInquiry] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError(null);
+
+    const res = await submitContactInquiryAction({
+      name,
+      phone,
+      email,
+      inquiry,
+    });
+
+    setLoading(false);
+
+    if (res.success) {
       setSubmitted(true);
-    }, 800);
+    } else {
+      setError(res.error || 'Failed to submit inquiry. Please try again.');
+    }
   };
 
   return (
@@ -101,6 +120,13 @@ export default function ContactPage() {
             <h2 className="font-heading font-extrabold text-2xl text-slate-100">Send Us a Message</h2>
           </div>
 
+          {error && (
+            <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-2xl text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              <span>{error}</span>
+            </div>
+          )}
+
           {submitted ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -113,7 +139,13 @@ export default function ContactPage() {
                 Thank you for reaching out. A Senior Driving Advisor will contact you at your phone number or email within 2 hours.
               </p>
               <button
-                onClick={() => setSubmitted(false)}
+                onClick={() => {
+                  setSubmitted(false);
+                  setName('');
+                  setPhone('');
+                  setEmail('');
+                  setInquiry('');
+                }}
                 className="text-xs font-bold text-amber-400 hover:underline pt-2 inline-block cursor-pointer"
               >
                 Send another message
@@ -129,6 +161,8 @@ export default function ContactPage() {
                   <input
                     type="text"
                     required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     placeholder="Sarah Jenkins"
                     className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition"
                   />
@@ -141,6 +175,8 @@ export default function ContactPage() {
                   <input
                     type="tel"
                     required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 078297 80778"
                     className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition"
                   />
@@ -154,6 +190,8 @@ export default function ContactPage() {
                 <input
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="sarah@example.com"
                   className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition"
                 />
@@ -166,6 +204,8 @@ export default function ContactPage() {
                 <textarea
                   rows={4}
                   required
+                  value={inquiry}
+                  onChange={(e) => setInquiry(e.target.value)}
                   placeholder="I am looking for information on 4-wheeler driver licensing packages and weekend slot availability..."
                   className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition resize-none"
                 />
