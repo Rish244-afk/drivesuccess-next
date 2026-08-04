@@ -18,11 +18,13 @@ import {
   ArrowRight,
   Database,
   Search,
+  Workflow,
+  Key,
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EngineeringPage() {
-  const [activeTab, setActiveTab] = useState<'foundations' | 'architecture' | 'frontend' | 'security'>('security');
+  const [activeTab, setActiveTab] = useState<'security' | 'foundations' | 'architecture' | 'backend' | 'frontend'>('security');
   const [searchQuery, setSearchQuery] = useState('');
 
   const securityAuditItems = [
@@ -119,7 +121,7 @@ export default function EngineeringPage() {
         </h1>
 
         <p className="text-sm sm:text-base text-slate-400 max-w-3xl mx-auto leading-relaxed font-light">
-          A complete engineering blueprint covering Software Engineering Foundations, Distributed Architecture, Next.js & React Frontend Mechanics, and Pre-Launch Security Audit Results.
+          A complete engineering blueprint covering Software Engineering Foundations, Distributed Architecture, Backend Engineering, Next.js & React Mechanics, and Pre-Launch Security Audit Results.
         </p>
 
         {/* Quick Metrics Cards */}
@@ -133,8 +135,8 @@ export default function EngineeringPage() {
             <span className="text-2xl sm:text-3xl font-extrabold text-amber-400 font-mono mt-1 block">10 / 10 PASS</span>
           </div>
           <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
-            <span className="text-xs text-slate-400 font-mono block">CORE WEB VITALS</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-blue-400 font-mono mt-1 block">OPTIMIZED</span>
+            <span className="text-xs text-slate-400 font-mono block">BACKEND ENGINE</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-blue-400 font-mono mt-1 block">POSTGRES + REDIS</span>
           </div>
           <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
             <span className="text-xs text-slate-400 font-mono block">FRAMEWORK</span>
@@ -148,8 +150,9 @@ export default function EngineeringPage() {
         <div className="flex border-b border-slate-800/80 overflow-x-auto gap-4 sm:gap-8 justify-start sm:justify-center">
           {[
             { id: 'security', label: '10-Point Security Audit', icon: ShieldCheck, count: '10 PASS' },
-            { id: 'foundations', label: 'Engineering Foundations', icon: Cpu },
-            { id: 'architecture', label: 'System Architecture', icon: Layers },
+            { id: 'foundations', label: 'Foundations', icon: Cpu },
+            { id: 'architecture', label: 'Architecture', icon: Layers },
+            { id: 'backend', label: 'Backend Engineering', icon: Server },
             { id: 'frontend', label: 'Frontend Engineering', icon: Layout },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -249,6 +252,53 @@ export default function EngineeringPage() {
             </motion.div>
           )}
 
+          {/* TAB: BACKEND ENGINEERING (PART III) */}
+          {activeTab === 'backend' && (
+            <motion.div
+              key="backend"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-8"
+            >
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
+                  <Server className="w-5 h-5 text-amber-400" />
+                  <span>Part III — Backend Engineering & Database Systems</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  REST APIs, Idempotency, Concurrency Control, Optimistic/Pessimistic Locking, and Connection Pooling.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <Workflow className="w-6 h-6 text-amber-400" />
+                  <h3 className="font-heading font-bold text-base text-slate-100">Asynchronous Queues & CDC</h3>
+                  <p className="text-slate-300 font-light leading-relaxed">
+                    Background jobs run out-of-band via message queues (BullMQ/Redis) with exponential backoff retries and Dead Letter Queue (DLQ) isolation. Change Data Capture (CDC) streams WAL events.
+                  </p>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <Key className="w-6 h-6 text-emerald-400" />
+                  <h3 className="font-heading font-bold text-base text-slate-100">Idempotency & Concurrency</h3>
+                  <p className="text-slate-300 font-light leading-relaxed">
+                    Idempotency keys prevent duplicate payment charges. Optimistic version locking and pessimistic SELECT ... FOR UPDATE prevent slot reservation race conditions.
+                  </p>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <Database className="w-6 h-6 text-blue-400" />
+                  <h3 className="font-heading font-bold text-base text-slate-100">PgBouncer Connection Pooling</h3>
+                  <p className="text-slate-300 font-light leading-relaxed">
+                    Serverless execution environments pool connections via PgBouncer transaction-level proxies, preventing client exhaustion on PostgreSQL.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* TAB: ENGINEERING FOUNDATIONS */}
           {activeTab === 'foundations' && (
             <motion.div
@@ -339,21 +389,6 @@ export default function EngineeringPage() {
 │                                                   ▼                    │
 │                                    Supabase PostgreSQL Database        │
 └────────────────────────────────────────────────────────────────────────┘`}</pre>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <span className="font-bold text-amber-400 block mb-1">Domain-Driven Design (DDD)</span>
-                    <p className="text-slate-300 font-light leading-relaxed">
-                      Bounded contexts isolate Student, Booking, Session, and RTO Document domains cleanly with immutable Value Objects.
-                    </p>
-                  </div>
-                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <span className="font-bold text-emerald-400 block mb-1">Transactional Integrity</span>
-                    <p className="text-slate-300 font-light leading-relaxed">
-                      Razorpay payment captures update booking state and confirm sessions within single atomic database transactions.
-                    </p>
-                  </div>
                 </div>
               </div>
             </motion.div>
