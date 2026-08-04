@@ -10,7 +10,7 @@ const ADMIN_COOKIE_NAME = 'admin_auth_token';
 
 /**
  * 1. Admin Separate Login Action
- * Hardcoded default credentials: admin@drivesuccess.edu / admin123
+ * Hardcoded default credentials: admin@drivesuccess.edu / REDACTED_ADMIN_PASSWORD
  */
 export async function adminLoginAction(formData: FormData) {
   try {
@@ -51,7 +51,7 @@ export async function adminLoginAction(formData: FormData) {
     const jwtPayload = {
       sub: adminUser.id,
       email: adminUser.email,
-      phone: adminUser.phone || '+1 (555) 999-0000',
+      phone: adminUser.phone || '+91 7829780778',
       name: adminUser.name,
       role: Role.ADMIN,
     };
@@ -105,7 +105,7 @@ export async function adminLogoutAction() {
 }
 
 /**
- * 2. Get Admin Overview Dashboard Data (Revenue Cards, Today's Bookings, Stats)
+ * 2. Get Admin Overview Dashboard Data (Revenue Cards, Today's Bookings, Stats, Instructors, Vehicles)
  */
 export async function getAdminOverviewAction() {
   try {
@@ -124,6 +124,8 @@ export async function getAdminOverviewAction() {
       todaysBookings,
       activeInstructorsCount,
       totalVehiclesCount,
+      allInstructors,
+      allVehicles,
     ] = await Promise.all([
       prisma.booking.count(),
       prisma.booking.findMany({
@@ -139,11 +141,16 @@ export async function getAdminOverviewAction() {
           package: true,
           instructor: true,
           vehicle: true,
+          sessions: {
+            orderBy: { scheduledAt: 'asc' },
+          },
         },
         orderBy: { createdAt: 'desc' },
       }),
       prisma.instructor.count(),
       prisma.vehicle.count(),
+      prisma.instructor.findMany({ orderBy: { name: 'asc' } }),
+      prisma.vehicle.findMany({ orderBy: { name: 'asc' } }),
     ]);
 
     const totalRevenue = paidBookings.reduce((sum, b) => sum + b.totalAmount, 0);
@@ -158,6 +165,8 @@ export async function getAdminOverviewAction() {
         totalVehiclesCount,
       },
       todaysBookings,
+      allInstructors,
+      allVehicles,
     };
   } catch (error) {
     console.error('getAdminOverviewAction Error:', error);
@@ -186,6 +195,8 @@ export async function getAdminBookingsAction(search?: string, status?: string) {
         { student: { name: { contains: q, mode: 'insensitive' } } },
         { student: { phone: { contains: q, mode: 'insensitive' } } },
         { package: { name: { contains: q, mode: 'insensitive' } } },
+        { razorpayPaymentId: { contains: q, mode: 'insensitive' } },
+        { razorpayOrderId: { contains: q, mode: 'insensitive' } },
       ];
     }
 
@@ -196,7 +207,9 @@ export async function getAdminBookingsAction(search?: string, status?: string) {
         package: true,
         instructor: true,
         vehicle: true,
-        sessions: true,
+        sessions: {
+          orderBy: { scheduledAt: 'asc' },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -228,13 +241,27 @@ export async function updateBookingAssignmentAction({
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
+    const updateData: any = {};
+    if (instructorId !== undefined) updateData.instructorId = instructorId || null;
+    if (vehicleId !== undefined) updateData.vehicleId = vehicleId || null;
+    if (status) updateData.status = status;
+    if (paymentStatus) {
+      updateData.paymentStatus = paymentStatus;
+      if (paymentStatus === PaymentStatus.PAID) {
+        updateData.paidAt = new Date();
+        updateData.status = BookingStatus.CONFIRMED;
+      }
+    }
+
     const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
-      data: {
-        ...(instructorId ? { instructorId } : {}),
-        ...(vehicleId ? { vehicleId } : {}),
-        ...(status ? { status } : {}),
-        ...(paymentStatus ? { paymentStatus } : {}),
+      data: updateData,
+      include: {
+        student: true,
+        package: true,
+        instructor: true,
+        vehicle: true,
+        sessions: true,
       },
     });
 
@@ -243,8 +270,8 @@ export async function updateBookingAssignmentAction({
       await prisma.session.updateMany({
         where: { bookingId },
         data: {
-          ...(instructorId ? { instructorId } : {}),
-          ...(vehicleId ? { vehicleId } : {}),
+          ...(instructorId !== undefined ? { instructorId: instructorId || (await prisma.instructor.findFirst())?.id || '' } : {}),
+          ...(vehicleId !== undefined ? { vehicleId: vehicleId || (await prisma.vehicle.findFirst())?.id || '' } : {}),
         },
       });
     }
@@ -257,6 +284,95 @@ export async function updateBookingAssignmentAction({
   } catch (error) {
     console.error('updateBookingAssignmentAction Error:', error);
     return { success: false, error: 'Failed to update booking assignment.' };
+  }
+}
+
+/**
+ * Cancel Booking with Reason Action
+ */
+export async function cancelBookingWithReasonAction({
+  bookingId,
+  cancelReason,
+}: {
+  bookingId: string;
+  cancelReason: string;
+}) {
+  try {
+    const admin = await getAdminSession();
+    if (!admin) return { success: false, error: 'Admin access denied.' };
+
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: BookingStatus.CANCELLED,
+        cancelReason: cancelReason || 'Cancelled by Admin',
+      },
+      include: {
+        student: true,
+        package: true,
+        instructor: true,
+        vehicle: true,
+        sessions: true,
+      },
+    });
+
+    revalidatePath('/admin/bookings');
+    revalidatePath('/admin');
+    revalidatePath('/dashboard');
+
+    return { success: true, message: 'Booking cancelled with reason.', booking: updatedBooking };
+  } catch (error) {
+    console.error('cancelBookingWithReasonAction Error:', error);
+    return { success: false, error: 'Failed to cancel booking.' };
+  }
+}
+
+/**
+ * Mark Session No-Show Action
+ */
+export async function markBookingNoShowAction(bookingId: string) {
+  try {
+    const admin = await getAdminSession();
+    if (!admin) return { success: false, error: 'Admin access denied.' };
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { sessions: { orderBy: { scheduledAt: 'asc' } } },
+    });
+
+    if (!booking) return { success: false, error: 'Booking not found.' };
+
+    const pendingSession = booking.sessions.find((s) => s.status === 'SCHEDULED' || s.status === 'IN_PROGRESS');
+
+    if (pendingSession) {
+      await prisma.session.update({
+        where: { id: pendingSession.id },
+        data: { status: 'NO_SHOW', notes: 'Student marked NO-SHOW by Admin' },
+      });
+    } else {
+      await prisma.session.create({
+        data: {
+          bookingId: booking.id,
+          studentId: booking.studentId,
+          instructorId: booking.instructorId || (await prisma.instructor.findFirst())?.id || '',
+          vehicleId: booking.vehicleId || (await prisma.vehicle.findFirst())?.id || '',
+          scheduledAt: new Date(),
+          durationMins: 60,
+          status: 'NO_SHOW',
+          location: 'Main Training Track',
+          notes: 'Session marked NO-SHOW by Admin',
+        },
+      });
+    }
+
+    revalidatePath('/admin/bookings');
+    revalidatePath('/admin');
+    revalidatePath('/dashboard');
+
+    return { success: true, message: 'Session marked as NO-SHOW successfully!' };
+  } catch (error) {
+    console.error('markBookingNoShowAction Error:', error);
+    return { success: false, error: 'Failed to mark session as no-show.' };
   }
 }
 

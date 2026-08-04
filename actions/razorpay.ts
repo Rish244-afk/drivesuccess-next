@@ -179,7 +179,7 @@ export async function verifyPaymentSignatureAction({
       };
     }
 
-    // 2. Update Database Record to PAID and CONFIRMED
+    // 2. Update Database Record to PAID and CONFIRMED with paidAt timestamp
     const updatedBooking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -188,6 +188,7 @@ export async function verifyPaymentSignatureAction({
         razorpayOrderId: razorpayOrderId,
         razorpayPaymentId: razorpayPaymentId,
         razorpaySignature: razorpaySignature,
+        paidAt: new Date(),
       },
       include: {
         student: true,

@@ -235,12 +235,14 @@ model Booking {
   paymentStatus     PaymentStatus @default(PENDING)
   totalAmount       Float
   notes             String?
+  cancelReason      String?
 
   // Idempotency & Razorpay Integration Fields
   idempotencyKey    String?       @unique
   razorpayOrderId   String?       @unique
   razorpayPaymentId String?       @unique
   razorpaySignature String?
+  paidAt            DateTime?
   refundId          String?
   refundAmount      Float?
   refundedAt        DateTime?

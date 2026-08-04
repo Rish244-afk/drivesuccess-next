@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAdminOverviewAction, getAdminSession } from '@/actions/admin';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { DollarSign, Calendar, Users, Car, ArrowRight, Clock, ArrowUpRight } from 'lucide-react';
+import { AdminTodaysBookingsWidget } from '@/components/admin/AdminTodaysBookingsWidget';
+import { ArrowUpRight } from 'lucide-react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -26,9 +27,11 @@ export default async function AdminDashboardPage() {
     totalVehiclesCount: 0,
   };
   const todaysBookings = overview.todaysBookings || [];
+  const allInstructors = overview.allInstructors || [];
+  const allVehicles = overview.allVehicles || [];
 
   return (
-    <div className="min-h-screen bg-[#0A1128] text-slate-100 space-y-12 pb-20">
+    <div className="min-h-screen bg-[#0A1128] text-slate-100 space-y-12 pb-20 font-sans">
       <AdminHeader />
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-12">
@@ -88,43 +91,13 @@ export default async function AdminDashboardPage() {
 
         </div>
 
-        {/* 2. TODAY'S BOOKINGS SECTION */}
-        <div className="bg-[#070B19] border border-slate-800/60 rounded-3xl p-8 space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-serif text-2xl text-slate-100 font-normal">Today&apos;s Scheduled Bookings</h2>
-              <p className="text-xs text-slate-400 font-light mt-0.5">{stats.todaysBookingsCount} bookings active today</p>
-            </div>
-
-            <Link href="/admin/bookings" className="text-xs font-semibold uppercase tracking-widest text-amber-400 hover:underline flex items-center gap-1">
-              <span>View Full Ledger</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-
-          {todaysBookings.length === 0 ? (
-            <div className="text-center py-12 bg-[#0A1128] border border-slate-800/60 rounded-2xl text-xs text-slate-400 font-light">
-              No new bookings recorded today.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-800/60 bg-[#0A1128] border border-slate-800/60 rounded-2xl overflow-hidden">
-              {todaysBookings.map((b: any) => (
-                <div key={b.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
-                  <div>
-                    <h3 className="font-serif text-lg text-slate-100 font-normal">{b.student?.name}</h3>
-                    <p className="text-slate-400 font-light">Package: {b.package?.name} • Phone: {b.student?.phone || 'N/A'}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-serif text-lg text-amber-400">₹{b.totalAmount.toLocaleString()}</span>
-                    <span className="text-[10px] uppercase tracking-widest font-medium px-3 py-1 rounded-full border border-slate-700 text-slate-300">
-                      {b.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* 2. TODAY'S BOOKINGS SECTION WIDGET */}
+        <AdminTodaysBookingsWidget
+          initialBookings={todaysBookings}
+          allInstructors={allInstructors}
+          allVehicles={allVehicles}
+          todaysBookingsCount={stats.todaysBookingsCount}
+        />
 
       </div>
     </div>
