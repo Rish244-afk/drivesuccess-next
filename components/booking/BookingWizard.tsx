@@ -31,6 +31,7 @@ import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
+import { useRazorpayCheckout } from '@/hooks/useRazorpayCheckout';
 
 interface WizardPackage {
   id: string;
@@ -260,19 +261,6 @@ export function BookingWizard() {
     refreshSessionData();
   }, []);
 
-  // Dynamically Load Razorpay Checkout Script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
-
   // Load initial Packages, Instructors, and Vehicles from Database
   useEffect(() => {
     async function loadInitialData() {
@@ -314,6 +302,8 @@ export function BookingWizard() {
 
     calculateLiveSlots();
   }, [selectedInstructor, selectedVehicle, selectedDate]);
+
+  const { launchRazorpayCheckout: launchHook } = useRazorpayCheckout();
 
   // Step A: Create Pending Booking Record in DB
   const handleCreatePendingBooking = async () => {
@@ -358,112 +348,25 @@ export function BookingWizard() {
 
   // Step B: Create Razorpay Order & Trigger Checkout Modal
   const launchRazorpayCheckout = async (bookingId: string) => {
-    setLoading(true);
-    setError(null);
-
-    const orderRes = await createRazorpayOrderAction(bookingId);
-    setLoading(false);
-
-    if (!orderRes.success) {
-      setError(orderRes.error || 'Failed to initialize payment gateway.');
-      return;
-    }
-
-    // Options for Razorpay Modal
-    const options: any = {
-      key: orderRes.keyId,
-      amount: orderRes.amount,
-      currency: orderRes.currency,
-      name: 'DriveSuccess Academy',
-      description: `Payment for ${orderRes.packageName}`,
-      order_id: orderRes.orderId,
-      prefill: {
-        name: orderRes.studentName,
-        email: orderRes.studentEmail,
-        contact: orderRes.studentPhone,
-      },
-      theme: {
-        color: '#F59E0B', // Amber
-      },
-
-      // Strict Backend Verification Callback
-      handler: async function (response: any) {
-        setLoading(true);
-        setError(null);
-
-        // Call Server Action for Cryptographic HMAC SHA256 Verification
-        const verifyRes = await verifyPaymentSignatureAction({
-          bookingId: bookingId,
-          razorpayOrderId: response.razorpay_order_id,
-          razorpayPaymentId: response.razorpay_payment_id,
-          razorpaySignature: response.razorpay_signature,
-        });
-
-        setLoading(false);
-
-        if (!verifyRes.success) {
-          setPaymentStatus('FAILED');
-          setError(verifyRes.error || 'Payment signature verification failed.');
-          return;
-        }
-
-        setPaymentStatus('PAID');
-        setSuccessMessage('Payment verified & Booking status set to CONFIRMED!');
-        setTimeout(() => {
-          router.push('/dashboard');
-        }, 1500);
-      },
-
-      // Modal Dismiss / Failure Handler
-      modal: {
-        ondismiss: async function () {
-          console.warn('Razorpay Checkout Modal Dismissed');
-          await markPaymentFailedAction(bookingId, 'User closed checkout modal');
-          setPaymentStatus('FAILED');
-          setError('Payment process was cancelled or closed. You can retry payment below.');
-        },
-      },
-    };
-
-    if (window.Razorpay) {
-      const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', async function (response: any) {
-        console.error('Razorpay Payment Failed Event:', response.error);
-        await markPaymentFailedAction(bookingId, response.error?.description);
+    await launchHook(bookingId, {
+      onLoading: setLoading,
+      onError: (err) => {
         setPaymentStatus('FAILED');
-        setError(`Payment failed: ${response.error?.description || 'Transaction declined'}`);
-      });
-      rzp.open();
-    } else {
-      // Test fallback if SDK script blocked by adblocker
-      console.warn('Razorpay script loading fallback simulation for test environment');
-      simulateTestPaymentVerification(bookingId, orderRes.orderId || undefined);
-    }
-  };
-
-  // Test Simulation Fallback
-  const simulateTestPaymentVerification = async (bookingId: string, orderId?: string | null) => {
-    setLoading(true);
-    const mockPaymentId = `pay_sim_${Date.now()}`;
-    const mockSig = `sig_sim_${Date.now()}`;
-
-    // Verify Backend Action
-    const verifyRes = await verifyPaymentSignatureAction({
-      bookingId,
-      razorpayOrderId: orderId || '',
-      razorpayPaymentId: mockPaymentId,
-      razorpaySignature: mockSig,
+        setError(err);
+      },
+      onSuccess: (msg) => {
+        setPaymentStatus('PAID');
+        setSuccessMessage(msg);
+      },
+      onDismiss: () => {
+        setPaymentStatus('FAILED');
+        setError('Payment process was cancelled or closed. You can retry payment below.');
+      },
+      onPaymentFailed: (err) => {
+        setPaymentStatus('FAILED');
+        setError(`Payment failed: ${err}`);
+      }
     });
-
-    setLoading(false);
-
-    if (verifyRes.success) {
-      setPaymentStatus('PAID');
-      setSuccessMessage('Payment verified & Booking status set to CONFIRMED!');
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1500);
-    }
   };
 
   return (
