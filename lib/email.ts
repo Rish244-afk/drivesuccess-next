@@ -105,11 +105,15 @@ export async function sendBookingConfirmationEmail({
               }
             </div>
 
-            <p style="font-size: 13px; color: #94a3b8; text-align: center;">You can view your session schedules, instructor info, and RTO documents on your student dashboard anytime.</p>
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://drivesuccess.edu'}/booking/${bookingId}/confirmation" style="display: inline-block; background-color: #ffb800; color: #020617; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">View & Download PDF Receipt</a>
+            </div>
+
+            <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-top: 24px;">You can view your session schedules, instructor info, and RTO documents on your student dashboard anytime.</p>
 
             <div class="footer">
               © 2026 DriveSuccess Academy. All rights reserved.<br/>
-              Support: support@drivesuccess.edu | +1 (555) 019-2834
+              Support: support@drivesuccess.edu | +91 7829780778
             </div>
           </div>
         </body>
