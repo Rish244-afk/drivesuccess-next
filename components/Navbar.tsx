@@ -7,12 +7,14 @@ import { Menu, X, ArrowUpRight, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationBell } from '@/components/NotificationBell';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { AdminAuthModal } from '@/components/auth/AdminAuthModal';
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
 
   const handleStudentPortalClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,6 +35,21 @@ export function Navbar() {
       }
     } catch {
       setAuthModalOpen(true);
+    }
+  };
+
+  const handleAdminClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.success && data.user && data.user.role === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        setAdminModalOpen(true);
+      }
+    } catch {
+      setAdminModalOpen(true);
     }
   };
 
@@ -107,12 +124,12 @@ export function Navbar() {
             <span>Student Portal</span>
           </button>
 
-          <Link
-            href="/admin"
-            className="text-xs tracking-wider uppercase font-semibold text-amber-400/90 hover:text-amber-300 px-2 py-2 transition-colors flex items-center gap-1"
+          <button
+            onClick={handleAdminClick}
+            className="text-xs tracking-wider uppercase font-semibold text-amber-400/90 hover:text-amber-300 px-2 py-2 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <span>Admin</span>
-          </Link>
+          </button>
 
           <Link
             href="/book"
@@ -180,13 +197,15 @@ export function Navbar() {
                 Student Portal
               </button>
 
-              <Link
-                href="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-3.5 border border-amber-500/30 text-amber-400 font-semibold text-xs tracking-wider uppercase rounded-full bg-amber-500/10"
+              <button
+                onClick={(e) => {
+                  setMobileMenuOpen(false);
+                  handleAdminClick(e);
+                }}
+                className="w-full text-center py-3.5 border border-amber-500/30 text-amber-400 font-semibold text-xs tracking-wider uppercase rounded-full bg-amber-500/10 cursor-pointer"
               >
                 Admin Control Portal 🔑
-              </Link>
+              </button>
               
               <Link
                 href="/book"
@@ -205,6 +224,12 @@ export function Navbar() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         redirectToDashboard={true}
+      />
+
+      {/* Admin Auth Overlay Modal */}
+      <AdminAuthModal
+        isOpen={adminModalOpen}
+        onClose={() => setAdminModalOpen(false)}
       />
     </header>
   );

@@ -82,9 +82,6 @@ export function Footer() {
               <li>
                 <Link href="/auth/login" className="hover:text-amber-400 transition-colors">Student Member Portal</Link>
               </li>
-              <li>
-                <Link href="/admin/login" className="hover:text-amber-400 text-amber-400/90 transition-colors font-semibold">Admin Control Center 🔑</Link>
-              </li>
             </ul>
           </div>
 
