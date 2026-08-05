@@ -43,10 +43,13 @@ import {
   Target,
   Repeat2,
   Heart,
+  Gauge,
+  Layers2,
+  SplitSquareHorizontal,
 } from 'lucide-react';
 import Link from 'next/link';
 
-type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'observability' | 'product' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
+type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'observability' | 'product' | 'performance' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
 
 export default function EngineeringPage() {
   const [activeTab, setActiveTab] = useState<TabId>('security');
@@ -152,6 +155,7 @@ export default function EngineeringPage() {
     { id: 'devops' as TabId,        label: 'DevOps',               icon: Rocket,         count: undefined },
     { id: 'observability' as TabId, label: 'Observability',        icon: Activity,       count: undefined },
     { id: 'product' as TabId,       label: 'Product',              icon: TrendingUp,     count: undefined },
+    { id: 'performance' as TabId,   label: 'Performance',          icon: Gauge,          count: undefined },
     { id: 'foundations' as TabId,   label: 'Foundations',          icon: Cpu,            count: undefined },
     { id: 'architecture' as TabId,  label: 'Architecture',         icon: Layers,         count: undefined },
     { id: 'backend' as TabId,       label: 'Backend',              icon: Server,         count: undefined },
@@ -736,6 +740,145 @@ ACTION ITEMS:
                   ))}
                 </div>
                 <p className="text-[11px] text-slate-500">Churn signals: No login in 14 days, abandoned payment, unresolved support ticket, or failed payment with no retry.</p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* PERFORMANCE (PART XI) */}
+          {activeTab === 'performance' && (
+            <motion.div key="performance" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
+                  <Gauge className="w-5 h-5 text-amber-400" />
+                  <span>Part XI — Performance Engineering</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">Layered cache hierarchy, Redis stampede prevention, CDN edge caching, Next.js image optimization, code splitting, RSC streaming, database indexes, and Core Web Vitals budgets.</p>
+              </div>
+
+              {/* Revenue Impact + CWV Targets */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center text-xs">
+                {[
+                  { label: 'LATENCY COST',  value: '-1% / 100ms', color: 'text-rose-400',    border: 'border-rose-500/30',    bg: 'bg-rose-500/10' },
+                  { label: 'LCP TARGET',    value: '≤ 2.5s',       color: 'text-amber-400',   border: 'border-amber-500/30',   bg: 'bg-amber-500/10' },
+                  { label: 'CLS TARGET',    value: '≤ 0.1',        color: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10' },
+                  { label: 'INP TARGET',    value: '≤ 200ms',      color: 'text-blue-400',    border: 'border-blue-500/30',    bg: 'bg-blue-500/10' },
+                  { label: 'CACHE HIT RATE', value: '≥ 90%',       color: 'text-purple-400',  border: 'border-purple-500/30',  bg: 'bg-purple-500/10' },
+                ].map((m) => (
+                  <div key={m.label} className={`${m.bg} border ${m.border} p-4 rounded-2xl`}>
+                    <span className="text-[10px] text-slate-400 font-mono block">{m.label}</span>
+                    <span className={`text-lg font-extrabold mt-1 block ${m.color}`}>{m.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Cache Hierarchy Diagram */}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Layers2 className="w-4 h-4 text-amber-400" />Layered Cache Hierarchy</h3>
+                <div className="space-y-2">
+                  {[
+                    { layer: 'L0', name: 'Browser Cache', detail: 'HTTP Cache-Control headers. Zero network cost.', latency: '~0ms', color: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' },
+                    { layer: 'L1', name: 'CDN Edge (Vercel / Cloudflare)', detail: 'Nearest PoP serves static assets globally.', latency: '~5ms', color: 'border-blue-500/40 bg-blue-500/10 text-blue-400' },
+                    { layer: 'L2', name: 'Redis Application Cache', detail: 'In-memory key-value store. Packages, slots, user sessions.', latency: '~1ms', color: 'border-amber-500/40 bg-amber-500/10 text-amber-400' },
+                    { layer: 'L3', name: 'Next.js Data Cache', detail: 'unstable_cache / fetch revalidate for RSC payloads.', latency: '~10ms', color: 'border-purple-500/40 bg-purple-500/10 text-purple-400' },
+                    { layer: 'L4', name: 'PostgreSQL Database', detail: 'Last resort — B-Tree indexes, partial indexes, EXPLAIN ANALYZE.', latency: '~80ms', color: 'border-rose-500/40 bg-rose-500/10 text-rose-400' },
+                  ].map((l) => (
+                    <div key={l.layer} className={`flex items-center gap-4 border ${l.color.split(' ')[0]} ${l.color.split(' ')[1]} p-3 rounded-xl`}>
+                      <span className={`font-extrabold font-mono text-xs w-6 shrink-0 ${l.color.split(' ')[2]}`}>{l.layer}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-semibold text-xs ${l.color.split(' ')[2]}`}>{l.name}</p>
+                        <p className="text-[11px] text-slate-400 font-light">{l.detail}</p>
+                      </div>
+                      <span className="font-mono text-[10px] text-slate-500 shrink-0">{l.latency}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Redis Patterns + Invalidation */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Database className="w-4 h-4 text-amber-400" />Cache Stampede Prevention</h3>
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-[11px] text-amber-300 leading-relaxed overflow-x-auto">
+                    <pre>{`// Distributed mutex lock (NX = only if not exists)
+const lock = await redis.set(
+  'lock:packages', '1',
+  'EX', 5, 'NX'
+);
+
+if (!lock) {
+  await sleep(100);
+  return getCachedPackages(); // retry
+}
+
+try {
+  const data = await prisma.package.findMany();
+  await redis.setex('packages:all', 300, JSON.stringify(data));
+  return data;
+} finally {
+  await redis.del('lock:packages'); // always release
+}`}</pre>
+                  </div>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><RefreshCw className="w-4 h-4 text-emerald-400" />Cache Invalidation Strategies</h3>
+                  <div className="space-y-2">
+                    {[
+                      { strategy: 'TTL-Based',     desc: 'Key expires after N seconds. Simple, passive.', when: 'Non-critical, eventual consistency OK' },
+                      { strategy: 'Event-Based',   desc: 'Admin saves package → del("packages:all") immediately.', when: 'Admin mutations, booking creates' },
+                      { strategy: 'Tag-Based',     desc: 'Tag all keys with "packages" → invalidate entire tag set.', when: 'Complex dependencies' },
+                      { strategy: 'Write-Through', desc: 'Update cache and DB simultaneously on every write.', when: 'High-read, low-write data' },
+                    ].map((r) => (
+                      <div key={r.strategy} className="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+                        <p className="text-amber-400 font-semibold">{r.strategy}</p>
+                        <p className="text-slate-300 font-light">{r.desc}</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Use when: {r.when}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Frontend Performance */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                {[
+                  { icon: Zap, color: 'text-amber-400', title: 'Image Optimization', body: 'Next.js <Image> auto-converts to WebP/AVIF (50-80% smaller). Generates responsive srcset. Lazy-loads by default. Reserves layout space to prevent CLS.' },
+                  { icon: SplitSquareHorizontal, color: 'text-blue-400', title: 'Code Splitting & Lazy Loading', body: 'dynamic() splits heavy components (admin panels, charts) out of the main bundle. Only loaded when route is visited. Skeleton shown during load.' },
+                  { icon: Server, color: 'text-purple-400', title: 'RSC Streaming', body: 'React Server Components stream HTML progressively from server. Suspense boundaries isolate slow data fetches. Page paint is never blocked by async data.' },
+                  { icon: Gauge, color: 'text-emerald-400', title: 'Prefetching', body: '<Link prefetch> loads the next route bundle on hover. Users experience instantaneous navigation even on slower connections.' },
+                  { icon: Database, color: 'text-rose-400', title: 'Database Index Strategy', body: 'Composite B-Tree indexes on (studentId, status). Partial indexes on status=AVAILABLE slots. GIN full-text search for admin panel. CONCURRENTLY to avoid locks.' },
+                  { icon: BarChart3, color: 'text-teal-400', title: 'Core Web Vitals Budget', body: 'LCP ≤ 2.5s via priority image preload. CLS ≤ 0.1 via reserved aspect-ratio containers. INP ≤ 200ms via useTransition for non-urgent state updates.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* CWV Table */}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100">Core Web Vitals — Full Reference</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
+                  {[
+                    { metric: 'LCP', name: 'Largest Contentful Paint', good: '≤ 2.5s', poor: '> 4.0s', fix: 'Priority preload hero image', color: 'text-amber-400 border-amber-500/30' },
+                    { metric: 'CLS', name: 'Cumulative Layout Shift', good: '≤ 0.1', poor: '> 0.25', fix: 'Reserve aspect-ratio containers', color: 'text-blue-400 border-blue-500/30' },
+                    { metric: 'INP', name: 'Interaction to Next Paint', good: '≤ 200ms', poor: '> 500ms', fix: 'useTransition for non-urgent updates', color: 'text-emerald-400 border-emerald-500/30' },
+                    { metric: 'TTFB', name: 'Time to First Byte', good: '≤ 800ms', poor: '> 1800ms', fix: 'Redis caching, edge functions', color: 'text-purple-400 border-purple-500/30' },
+                    { metric: 'FCP', name: 'First Contentful Paint', good: '≤ 1.8s', poor: '> 3.0s', fix: 'Inline critical CSS, font preload', color: 'text-rose-400 border-rose-500/30' },
+                  ].map((m) => (
+                    <div key={m.metric} className={`bg-slate-950 border ${m.color.split(' ')[1]} p-4 rounded-xl space-y-1.5`}>
+                      <span className={`font-extrabold text-base font-mono ${m.color.split(' ')[0]}`}>{m.metric}</span>
+                      <p className="text-[10px] text-slate-500 leading-snug">{m.name}</p>
+                      <p className="text-emerald-400 font-mono text-[11px]">✅ {m.good}</p>
+                      <p className="text-rose-400 font-mono text-[11px]">❌ {m.poor}</p>
+                      <p className="text-[10px] text-slate-400 font-light pt-1">{m.fix}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}
