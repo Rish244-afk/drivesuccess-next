@@ -53,6 +53,19 @@ export default function HomePage() {
       {/* 1. NEXT-GENERATION SPATIAL UI HERO SECTION */}
       <section ref={heroRef} className="relative pt-24 pb-28 lg:pt-36 lg:pb-40 border-b border-slate-200/60 overflow-hidden bg-white flex items-center min-h-[85vh]">
         
+        {/* Full-Bleed Atmospheric Background Photography Layer */}
+        <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden">
+          <Image
+            src="/images/hero_spatial_bg.jpg"
+            alt="Scenic Mountain Road"
+            fill
+            priority
+            className="object-cover opacity-[0.14] scale-[1.03] transition-transform duration-700 select-none pointer-events-none"
+          />
+          {/* Light Glassmorphism Radial Gradient Vignette */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/70 to-white/90" />
+        </div>
+
         {/* Spatial Depth Layers */}
         <MeshGradient />
         <FloatingParticles count={30} />
