@@ -27,10 +27,14 @@ import {
   AlertTriangle,
   CreditCard,
   Package,
+  GitBranch,
+  Rocket,
+  Cloud,
+  ToggleLeft,
 } from 'lucide-react';
 import Link from 'next/link';
 
-type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
+type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
 
 export default function EngineeringPage() {
   const [activeTab, setActiveTab] = useState<TabId>('security');
@@ -133,6 +137,7 @@ export default function EngineeringPage() {
     { id: 'auth' as TabId,          label: 'Auth & Identity',      icon: Fingerprint,    count: undefined },
     { id: 'appsecurity' as TabId,   label: 'App Security',         icon: AlertTriangle,  count: undefined },
     { id: 'payments' as TabId,      label: 'Payments',             icon: CreditCard,     count: undefined },
+    { id: 'devops' as TabId,        label: 'DevOps',               icon: Rocket,         count: undefined },
     { id: 'foundations' as TabId,   label: 'Foundations',          icon: Cpu,            count: undefined },
     { id: 'architecture' as TabId,  label: 'Architecture',         icon: Layers,         count: undefined },
     { id: 'backend' as TabId,       label: 'Backend',              icon: Server,         count: undefined },
@@ -373,6 +378,85 @@ export default function EngineeringPage() {
                     </div>
                   );
                 })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* DEVOPS (PART VIII) */}
+          {activeTab === 'devops' && (
+            <motion.div key="devops" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
+                  <Rocket className="w-5 h-5 text-amber-400" />
+                  <span>Part VIII — DevOps, CI/CD & Infrastructure Engineering</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">GitHub Actions CI/CD, Docker multi-stage builds, Blue-Green/Canary deployments, Feature Flags, Vercel preview deployments, and instant rollback.</p>
+              </div>
+
+              {/* CI/CD Pipeline diagram */}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><GitBranch className="w-4 h-4 text-amber-400" />GitHub Actions CI/CD Pipeline</h3>
+                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 font-mono text-xs text-amber-300 overflow-x-auto leading-relaxed">
+                  <pre>{`Developer Push ──► GitHub Actions Trigger
+                        │
+          ┌─────────────┴──────────────┐
+          ▼                            ▼
+   Type Check (tsc)             npm audit (CVE scan)
+          │                            │
+          ▼                            ▼
+    ESLint (lint)              npx next build
+          │                            │
+          └─────────────┬──────────────┘
+                        ▼
+               All Gates PASS?
+                  │         │
+                 YES        NO
+                  │         │
+                  ▼         ▼
+           Auto-Deploy    Block PR
+           to Vercel      + Notify`}</pre>
+                </div>
+              </div>
+
+              {/* Deployment Strategies */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                {[
+                  { icon: Cloud, color: 'text-amber-400', title: 'Blue-Green Deployment', body: 'Two identical environments (Blue=live, Green=new). Traffic atomically switched at load balancer. Old environment retained as instant rollback target for 30 minutes.' },
+                  { icon: ToggleLeft, color: 'text-emerald-400', title: 'Canary Releases', body: 'Route X% of traffic to v2, (100-X)% to v1. Promote if error rate < 0.1%, P99 < 500ms. Automatic rollback if thresholds breached within monitoring window.' },
+                  { icon: Rocket, color: 'text-blue-400', title: 'Feature Flags', body: 'Decouple deployment from activation. Deterministic user-hash percentage rollouts via Redis config. No redeploy required to toggle features or run A/B experiments.' },
+                  { icon: GitBranch, color: 'text-purple-400', title: 'Preview Deployments', body: 'Every pull request receives an isolated Vercel preview URL automatically. Stakeholders review changes at unique URLs before merging to main.' },
+                  { icon: RefreshCw, color: 'text-rose-400', title: 'Instant Rollback (≤ 30s)', body: 'Every Vercel deployment stays in Ready state. Previous stable deployment promoted to production in under 30 seconds. MTTR = 30s via dashboard click.' },
+                  { icon: Lock, color: 'text-teal-400', title: 'Secrets Hierarchy', body: '.env.local (dev) → GitHub Actions Secrets (CI) → Vercel Environment Variables (production). Encrypted at rest. Auto-rotation for database credentials.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Platform Comparison */}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Cloud className="w-4 h-4 text-blue-400" />Infrastructure Platforms</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                  {[
+                    { name: 'Vercel', model: 'Serverless Edge', usage: 'Next.js hosting + previews', limit: '60s exec (Pro)', color: 'border-blue-500/30 text-blue-400' },
+                    { name: 'Supabase', model: 'Managed PostgreSQL', usage: 'Primary DB + RLS', limit: '500MB (Free)', color: 'border-emerald-500/30 text-emerald-400' },
+                    { name: 'Cloudflare', model: 'CDN + Edge Workers', usage: 'DDoS + asset caching', limit: '10ms CPU (free)', color: 'border-orange-500/30 text-orange-400' },
+                    { name: 'AWS', model: 'IaaS/PaaS', usage: 'S3 media + SES email', limit: 'Per-service quotas', color: 'border-yellow-500/30 text-yellow-400' },
+                  ].map((p) => (
+                    <div key={p.name} className={`bg-slate-950 border ${p.color.split(' ')[0]} p-4 rounded-xl space-y-2`}>
+                      <span className={`font-extrabold text-sm ${p.color.split(' ')[1]}`}>{p.name}</span>
+                      <p className="text-slate-400 font-mono text-[10px]">{p.model}</p>
+                      <p className="text-slate-300 font-light">{p.usage}</p>
+                      <p className="text-slate-500 text-[10px]">Limit: {p.limit}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}
