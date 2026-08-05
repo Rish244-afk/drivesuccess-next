@@ -146,14 +146,39 @@ export function GoogleSignInButton({
     const clientId =
       process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
       '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
-      
-    // Always fallback to standard OAuth redirect when clicked
-    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/login`);
-    const stateObj = { mode: 'redirect', returnTo: returnTo || window.location.pathname };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PERMANENT FIX: Always use the canonical production URL as redirect_uri.
+    //
+    // DO NOT use window.location.origin here.
+    //
+    // window.location.origin returns the CURRENT browser URL, which on Vercel
+    // preview deployments is a unique per-commit hostname:
+    //   https://drivesuccess-next-<hash>-rish244-afks-projects.vercel.app
+    //
+    // Every new git push creates a new such URL. Google's OAuth server validates
+    // redirect_uri against an allowlist in Cloud Console. Because the URL changes
+    // on every deployment, you would need to manually add a new entry to Google
+    // Console after every single commit — which is exactly the recurring bug.
+    //
+    // The fix: use NEXT_PUBLIC_APP_URL, which is set ONCE in Vercel's Environment
+    // Variables to the stable production alias (drivesuccess-next.vercel.app).
+    // This URL never changes regardless of how many commits are pushed.
+    //
+    // Google Console requires exactly ONE entry:
+    //   https://drivesuccess-next.vercel.app/auth/login
+    // ─────────────────────────────────────────────────────────────────────────
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ||
+      (typeof window !== 'undefined' ? window.location.origin : '');
+
+    const redirectUri = encodeURIComponent(`${appUrl}/auth/login`);
+    const stateObj = { mode: 'redirect', returnTo: returnTo || (typeof window !== 'undefined' ? window.location.pathname : '/dashboard') };
     const stateStr = encodeURIComponent(JSON.stringify(stateObj));
     const nonce = Math.random().toString(36).substring(2, 15);
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=id_token&scope=email%20profile&state=${stateStr}&nonce=${nonce}`;
-    
+
     window.location.href = googleAuthUrl;
   };
 
