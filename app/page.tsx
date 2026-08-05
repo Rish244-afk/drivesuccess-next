@@ -188,16 +188,19 @@ export default function HomePage() {
           ═══════════════════════════════════════════ */}
       <section className="hero-section relative pt-24 pb-32 lg:pt-40 lg:pb-48 overflow-hidden flex items-center min-h-[92vh]">
 
-        {/* ── Multi-layer atmospheric background ── */}
+        {/* ── Multi-layer atmospheric background video ── */}
         <div aria-hidden="true" className="hero-bg-layer absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
-          <Image
-            src="/images/hero_spatial_bg.jpg"
-            alt="Scenic mountain road"
-            fill
-            priority
-            className="hero-bg-img object-cover opacity-0 scale-[1.05] pointer-events-none"
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="/images/hero_spatial_bg.jpg"
+            className="hero-bg-img w-full h-full object-cover opacity-0 scale-[1.05] pointer-events-none"
             style={{ willChange: 'opacity, transform' }}
-          />
+          >
+            <source src="/videos/swift.mp4" type="video/mp4" />
+          </video>
           {/* Layered vignette overlays for depth */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#F8FAFC]/30 via-[#F8FAFC]/55 to-[#F8FAFC]/85" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#F8FAFC]/20 via-transparent to-[#F8FAFC]/20" />
