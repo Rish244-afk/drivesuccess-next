@@ -42,10 +42,10 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-0 overflow-hidden bg-[#0A1128]">
+    <div className="space-y-0 overflow-hidden bg-white">
       
       {/* 1. WINZY-STYLE ATMOSPHERIC CINEMATIC HERO SECTION */}
-      <section ref={heroRef} className="relative pt-20 pb-24 lg:pt-28 lg:pb-36 border-b border-slate-800/60 overflow-hidden">
+      <section ref={heroRef} className="relative pt-20 pb-24 lg:pt-28 lg:pb-36 border-b border-slate-200 overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 mesh-gradient">
         
         {/* Full-Bleed Atmospheric Background Photography Layer */}
         <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden">
@@ -54,11 +54,11 @@ export default function HomePage() {
             alt="Atmospheric Driving Road"
             fill
             priority
-            className="object-cover opacity-40 scale-105"
+            className="object-cover opacity-10 scale-105"
           />
-          {/* Dark Glassmorphism Radial Gradient Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0A1128]/90 via-[#0A1128]/75 to-[#0A1128] backdrop-blur-[2px]" />
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-amber-500/10 rounded-full blur-[150px] pointer-events-none" />
+          {/* Light Glassmorphism Radial Gradient Vignette */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/75 to-white backdrop-blur-[2px]" />
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none" />
         </div>
 
         <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16 relative z-10">
@@ -72,31 +72,31 @@ export default function HomePage() {
             className="text-center max-w-5xl mx-auto space-y-8"
           >
             {/* Animated Glass Badge */}
-            <motion.div variants={wordVariants} className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-amber-400/30 text-amber-400 text-xs font-medium tracking-widest uppercase bg-[#0A1128]/80 backdrop-blur-xl shadow-2xl">
-              <Sparkles className="w-3.5 h-3.5 animate-spin text-amber-400" />
+            <motion.div variants={wordVariants} className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-blue-300 text-blue-600 text-xs font-medium tracking-widest uppercase bg-blue-50 backdrop-blur-xl shadow-hover">
+              <Sparkles className="w-3.5 h-3.5 animate-spin text-blue-600" />
               <span>Certified Automotive Pedagogy</span>
             </motion.div>
 
             {/* Giant Kinetic Heading with Staggered Word Motion */}
             <motion.h1
               variants={wordVariants}
-              className="font-serif text-6xl sm:text-7xl lg:text-8xl font-normal text-slate-100 leading-[1.05] tracking-tight"
+              className="font-serif text-6xl sm:text-7xl lg:text-8xl font-normal text-slate-900 leading-[1.05] tracking-tight"
             >
               Learn to Drive with{' '}
               <span className="relative inline-block">
-                <em className="italic text-amber-400 font-normal">Confidence</em>
+                <em className="italic text-blue-600 font-normal">Confidence</em>
                 <motion.span
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ duration: 1, delay: 0.8 }}
-                  className="absolute bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent origin-left"
+                  className="absolute bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-600 to-transparent origin-left"
                 />
               </span>
             </motion.h1>
 
             <motion.p
               variants={wordVariants}
-              className="text-lg sm:text-xl text-slate-200 font-light leading-relaxed max-w-2xl mx-auto drop-shadow-md"
+              className="text-lg sm:text-xl text-slate-600 font-light leading-relaxed max-w-2xl mx-auto drop-shadow-sm"
             >
               Safe, structured instruction for first-time drivers. Our patient pedagogical methodology builds long-term competence, road safety, and stress-free license certification.
             </motion.p>
@@ -106,7 +106,7 @@ export default function HomePage() {
               
               <Link
                 href="/book"
-                className="group relative bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-10 py-4.5 rounded-full flex items-center justify-center gap-3 shadow-[0_10px_35px_rgba(245,158,11,0.3)] hover:scale-105 transition-all duration-300"
+                className="group relative bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-10 py-4.5 rounded-full flex items-center justify-center gap-3 shadow-glow hover:scale-105 transition-all duration-300"
               >
                 <span>Reserve Training Session</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -114,7 +114,7 @@ export default function HomePage() {
 
               <Link
                 href="/courses"
-                className="border border-slate-600/80 hover:border-slate-300 bg-[#070B19]/70 hover:bg-[#070B19] text-slate-100 font-medium text-xs uppercase tracking-wider px-9 py-4.5 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 shadow-xl"
+                className="border border-slate-300 hover:border-blue-400 bg-white/70 hover:bg-white text-slate-700 font-medium text-xs uppercase tracking-wider px-9 py-4.5 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 shadow-card"
               >
                 Explore Curriculum
               </Link>
@@ -124,19 +124,19 @@ export default function HomePage() {
             {/* Winzy-Style Floating Student Proof Bar */}
             <motion.div variants={wordVariants} className="pt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
               
-              <div className="flex items-center gap-3 bg-[#070B19]/80 backdrop-blur-xl px-5 py-2 rounded-full border border-slate-800/80 shadow-xl">
+              <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl px-5 py-2 rounded-full border border-slate-200 shadow-hover">
                 <div className="flex -space-x-2">
-                  <Image src="/images/rajesh.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-[#0A1128] object-cover" />
-                  <Image src="/images/priya.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-[#0A1128] object-cover" />
-                  <div className="w-7 h-7 rounded-full bg-amber-500 text-slate-950 text-[10px] font-bold flex items-center justify-center border-2 border-[#0A1128]">
+                  <Image src="/images/rajesh.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
+                  <Image src="/images/priya.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
+                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
                     +2.4k
                   </div>
                 </div>
-                <span className="text-xs text-slate-300 font-medium">Certified Student Drivers</span>
+                <span className="text-xs text-slate-600 font-medium">Certified Student Drivers</span>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-slate-300 font-medium bg-[#070B19]/80 backdrop-blur-xl px-5 py-2 rounded-full border border-slate-800/80 shadow-xl">
-                <span className="text-amber-400 font-serif text-base italic">★ 5.0</span>
+              <div className="flex items-center gap-2 text-xs text-slate-600 font-medium bg-white/80 backdrop-blur-xl px-5 py-2 rounded-full border border-slate-200 shadow-hover">
+                <span className="text-blue-500 font-serif text-base italic">★ 5.0</span>
                 <span>98.4% First-Attempt Pass Rate</span>
               </div>
 
@@ -149,7 +149,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.4 }}
-            className="relative rounded-3xl overflow-hidden border border-slate-700/60 shadow-[0_35px_90px_-20px_rgba(0,0,0,0.95)] bg-[#070B19] group"
+            className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-hover bg-slate-50 group"
           >
             <video
               src="/videos/swift.mp4"
@@ -162,27 +162,27 @@ export default function HomePage() {
             />
             
             {/* Top & Bottom Vignette Overlays to Crop & Seamlessly Blend Edge Watermarks */}
-            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#0A1128] to-transparent pointer-events-none z-10" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0A1128] via-[#0A1128]/60 to-transparent pointer-events-none z-10" />
+            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/20 to-transparent pointer-events-none z-10" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/40 via-white/20 to-transparent pointer-events-none z-10" />
           </motion.div>
 
         </div>
       </section>
 
       {/* 2. STAT BAND */}
-      <section className="bg-[#070B19] py-24 border-b border-slate-800/60">
+      <section className="bg-slate-50 py-24 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 sm:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800/60">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-slate-200">
             
             <motion.div
               whileHover={{ y: -6 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="space-y-2 py-4 md:py-0 transition-transform cursor-default"
             >
-              <p className="font-serif text-5xl sm:text-6xl text-slate-100 font-normal tracking-tight">
-                2,400<em className="italic text-amber-400 font-normal">+</em>
+              <p className="font-serif text-5xl sm:text-6xl text-slate-900 font-normal tracking-tight">
+                2,400<em className="italic text-blue-600 font-normal">+</em>
               </p>
-              <p className="text-xs uppercase tracking-widest text-slate-400 font-medium">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-medium">
                 Students Certified
               </p>
             </motion.div>
@@ -192,10 +192,10 @@ export default function HomePage() {
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="space-y-2 py-4 md:py-0 transition-transform cursor-default"
             >
-              <p className="font-serif text-5xl sm:text-6xl text-slate-100 font-normal tracking-tight">
-                12<em className="italic text-amber-400 font-normal">Years</em>
+              <p className="font-serif text-5xl sm:text-6xl text-slate-900 font-normal tracking-tight">
+                12<em className="italic text-blue-600 font-normal">Years</em>
               </p>
-              <p className="text-xs uppercase tracking-widest text-slate-400 font-medium">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-medium">
                 Pedagogical Experience
               </p>
             </motion.div>
@@ -205,10 +205,10 @@ export default function HomePage() {
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="space-y-2 py-4 md:py-0 transition-transform cursor-default"
             >
-              <p className="font-serif text-5xl sm:text-6xl text-slate-100 font-normal tracking-tight">
-                98.4<em className="italic text-amber-400 font-normal">%</em>
+              <p className="font-serif text-5xl sm:text-6xl text-slate-900 font-normal tracking-tight">
+                98.4<em className="italic text-blue-600 font-normal">%</em>
               </p>
-              <p className="text-xs uppercase tracking-widest text-slate-400 font-medium">
+              <p className="text-xs uppercase tracking-widest text-slate-500 font-medium">
                 First Attempt Pass Rate
               </p>
             </motion.div>
@@ -217,16 +217,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. ALTERNATING LIGHT SECTION: PEDAGOGY STANDARDS (#FAF8F3) */}
-      <section className="bg-[#FAF8F3] text-slate-900 py-28 lg:py-36 relative">
+      {/* 3. ALTERNATING LIGHT SECTION: PEDAGOGY STANDARDS */}
+      <section className="bg-white text-slate-900 py-28 lg:py-36 relative">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-20">
           
           <div className="max-w-3xl space-y-4">
-            <span className="text-xs font-semibold uppercase tracking-widest text-amber-600">
+            <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">
               Pedagogical Standards
             </span>
             <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-normal text-slate-900 tracking-tight leading-tight">
-              Designed for Stress-Free <em className="italic text-amber-600 font-normal">Mastery</em>
+              Designed for Stress-Free <em className="italic text-blue-600 font-normal">Mastery</em>
             </h2>
             <p className="text-base text-slate-600 font-light leading-relaxed">
               We replace anxiety with structured practice. Every training module is engineered to build muscle memory, spatial awareness, and calm decision-making.
@@ -238,9 +238,9 @@ export default function HomePage() {
             <motion.div
               whileHover={{ y: -8 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-4 border-l-2 border-amber-500 pl-6 py-2"
+              className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl"
             >
-              <ShieldCheck className="w-8 h-8 text-amber-600 stroke-[1.25]" />
+              <ShieldCheck className="w-8 h-8 text-blue-600 stroke-[1.25]" />
               <h3 className="font-serif text-2xl text-slate-900 font-normal">
                 Dual-Control Safety
               </h3>
@@ -252,9 +252,9 @@ export default function HomePage() {
             <motion.div
               whileHover={{ y: -8 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-4 border-l-2 border-amber-500 pl-6 py-2"
+              className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl"
             >
-              <SlidersHorizontal className="w-8 h-8 text-amber-600 stroke-[1.25]" />
+              <SlidersHorizontal className="w-8 h-8 text-blue-600 stroke-[1.25]" />
               <h3 className="font-serif text-2xl text-slate-900 font-normal">
                 Tailored Progression
               </h3>
@@ -266,9 +266,9 @@ export default function HomePage() {
             <motion.div
               whileHover={{ y: -8 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-4 border-l-2 border-amber-500 pl-6 py-2"
+              className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl"
             >
-              <Award className="w-8 h-8 text-amber-600 stroke-[1.25]" />
+              <Award className="w-8 h-8 text-blue-600 stroke-[1.25]" />
               <h3 className="font-serif text-2xl text-slate-900 font-normal">
                 RTO Exam Fast-Track
               </h3>
@@ -283,20 +283,20 @@ export default function HomePage() {
       </section>
 
       {/* 4. CTA BAND */}
-      <section className="bg-[#070B19] py-32 text-center border-t border-slate-800/60 relative overflow-hidden">
-        <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-[160px] pointer-events-none" />
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-32 text-center relative overflow-hidden">
+        <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-400/20 rounded-full blur-[160px] pointer-events-none" />
         
         <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-8 relative z-10">
-          <h2 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-slate-100 tracking-tight leading-tight">
-            Your Journey to <em className="italic text-amber-400 font-normal">Freedom</em> Starts Today
+          <h2 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-white tracking-tight leading-tight">
+            Your Journey to <em className="italic text-white font-normal">Freedom</em> Starts Today
           </h2>
-          <p className="text-lg sm:text-xl text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-white/90 font-light max-w-2xl mx-auto leading-relaxed">
             Reserve your preferred training vehicle, instructor, and schedule online in under 2 minutes.
           </p>
           <div className="pt-4">
             <Link
               href="/book"
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-10 py-5 rounded-full inline-flex items-center gap-3 shadow-2xl shadow-amber-500/20 hover:scale-105 transition-all duration-300"
+              className="bg-white hover:bg-blue-50 text-blue-600 font-bold text-xs uppercase tracking-widest px-10 py-5 rounded-full inline-flex items-center gap-3 shadow-2xl shadow-white/20 hover:scale-105 transition-all duration-300"
             >
               <span>Reserve Your Session Now</span>
               <ArrowRight className="w-4 h-4" />

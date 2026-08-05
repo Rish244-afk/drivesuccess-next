@@ -82,22 +82,22 @@ function CoursesContent() {
   };
 
   return (
-    <div className="space-y-0 overflow-hidden bg-[#0A1128]">
+    <div className="space-y-0 overflow-hidden bg-white">
       
       {/* 1. HERO SECTION */}
-      <section className="relative py-24 lg:py-32 border-b border-slate-800/60 text-center overflow-hidden">
-        <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-amber-500/10 rounded-full blur-[160px] pointer-events-none" />
+      <section className="relative py-24 lg:py-32 border-b border-slate-200/80 text-center overflow-hidden">
+        <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-blue-50 rounded-full blur-[160px] pointer-events-none" />
         
         <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-6 relative z-10 font-sans">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-400/30 text-amber-400 text-xs font-medium tracking-widest uppercase bg-amber-400/5 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-300 text-blue-600 text-xs font-medium tracking-widest uppercase bg-blue-50 backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Accredited Curriculum</span>
           </div>
 
-          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-slate-100 tracking-tight leading-tight">
-            Curated Driver <em className="italic text-amber-400 font-normal">Programs</em>
+          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-slate-900 tracking-tight leading-tight">
+            Curated Driver <em className="italic text-blue-600 font-normal">Programs</em>
           </h1>
-          <p className="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-slate-600 font-light max-w-2xl mx-auto leading-relaxed">
             Explore our sensor-assisted training programs tailored for first-time drivers, 2-wheeler balance, RTO exam fast-tracks, and license renewals.
           </p>
         </div>
@@ -109,7 +109,7 @@ function CoursesContent() {
           
           {/* Category Filter Tabs */}
           <div className="flex justify-center">
-            <div className="flex flex-wrap gap-2 bg-[#070B19] border border-slate-800/80 p-2 rounded-full shadow-2xl">
+            <div className="flex flex-wrap gap-2 bg-slate-100 border border-slate-200 p-2 rounded-full shadow-hover">
               {[
                 { id: 'ALL', label: 'All Curriculum Programs' },
                 { id: 'LICENSE', label: 'Driving Licenses (2W & 4W)' },
@@ -121,8 +121,8 @@ function CoursesContent() {
                   onClick={() => handleFilterChange(tab.id)}
                   className={`px-6 py-3 rounded-full text-xs font-sans uppercase tracking-widest transition-all cursor-pointer ${
                     activeFilter === tab.id
-                      ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/20'
-                      : 'text-slate-400 hover:text-slate-100 font-medium'
+                      ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/15'
+                      : 'text-slate-500 hover:text-slate-900 font-medium'
                   }`}
                 >
                   {tab.label}
@@ -157,47 +157,47 @@ function CoursesContent() {
                           <span
                             className={`text-[10px] uppercase tracking-widest font-bold px-3.5 py-1 rounded-full border ${
                               isHighlight
-                                ? 'bg-amber-400 text-slate-950 border-amber-400 font-extrabold shadow-md'
-                                : 'bg-slate-900 text-amber-400 border-amber-400/30'
+                                ? 'bg-blue-500 text-slate-950 border-blue-500 font-extrabold shadow-md'
+                                : 'bg-white text-blue-600 border-blue-300'
                             }`}
                           >
                             {pkg.badge || 'Accredited'}
                           </span>
                           <div className="text-right">
-                            <span className="font-serif text-3xl font-normal text-amber-400 block font-mono">
+                            <span className="font-serif text-3xl font-normal text-blue-600 block font-mono">
                               ₹{pkg.price.toLocaleString()}
                             </span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-widest block font-medium">All-Inclusive Fee</span>
+                            <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-medium">All-Inclusive Fee</span>
                           </div>
                         </div>
 
                         {/* Title & Description */}
                         <div className="space-y-2.5">
-                          <h3 className="font-serif text-3xl text-slate-100 font-normal tracking-tight">
+                          <h3 className="font-serif text-3xl text-slate-900 font-normal tracking-tight">
                             {pkg.name}
                           </h3>
-                          <p className="text-xs text-slate-300 font-light leading-relaxed">
+                          <p className="text-xs text-slate-600 font-light leading-relaxed">
                             {pkg.description}
                           </p>
                         </div>
 
                         {/* Feature Bullet List with Animated Icons */}
-                        <div className="space-y-2.5 pt-4 border-t border-slate-800/80 text-xs text-slate-300 font-light">
+                        <div className="space-y-2.5 pt-4 border-t border-slate-200 text-xs text-slate-600 font-light">
                           <div className="flex items-center gap-2.5">
                             <AnimatedIcon animation="scale">
-                              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
                             </AnimatedIcon>
                             <span>{pkg.sessionsCount} Practical 1-on-1 Sessions</span>
                           </div>
                           <div className="flex items-center gap-2.5">
                             <AnimatedIcon animation="scale">
-                              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
                             </AnimatedIcon>
                             <span>Dual-Control Fleet Vehicle Included</span>
                           </div>
                           <div className="flex items-center gap-2.5">
                             <AnimatedIcon animation="scale">
-                              <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
                             </AnimatedIcon>
                             <span>Mock RTO Exam Track Prep</span>
                           </div>
@@ -211,8 +211,8 @@ function CoursesContent() {
                           href="/book"
                           className={`block text-center w-full py-4 font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 ${
                             isHighlight
-                              ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 hover:scale-[1.02]'
-                              : 'bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-400'
+                              ? 'bg-blue-600 hover:bg-blue-500 text-slate-950 shadow-lg shadow-blue-600/15 hover:scale-[1.02]'
+                              : 'bg-white hover:bg-slate-100 border border-slate-300 hover:border-blue-500 text-slate-700 hover:text-blue-600'
                           }`}
                         >
                           Reserve Package Now
@@ -238,18 +238,18 @@ function CoursesContent() {
       </section>
 
       {/* 3. CTA BAND */}
-      <section className="bg-[#070B19] py-28 text-center border-t border-slate-800/60 relative overflow-hidden font-sans">
-        <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-500/10 rounded-full blur-[160px] pointer-events-none" />
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-28 text-center border-t border-slate-200/80 relative overflow-hidden font-sans">
+        <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/10 rounded-full blur-[160px] pointer-events-none" />
         <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-8 relative z-10">
-          <h2 className="font-serif text-4xl sm:text-5xl font-normal text-slate-100 tracking-tight">
-            Ready to Begin Your <em className="italic text-amber-400 font-normal">Journey</em>?
+          <h2 className="font-serif text-4xl sm:text-5xl font-normal text-white tracking-tight">
+            Ready to Begin Your <em className="italic text-white/90 font-normal">Journey</em>?
           </h2>
-          <p className="text-base text-slate-300 font-light max-w-xl mx-auto">
+          <p className="text-base text-white/80 font-light max-w-xl mx-auto">
             Book your session online with instant instructor and vehicle selection.
           </p>
           <Link
             href="/book"
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-9 py-4 rounded-full inline-flex items-center gap-2 shadow-xl shadow-amber-500/10 hover:scale-[1.02] transition-all"
+            className="bg-white hover:bg-slate-50 text-slate-900 font-bold text-xs uppercase tracking-widest px-9 py-4 rounded-full inline-flex items-center gap-2 shadow-xl shadow-black/10 hover:scale-[1.02] transition-all"
           >
             <span>Proceed to Reservation</span>
             <ArrowRight className="w-4 h-4" />
@@ -263,7 +263,7 @@ function CoursesContent() {
 
 export default function CoursesPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0A1128] text-slate-400 p-12 text-center text-sm">Loading Curriculum Packages...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-white text-slate-400 p-12 text-center text-sm">Loading Curriculum Packages...</div>}>
       <CoursesContent />
     </Suspense>
   );

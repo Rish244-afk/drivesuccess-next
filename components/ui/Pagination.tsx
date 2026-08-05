@@ -14,7 +14,7 @@ export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
-  variant = 'dark',
+  variant = 'light',
 }: PaginationProps) {
   if (totalPages <= 1) return null;
 
@@ -32,8 +32,8 @@ export function Pagination({
           currentPage === 1
             ? 'opacity-30 cursor-not-allowed border-slate-800 text-slate-600'
             : isDark
-            ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-amber-500/50 hover:text-amber-400 active:scale-95 cursor-pointer shadow-md'
-            : 'bg-white border-slate-300 text-slate-700 hover:border-amber-500 hover:text-amber-600 active:scale-95 cursor-pointer shadow-sm'
+            ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-blue-500/50 hover:text-blue-400 active:scale-95 cursor-pointer shadow-md'
+            : 'bg-white border-slate-300 text-slate-700 hover:border-blue-500 hover:text-blue-600 active:scale-95 cursor-pointer shadow-sm'
         }`}
         aria-label="Previous Page"
       >
@@ -50,10 +50,10 @@ export function Pagination({
             onClick={() => onPageChange(p)}
             className={`w-10 h-10 rounded-full border text-xs font-bold transition-all flex items-center justify-center ${
               isActive
-                ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 scale-105 cursor-default font-extrabold'
+                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-600/20 scale-105 cursor-default font-extrabold'
                 : isDark
-                ? 'bg-slate-900 border-slate-800/90 text-slate-400 hover:text-amber-400 hover:border-amber-500/40 active:scale-95 cursor-pointer'
-                : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-amber-500 active:scale-95 cursor-pointer'
+                ? 'bg-slate-900 border-slate-800/90 text-slate-400 hover:text-blue-400 hover:border-blue-500/40 active:scale-95 cursor-pointer'
+                : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-blue-500 active:scale-95 cursor-pointer'
             }`}
           >
             {p}
@@ -70,8 +70,8 @@ export function Pagination({
           currentPage === totalPages
             ? 'opacity-30 cursor-not-allowed border-slate-800 text-slate-600'
             : isDark
-            ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-amber-500/50 hover:text-amber-400 active:scale-95 cursor-pointer shadow-md'
-            : 'bg-white border-slate-300 text-slate-700 hover:border-amber-500 hover:text-amber-600 active:scale-95 cursor-pointer shadow-sm'
+            ? 'bg-slate-900 border-slate-800 text-slate-300 hover:border-blue-500/50 hover:text-blue-400 active:scale-95 cursor-pointer shadow-md'
+            : 'bg-white border-slate-300 text-slate-700 hover:border-blue-500 hover:text-blue-600 active:scale-95 cursor-pointer shadow-sm'
         }`}
         aria-label="Next Page"
       >

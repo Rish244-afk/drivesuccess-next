@@ -15,7 +15,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', style: ['normal', 'italic'] });
 
 export const viewport: Viewport = {
-  themeColor: '#0A1128',
+  themeColor: '#FFFFFF',
   width: 'device-width',
   initialScale: 1,
 };
@@ -69,13 +69,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="font-sans bg-[#0A1128] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-400/20 selection:text-amber-400">
+      <body className="font-sans bg-white text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-500/20 selection:text-blue-600">
         <JsonLdSchemas />
         <SmoothScrollProvider>
           {/* Accessibility Skip Link */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-amber-500 focus:text-slate-950 font-bold text-xs"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-blue-600 focus:text-white focus:rounded-lg font-bold text-xs"
           >
             Skip to main content
           </a>

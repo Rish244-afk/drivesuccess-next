@@ -39,10 +39,10 @@ export function BackToTop() {
           onClick={scrollToTop}
           type="button"
           aria-label="Scroll back to top"
-          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-[#070b19]/95 hover:bg-slate-900 border-l border-y border-amber-500/40 hover:border-amber-400 text-amber-400 py-4 px-2.5 rounded-l-2xl shadow-2xl flex flex-col items-center justify-center gap-2.5 group transition-all duration-300 backdrop-blur-md cursor-pointer select-none"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-40 bg-white/90 hover:bg-slate-50 border-l border-y border-slate-200 hover:border-slate-300 text-blue-600 py-4 px-2.5 rounded-l-2xl shadow-hover flex flex-col items-center justify-center gap-2.5 group transition-all duration-300 backdrop-blur-md cursor-pointer select-none"
         >
-          <ArrowUp className="w-3.5 h-3.5 text-amber-400 group-hover:-translate-y-1 transition-transform" />
-          <span className="[writing-mode:vertical-rl] rotate-180 font-heading font-extrabold text-[10px] tracking-[0.28em] uppercase text-amber-400 group-hover:text-amber-300">
+          <ArrowUp className="w-3.5 h-3.5 text-blue-600 group-hover:-translate-y-1 transition-transform" />
+          <span className="[writing-mode:vertical-rl] rotate-180 font-heading font-extrabold text-[10px] tracking-[0.28em] uppercase text-blue-600 group-hover:text-blue-500">
             BACK TOP
           </span>
         </motion.button>

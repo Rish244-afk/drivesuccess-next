@@ -10,26 +10,26 @@ const PHONE_URL =
 
 export function Footer() {
   return (
-    <footer className="bg-[#070b19] text-slate-400 border-t border-slate-800/80 pt-20 pb-12 font-sans">
+    <footer className="bg-white text-slate-500 border-t border-slate-200 pt-20 pb-12 font-sans">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
         
         {/* Top Editorial Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800/80 pb-12 gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200 pb-12 gap-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 border border-amber-400/40 text-amber-400 rounded-full flex items-center justify-center font-serif text-2xl italic bg-amber-400/5 shadow-inner shrink-0">
+            <div className="w-12 h-12 border border-blue-600 text-white bg-blue-600 rounded-full flex items-center justify-center font-serif text-2xl italic shadow-inner shrink-0">
               V
             </div>
             <div>
-              <span className="font-serif text-2xl text-slate-100 block font-normal leading-tight">
-                Vahathi <span className="italic text-amber-400">Motor</span> Driving School
+              <span className="font-serif text-2xl text-slate-900 block font-normal leading-tight">
+                Vahathi <span className="italic text-blue-500">Motor</span> Driving School
               </span>
-              <span className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-medium block mt-0.5">
+              <span className="text-[10px] uppercase tracking-[0.22em] text-slate-500 font-medium block mt-0.5">
                 Certified Driving Institution • Call:{' '}
                 <a
                   href={PHONE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-amber-400 hover:underline font-bold"
+                  className="text-blue-500 hover:underline font-bold"
                 >
                   078297 80778
                 </a>
@@ -42,7 +42,7 @@ export function Footer() {
               href={PHONE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="border border-amber-400/40 text-amber-400 hover:bg-amber-400/10 font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-full transition-all duration-200 flex items-center gap-2"
+              className="border border-blue-400/40 text-blue-500 hover:bg-blue-600/10 font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-full transition-all duration-200 flex items-center gap-2"
             >
               <Phone className="w-3.5 h-3.5" />
               <span>078297 80778</span>
@@ -50,7 +50,7 @@ export function Footer() {
             
             <Link
               href="/book"
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-7 py-3 rounded-full flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-amber-500/10"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-7 py-3 rounded-full flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.02] shadow-lg shadow-blue-600/10"
             >
               <span>Reserve Session</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -63,52 +63,52 @@ export function Footer() {
           
           {/* Column 1: Navigation */}
           <div className="space-y-4">
-            <h4 className="font-serif text-base text-slate-200 font-normal italic tracking-wide">
+            <h4 className="font-serif text-base text-slate-700 font-normal italic tracking-wide">
               Navigation
             </h4>
-            <ul className="space-y-3 text-slate-400 font-medium">
+            <ul className="space-y-3 text-slate-500 font-medium">
               <li>
-                <Link href="/" className="hover:text-amber-400 transition-colors">Home Overview</Link>
+                <Link href="/" className="hover:text-blue-500 transition-colors">Home Overview</Link>
               </li>
               <li>
-                <Link href="/courses" className="hover:text-amber-400 transition-colors">Curriculum & Packages</Link>
+                <Link href="/courses" className="hover:text-blue-500 transition-colors">Curriculum & Packages</Link>
               </li>
               <li>
-                <Link href="/fleet" className="hover:text-amber-400 transition-colors">Vehicle Fleet Standards</Link>
+                <Link href="/fleet" className="hover:text-blue-500 transition-colors">Vehicle Fleet Standards</Link>
               </li>
               <li>
-                <Link href="/book" className="hover:text-amber-400 transition-colors">Schedule Driving Session</Link>
+                <Link href="/book" className="hover:text-blue-500 transition-colors">Schedule Driving Session</Link>
               </li>
               <li>
-                <Link href="/auth/login" className="hover:text-amber-400 transition-colors">Student Member Portal</Link>
+                <Link href="/auth/login" className="hover:text-blue-500 transition-colors">Student Member Portal</Link>
               </li>
             </ul>
           </div>
 
           {/* Column 2: Hours & Helpline */}
           <div className="space-y-4">
-            <h4 className="font-serif text-base text-slate-200 font-normal italic tracking-wide">
+            <h4 className="font-serif text-base text-slate-700 font-normal italic tracking-wide">
               Academy Hours & Phone
             </h4>
-            <div className="space-y-3.5 leading-relaxed text-slate-400">
+            <div className="space-y-3.5 leading-relaxed text-slate-500">
               <div className="flex items-start gap-3">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <Clock className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-slate-200 font-semibold">Practical Driving Track Hours</p>
+                  <p className="text-slate-700 font-semibold">Practical Driving Track Hours</p>
                   <p>Monday – Saturday: 6:00 AM – 8:00 PM IST</p>
                   <p>Sunday: 7:00 AM – 2:00 PM IST</p>
                 </div>
               </div>
               <div className="flex items-start gap-3 pt-1">
-                <Phone className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <Phone className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-slate-200 font-semibold">Phone</p>
+                  <p className="text-slate-700 font-semibold">Phone</p>
                   <p>
                     <a
                       href={PHONE_URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-amber-400 font-bold hover:underline"
+                      className="text-blue-500 font-bold hover:underline"
                     >
                       078297 80778
                     </a>
@@ -120,26 +120,26 @@ export function Footer() {
 
           {/* Column 3: Locate Us */}
           <div className="space-y-4">
-            <h4 className="font-serif text-base text-slate-200 font-normal italic tracking-wide">
+            <h4 className="font-serif text-base text-slate-700 font-normal italic tracking-wide">
               Locate Us
             </h4>
-            <div className="space-y-3.5 text-slate-400 leading-relaxed">
+            <div className="space-y-3.5 text-slate-500 leading-relaxed">
               <a
                 href={GOOGLE_MAPS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-start gap-3 group p-2 -m-2 rounded-xl hover:bg-slate-900/60 transition-colors cursor-pointer"
+                className="flex items-start gap-3 group p-2 -m-2 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
                 <div>
-                  <p className="text-slate-200 font-semibold group-hover:text-amber-400 transition-colors">
+                  <p className="text-slate-700 font-semibold group-hover:text-blue-500 transition-colors">
                     Vahathi Motor Driving School
                   </p>
                   <p className="mt-0.5">
-                    <span className="text-amber-400 font-bold group-hover:underline">Address</span>:
+                    <span className="text-blue-500 font-bold group-hover:underline">Address</span>:
                     Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
                   </p>
-                  <p className="text-[11px] text-amber-400/90 pt-1.5 font-mono">
+                  <p className="text-[11px] text-blue-500 pt-1.5 font-mono">
                     📍 Open in Google Maps →
                   </p>
                 </div>
@@ -150,15 +150,15 @@ export function Footer() {
         </div>
 
         {/* Minimal Copyright Line */}
-        <div className="border-t border-slate-800/80 pt-8 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 font-medium gap-4">
+        <div className="border-t border-slate-200 pt-8 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 font-medium gap-4">
           <p>© {new Date().getFullYear()} Vahathi Motor Driving School (DriveSuccess Platform). All rights reserved.</p>
           <div className="flex items-center gap-5 flex-wrap">
-            <Link href="/privacy" className="hover:text-amber-400 transition">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-amber-400 transition">Terms & Conditions</Link>
-            <Link href="/cookies" className="hover:text-amber-400 transition">Cookie Policy</Link>
+            <Link href="/privacy" className="hover:text-blue-500 transition">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-blue-500 transition">Terms & Conditions</Link>
+            <Link href="/cookies" className="hover:text-blue-500 transition">Cookie Policy</Link>
             <span className="text-slate-700">|</span>
-            <span className="flex items-center gap-1.5 text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+            <span className="flex items-center gap-1.5 text-slate-500">
+              <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
               <span>Dual-Control Certified</span>
             </span>
           </div>

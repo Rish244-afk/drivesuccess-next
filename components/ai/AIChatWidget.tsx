@@ -143,10 +143,10 @@ export function AIChatWidget() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 p-4 rounded-full shadow-2xl shadow-amber-500/30 hover:scale-105 transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-amber-400/40 cursor-pointer"
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 rounded-full shadow-2xl shadow-blue-600/30 hover:scale-105 transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
         aria-label="Toggle DriveAI Assistant chat"
       >
-        <Sparkles className="w-5 h-5 text-slate-950 animate-pulse" />
+        <Sparkles className="w-5 h-5 text-white animate-pulse" />
         <span className="font-sans font-bold text-xs uppercase tracking-wider hidden sm:inline pr-1">
           DriveAI Assistant
         </span>
@@ -168,19 +168,19 @@ export function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[560px] max-h-[80vh] bg-slate-950 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden overscroll-contain"
+            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[560px] max-h-[80vh] bg-white border border-slate-200 rounded-3xl shadow-hover flex flex-col overflow-hidden overscroll-contain"
           >
             {/* Header */}
-            <div className="bg-slate-900 border-b border-slate-800/80 p-4 flex items-center justify-between shrink-0 select-none">
+            <div className="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between shrink-0 select-none">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-blue-50 border border-blue-300 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-heading font-bold text-sm text-slate-100">
+                  <h3 className="font-heading font-bold text-sm text-slate-900">
                     DriveAI Assistant
                   </h3>
-                  <p className="text-[11px] text-slate-400 font-light">
+                  <p className="text-[11px] text-slate-500 font-light">
                     Here to help with bookings, pricing, and questions
                   </p>
                 </div>
@@ -189,7 +189,7 @@ export function AIChatWidget() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-slate-100 p-2 rounded-full hover:bg-slate-800/60 transition cursor-pointer"
+                className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition cursor-pointer"
                 aria-label="Close chat"
               >
                 <X className="w-4 h-4" />
@@ -217,8 +217,8 @@ export function AIChatWidget() {
                   <div
                     className={`max-w-[85%] p-3.5 rounded-2xl text-xs leading-relaxed ${
                       m.role === 'user'
-                        ? 'bg-amber-500 text-slate-950 font-semibold rounded-br-none shadow-md'
-                        : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none shadow-sm'
+                        ? 'bg-blue-600 text-white font-semibold rounded-br-none shadow-md'
+                        : 'bg-slate-50 border border-slate-200 text-slate-700 rounded-bl-none shadow-sm'
                     }`}
                   >
                     <p className="whitespace-pre-line">{m.content}</p>
@@ -235,8 +235,8 @@ export function AIChatWidget() {
                           onClick={() => handleSendMessage(opt.value)}
                           className={`px-3.5 py-2 rounded-full text-xs font-semibold tracking-wide transition-all shadow-md flex items-center gap-1.5 border ${
                             idx < messages.length - 1
-                              ? 'bg-slate-900/40 border-slate-800/60 text-slate-500 cursor-not-allowed opacity-50'
-                              : 'bg-slate-900 border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-slate-950 hover:border-amber-500 active:scale-95 cursor-pointer'
+                              ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-50'
+                              : 'bg-white border-blue-300 text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 active:scale-95 cursor-pointer'
                           }`}
                         >
                           <span>{opt.label}</span>
@@ -251,19 +251,19 @@ export function AIChatWidget() {
                       {m.packageCards.map((pkg, pIdx) => (
                         <div
                           key={pIdx}
-                          className="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2.5 shadow-xl hover:border-amber-500/40 transition"
+                          className="w-full bg-white border border-slate-200 rounded-2xl p-4 space-y-2.5 shadow-card hover:border-blue-300 transition"
                         >
                           <div className="flex justify-between items-start gap-2">
                             <div>
-                              <h4 className="font-heading font-bold text-xs text-slate-100">{pkg.name}</h4>
-                              <p className="text-[11px] text-slate-400 font-light mt-0.5">
+                              <h4 className="font-heading font-bold text-xs text-slate-900">{pkg.name}</h4>
+                              <p className="text-[11px] text-slate-500 font-light mt-0.5">
                                 {pkg.description || `${pkg.sessionsCount} Practical Driving Sessions`}
                               </p>
                             </div>
                             <div className="text-right shrink-0">
-                              <span className="text-sm font-extrabold text-amber-400 font-mono">₹{pkg.price.toLocaleString()}</span>
+                              <span className="text-sm font-extrabold text-blue-600 font-mono">₹{pkg.price.toLocaleString()}</span>
                               {pkg.badge && (
-                                <span className="block text-[9px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30 text-center mt-1 font-semibold">
+                                <span className="block text-[9px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-300 text-center mt-1 font-semibold">
                                   {pkg.badge}
                                 </span>
                               )}
@@ -276,8 +276,8 @@ export function AIChatWidget() {
                             onClick={() => handleSendMessage(`Select ${pkg.name}`)}
                             className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow ${
                               idx < messages.length - 1
-                                ? 'bg-slate-950 text-slate-600 border border-slate-800 cursor-not-allowed opacity-60'
-                                : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20 active:scale-98 cursor-pointer'
+                                ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/15 active:scale-98 cursor-pointer'
                             }`}
                           >
                             <span>Select This Package</span>
@@ -290,14 +290,14 @@ export function AIChatWidget() {
 
                   {/* Interactive Slots Card */}
                   {m.cardData && m.cardData.type === 'SLOTS_AVAILABLE' && (
-                    <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
+                    <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-card">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="font-bold text-amber-400">{m.cardData.packageName}</span>
-                        <span className="text-slate-400">{m.cardData.date}</span>
+                        <span className="font-bold text-blue-600">{m.cardData.packageName}</span>
+                        <span className="text-slate-500">{m.cardData.date}</span>
                       </div>
 
-                      <p className="text-[11px] text-slate-400">
-                        Instructor: <strong className="text-slate-200">{m.cardData.instructorName}</strong> • Vehicle: <strong className="text-slate-200">{m.cardData.vehicleName}</strong>
+                      <p className="text-[11px] text-slate-500">
+                        Instructor: <strong className="text-slate-700">{m.cardData.instructorName}</strong> • Vehicle: <strong className="text-slate-700">{m.cardData.vehicleName}</strong>
                       </p>
 
                       <div className="grid grid-cols-2 gap-2 pt-1">
@@ -305,7 +305,7 @@ export function AIChatWidget() {
                           <button
                             key={sIdx}
                             onClick={() => handleSendMessage(`Book ${m.cardData.packageName} for ${m.cardData.date} at ${slot}`)}
-                            className="bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-200 border border-slate-800 text-xs py-2 px-3 rounded-xl font-semibold transition flex items-center justify-between cursor-pointer"
+                            className="bg-white hover:bg-blue-600 hover:text-white text-slate-700 border border-slate-200 text-xs py-2 px-3 rounded-xl font-semibold transition flex items-center justify-between cursor-pointer"
                           >
                             <span>{slot}</span>
                             <ArrowRight className="w-3 h-3" />
@@ -317,11 +317,11 @@ export function AIChatWidget() {
 
                   {/* Interactive Booking Confirmation Card */}
                   {m.cardData && m.cardData.type === 'AUTH_REQUIRED' && (
-                    <div className="w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
+                    <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-card">
                       <button
                         type="button"
                         onClick={() => setIsAuthModalOpen(true)}
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition cursor-pointer"
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition cursor-pointer"
                       >
                         <span>Sign In to Continue →</span>
                       </button>
@@ -330,23 +330,23 @@ export function AIChatWidget() {
 
                   {/* Interactive Booking Confirmation Card */}
                   {m.cardData && m.cardData.type === 'BOOKING_CREATED' && (
-                    <div className="w-full bg-slate-900 border border-amber-500/40 rounded-2xl p-4 space-y-3 shadow-xl">
-                      <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
+                    <div className="w-full bg-white border border-blue-300 rounded-2xl p-4 space-y-3 shadow-card">
+                      <div className="flex items-center gap-2 text-blue-600 text-xs font-bold">
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                         <span>Session Reservation Created</span>
                       </div>
 
-                      <div className="space-y-1 text-xs text-slate-300 bg-slate-950 p-3 rounded-xl border border-slate-800 font-sans">
-                        <p><strong className="text-slate-400">Booking ID:</strong> <span className="font-mono text-amber-400">{m.cardData.bookingId.slice(-8)}</span></p>
-                        <p><strong className="text-slate-400">Program:</strong> {m.cardData.packageName}</p>
-                        <p><strong className="text-slate-400">Fee:</strong> <span className="text-amber-400 font-bold">₹{m.cardData.amount}</span></p>
-                        <p><strong className="text-slate-400">Schedule:</strong> {m.cardData.date} at {m.cardData.timeSlot}</p>
+                      <div className="space-y-1 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 font-sans">
+                        <p><strong className="text-slate-500">Booking ID:</strong> <span className="font-mono text-blue-600">{m.cardData.bookingId.slice(-8)}</span></p>
+                        <p><strong className="text-slate-500">Program:</strong> {m.cardData.packageName}</p>
+                        <p><strong className="text-slate-500">Fee:</strong> <span className="text-blue-600 font-bold">₹{m.cardData.amount}</span></p>
+                        <p><strong className="text-slate-500">Schedule:</strong> {m.cardData.date} at {m.cardData.timeSlot}</p>
                       </div>
 
                       <button
                         type="button"
                         onClick={(e) => handleProceedToCheckout(e, m.cardData.paymentUrl, m.cardData.bookingId)}
-                        className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition cursor-pointer"
+                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition cursor-pointer"
                       >
                         <CreditCard className="w-4 h-4" />
                         <span>Proceed to Secure Checkout →</span>
@@ -358,13 +358,13 @@ export function AIChatWidget() {
 
               {/* Typing Indicator */}
               {loading && (
-                <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 p-3.5 rounded-2xl rounded-bl-none w-fit text-slate-400 text-xs">
+                <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3.5 rounded-2xl rounded-bl-none w-fit text-slate-500 text-xs">
                   <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-[11px] font-medium text-slate-300 font-sans">Fetching options...</span>
+                  <span className="text-[11px] font-medium text-slate-500 font-sans">Fetching options...</span>
                 </div>
               )}
 
@@ -377,19 +377,19 @@ export function AIChatWidget() {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="p-3 bg-slate-900 border-t border-slate-800/80 flex items-center gap-2 shrink-0"
+              className="p-3 bg-slate-50 border-t border-slate-200 flex items-center gap-2 shrink-0"
             >
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type a message or tap an option above..."
-                className="flex-1 bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-2.5 rounded-xl text-xs outline-none transition font-sans"
+                className="flex-1 bg-white border border-slate-200 focus:border-blue-500 text-slate-900 px-4 py-2.5 rounded-xl text-xs outline-none transition font-sans"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="bg-amber-500 hover:bg-amber-400 text-slate-950 p-2.5 rounded-xl disabled:opacity-50 transition focus:outline-none cursor-pointer"
+                className="bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-xl disabled:opacity-50 transition focus:outline-none cursor-pointer"
               >
                 <Send className="w-4 h-4" />
               </button>

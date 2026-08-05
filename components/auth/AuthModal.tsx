@@ -144,8 +144,8 @@ export function AuthModal({
       isOpen={isOpen}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2 text-amber-400">
-          <ShieldCheck className="w-5 h-5 text-amber-400" />
+        <div className="flex items-center gap-2 text-blue-600">
+          <ShieldCheck className="w-5 h-5 text-blue-600" />
           <span className="font-heading font-extrabold uppercase tracking-wider text-xs">
             Student Portal Sign In
           </span>
@@ -155,10 +155,10 @@ export function AuthModal({
     >
       <div className="space-y-5 font-sans">
         <div className="text-center space-y-1">
-          <h3 className="font-heading font-extrabold text-xl text-slate-100">
+          <h3 className="font-heading font-extrabold text-xl text-slate-900">
             Access Your Student Portal
           </h3>
-          <p className="text-xs text-slate-400 font-light">
+          <p className="text-xs text-slate-500 font-light">
             Log in securely using Mobile Phone OTP or Google Account.
           </p>
         </div>
@@ -184,17 +184,17 @@ export function AuthModal({
         {step === 'PHONE' ? (
           <form onSubmit={handleSendOtp} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
                 Mobile Phone Number *
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="tel"
                   placeholder="Enter 10-digit mobile phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-10 pr-4 py-3 rounded-xl outline-none text-xs font-medium transition"
+                  className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 pl-10 pr-4 py-3 rounded-xl outline-none text-xs font-medium transition"
                   required
                 />
               </div>
@@ -203,7 +203,7 @@ export function AuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50 cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -219,26 +219,26 @@ export function AuthModal({
           <form onSubmit={handleVerifyOtp} className="space-y-4">
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                   Enter 6-Digit Verification Code *
                 </label>
                 <button
                   type="button"
                   onClick={() => setStep('PHONE')}
-                  className="text-[11px] text-amber-400 hover:underline"
+                  className="text-[11px] text-blue-600 hover:underline"
                 >
                   Change Phone
                 </button>
               </div>
               <div className="relative">
-                <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
                   maxLength={6}
                   placeholder="••••••"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/[^\d]/g, ''))}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 tracking-widest text-center text-base font-bold pl-10 pr-4 py-3 rounded-xl outline-none transition"
+                  className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 tracking-widest text-center text-base font-bold pl-10 pr-4 py-3 rounded-xl outline-none transition"
                   required
                 />
               </div>
@@ -247,7 +247,7 @@ export function AuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50 cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -263,11 +263,11 @@ export function AuthModal({
 
         {/* Divider */}
         <div className="flex items-center gap-4 my-2">
-          <div className="h-[1px] bg-slate-800 flex-1" />
-          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+          <div className="h-[1px] bg-slate-200 flex-1" />
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
             OR
           </span>
-          <div className="h-[1px] bg-slate-800 flex-1" />
+          <div className="h-[1px] bg-slate-200 flex-1" />
         </div>
 
         {/* Google OAuth Button */}

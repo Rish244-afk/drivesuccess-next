@@ -241,29 +241,29 @@ function LoginFormContent() {
   };
 
   return (
-    <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl relative">
+    <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 shadow-hover relative">
       {/* Invisible reCAPTCHA container */}
       <div id="recaptcha-container"></div>
 
       {/* Header */}
       <div className="text-center mb-8">
-        <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/10">
+        <div className="w-14 h-14 bg-blue-50 border border-blue-300 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/10">
           <ShieldCheck className="w-7 h-7" />
         </div>
-        <h1 className="text-2xl font-bold text-slate-100 font-heading">DriveSuccess Academy</h1>
+        <h1 className="text-2xl font-bold text-slate-900 font-heading">DriveSuccess Academy</h1>
         <p className="text-xs text-slate-400 mt-1">Vahathi Motor Driving School Student Portal</p>
       </div>
 
       {/* Alert Notices */}
       {error && (
-        <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-2xl text-xs flex items-start gap-3">
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-300 text-rose-400 rounded-2xl text-xs flex items-start gap-3">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
 
       {message && (
-        <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl text-xs flex items-start gap-3">
+        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-300 text-emerald-400 rounded-2xl text-xs flex items-start gap-3">
           <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
           <span>{message}</span>
         </div>
@@ -273,17 +273,17 @@ function LoginFormContent() {
       {step === 'PHONE' ? (
         <form onSubmit={handleSendOtp} className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Mobile Phone Number
             </label>
             <div className="relative">
-              <Phone className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
+              <Phone className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
               <input
                 type="tel"
                 placeholder="Enter 10-digit mobile number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-11 pr-4 py-3.5 rounded-xl outline-none text-sm font-medium transition"
+                className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 pl-11 pr-4 py-3.5 rounded-xl outline-none text-sm font-medium transition"
                 required
               />
             </div>
@@ -292,7 +292,7 @@ function LoginFormContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition disabled:opacity-50"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -309,27 +309,27 @@ function LoginFormContent() {
         <form onSubmit={handleVerifyOtp} className="space-y-5">
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
                 Enter 6-Digit OTP
               </label>
               <button
                 type="button"
                 onClick={() => setStep('PHONE')}
-                className="text-[11px] text-amber-400 hover:underline"
+                className="text-[11px] text-blue-600 hover:underline"
               >
                 Change Number
               </button>
             </div>
 
             <div className="relative">
-              <KeyRound className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-500" />
+              <KeyRound className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
               <input
                 type="text"
                 maxLength={6}
                 placeholder="••••••"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/[^\d]/g, ''))}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 text-center tracking-[0.5em] font-mono text-xl font-extrabold py-3.5 pl-10 pr-4 rounded-xl outline-none transition placeholder:tracking-widest placeholder:text-slate-600"
+                className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 text-center tracking-[0.5em] font-mono text-xl font-extrabold py-3.5 pl-10 pr-4 rounded-xl outline-none transition placeholder:tracking-widest placeholder:text-slate-600"
                 required
               />
             </div>
@@ -337,12 +337,12 @@ function LoginFormContent() {
             <div className="flex justify-between items-center mt-3 text-xs text-slate-400">
               <span>Expires in 5 minutes</span>
               {cooldown > 0 ? (
-                <span className="text-slate-500">Resend in {cooldown}s</span>
+                <span className="text-slate-400">Resend in {cooldown}s</span>
               ) : (
                 <button
                   type="button"
                   onClick={handleSendOtp}
-                  className="text-amber-400 font-semibold hover:underline"
+                  className="text-blue-600 font-semibold hover:underline"
                 >
                   Resend SMS
                 </button>
@@ -353,7 +353,7 @@ function LoginFormContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition disabled:opacity-50"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
@@ -369,11 +369,11 @@ function LoginFormContent() {
 
       {/* Divider */}
       <div className="my-6 flex items-center gap-4">
-        <div className="h-[1px] bg-slate-800 flex-1" />
-        <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
+        <div className="h-[1px] bg-slate-100 flex-1" />
+        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
           OR
         </span>
-        <div className="h-[1px] bg-slate-800 flex-1" />
+        <div className="h-[1px] bg-slate-100 flex-1" />
       </div>
 
       {/* Google Identity Sign-In & One Tap */}
@@ -385,7 +385,7 @@ function LoginFormContent() {
 export default function LoginPage() {
   return (
     <GoogleAuthProvider>
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center p-4">
         <Suspense fallback={<div className="text-slate-400 text-sm">Loading authentication...</div>}>
           <LoginFormContent />
         </Suspense>
