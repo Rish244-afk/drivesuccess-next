@@ -60,10 +60,10 @@ export default function HomePage() {
             alt="Scenic Mountain Road"
             fill
             priority
-            className="object-cover opacity-[0.14] scale-[1.03] transition-transform duration-700 select-none pointer-events-none"
+            className="object-cover opacity-[0.55] scale-[1.03] transition-transform duration-700 select-none pointer-events-none"
           />
           {/* Light Glassmorphism Radial Gradient Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/70 to-white/90" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/40 to-white/75" />
         </div>
 
         {/* Spatial Depth Layers */}
