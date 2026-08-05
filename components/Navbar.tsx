@@ -75,9 +75,6 @@ export function Navbar() {
             <span className="font-serif text-lg tracking-tight text-slate-900 block font-normal leading-tight">
               Vahathi <span className="italic text-blue-600">Motor</span> Driving School
             </span>
-            <span className="text-[9px] font-sans font-medium tracking-[0.22em] text-slate-500 uppercase block">
-              DriveSuccess Platform
-            </span>
           </div>
         </Link>
 
@@ -108,14 +105,6 @@ export function Navbar() {
 
         {/* Auth & Action Buttons */}
         <div className="hidden md:flex items-center gap-4">
-          <a
-            href="tel:7829780778"
-            className="text-xs font-semibold tracking-wider text-blue-600 hover:text-blue-500 border border-blue-300 px-4 py-2 rounded-full bg-blue-50 transition-all duration-200 flex items-center gap-1.5 hover:border-blue-400"
-          >
-            <Phone className="w-3.5 h-3.5 text-blue-600" />
-            <span>7829780778</span>
-          </a>
-
           <NotificationBell />
 
           <button
@@ -180,14 +169,6 @@ export function Navbar() {
             </div>
 
             <div className="pt-6 border-t border-slate-200 flex flex-col gap-3">
-              <a
-                href="tel:7829780778"
-                className="w-full text-center py-3.5 border border-blue-300 text-blue-600 font-semibold text-xs tracking-wider uppercase rounded-full bg-blue-50 flex items-center justify-center gap-2"
-              >
-                <Phone className="w-4 h-4" />
-                <span>Call Helpline: 7829780778</span>
-              </a>
-
               <button
                 onClick={(e) => {
                   setMobileMenuOpen(false);
