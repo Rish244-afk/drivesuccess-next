@@ -164,12 +164,7 @@ function CoursesContent() {
 
                   return (
                     <div key={pkg.id} className="relative group/card h-full">
-                      {/* Top Offset Badge for popular item */}
-                      {isPopular && (
-                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[9px] font-extrabold px-4.5 py-1.5 rounded-full uppercase tracking-wider shadow-md whitespace-nowrap z-30">
-                          Most Popular
-                        </div>
-                      )}
+
 
                       <InspiraCard
                         isHighlight={false}
