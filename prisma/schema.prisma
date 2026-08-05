@@ -91,9 +91,44 @@ enum NotificationType {
   SYSTEM_ALERT
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Student — canonical identity record.
+//
+// Identity resolution order (highest trust first):
+//   1. id         — internal cuid, always authoritative once created
+//   2. googleId   — Google OAuth subject ID (never changes for a Google account)
+//   3. email      — verified email from Google OAuth or provided at registration
+//   4. phone      — verified via OTP; may be the ONLY identifier for phone-only users
+//
+// Design decisions:
+//   - email is now NULLABLE. Phone-only users do not have a real email yet.
+//     Previously a synthetic "student_XXXX@drivesuccess.edu" address was created,
+//     which caused duplicate records when the same user later signed in via Google.
+//   - googleId is NULLABLE. Phone-only users have no Google identity yet.
+//   - phone is NULLABLE. Google-only users may not have added a phone yet.
+//   - All three identity columns have @unique constraints enforced at the DB level.
+//
+// Account linking rules (enforced in application layer):
+//   - When phone OTP succeeds: look up by phone. If found, return existing account.
+//     If not found, look up current JWT session — if Google session exists, LINK
+//     phone to that account. Otherwise create a new phone-only account.
+//   - When Google OAuth succeeds: look up by googleId first, then by email.
+//     If found, return existing account (and update googleId/email if needed).
+//     If not found, look up current JWT session — if phone session exists, LINK
+//     google identity to that account. Otherwise create a new Google account.
+//
+// This ensures all four login scenarios produce exactly ONE Student record:
+//   A) Google → then Phone OTP (signed out between) → account linked by session OR
+//      the admin merge flow detects googleId/email collision and merges.
+//   B) Phone → then Google (same email)            → linked by Google email lookup
+//   C) Google → then Phone (while Google active)   → linked by session
+//   D) Completely different email/phone             → correctly two accounts
+// ─────────────────────────────────────────────────────────────────────────────
 model Student {
   id            String         @id @default(cuid())
-  email         String         @unique
+  // email is nullable: phone-only users have no verified email.
+  // When a Google login later provides a real email, it is written here.
+  email         String?        @unique
   name          String
   phone         String?        @unique
   googleId      String?        @unique
