@@ -277,6 +277,11 @@ export function BookingWizard() {
   // Created Booking Record & Razorpay State
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'VERIFYING' | 'PAID' | 'FAILED'>('IDLE');
+  // Loading overlay phase — drives the message shown in the full-screen overlay
+  // while the user waits for booking creation / Razorpay init / verification.
+  const [paymentPhase, setPaymentPhase] = useState<
+    'idle' | 'creating-booking' | 'initializing-razorpay' | 'verifying-payment'
+  >('idle');
 
   // ─────────────────────────────────────────────────────────────────────────
   // sessionStorage: resume a PARTIALLY completed booking after a page refresh.
@@ -441,6 +446,7 @@ export function BookingWizard() {
 
     setLoading(true);
     setError(null);
+    setPaymentPhase('creating-booking');
 
     const res = await createBookingTransactionAction({
       packageId: selectedPackage.id,
@@ -456,13 +462,15 @@ export function BookingWizard() {
 
     if (!res.success || !res.booking) {
       setLoading(false);
+      setPaymentPhase('idle');
       setError(res.error || 'Failed to create booking.');
       return;
     }
 
     setCreatedBookingId(res.booking.id);
     setPaymentStatus('PENDING');
-    setStep(6); // Move to Razorpay Checkout step
+    setPaymentPhase('initializing-razorpay');
+    setStep(6);
 
     // Launch Razorpay Order & Checkout Modal immediately
     await launchRazorpayCheckout(res.booking.id);
@@ -477,35 +485,106 @@ export function BookingWizard() {
     await launchHook(bookingId, {
       onLoading: (isLoading) => {
         setLoading(isLoading);
-        // When loading starts AFTER the checkout modal closes (i.e., backend
-        // verification is running), show the VERIFYING screen so the user
-        // knows we are checking with the server — not a premature success.
-        if (isLoading && paymentStatus === 'PENDING') {
-          setPaymentStatus('VERIFYING');
+        if (!isLoading) {
+          // Order created — overlay off, Razorpay modal is about to open.
+          setPaymentPhase('idle');
         }
       },
+      onVerifying: () => {
+        // Razorpay handler fired — user completed payment in the modal.
+        // Show VERIFYING immediately before the backend round-trip.
+        setPaymentStatus('VERIFYING');
+        setPaymentPhase('verifying-payment');
+      },
       onError: (err) => {
-        setPaymentStatus('FAILED');
-        setError(err);
+        if (err) {
+          setPaymentStatus('FAILED');
+          setPaymentPhase('idle');
+          setLoading(false);
+          setError(err);
+        }
       },
       onSuccess: (msg) => {
-        // Backend has confirmed. NOW set PAID — triggers the success screen.
+        // Backend has verified. Only NOW set PAID — shows "Payment Successful".
         setPaymentStatus('PAID');
+        setPaymentPhase('idle');
+        setLoading(false);
         setSuccessMessage(msg);
       },
       onDismiss: () => {
         setPaymentStatus('FAILED');
-        setError('Payment process was cancelled or closed. You can retry payment below.');
+        setPaymentPhase('idle');
+        setLoading(false);
+        setError('Payment cancelled. Your booking slot is held. You can retry payment below.');
       },
       onPaymentFailed: (err) => {
         setPaymentStatus('FAILED');
-        setError(`Payment failed: ${err}`);
+        setPaymentPhase('idle');
+        setLoading(false);
+        setError(`Payment declined: ${err}`);
       },
     });
   };
 
   return (
-    <div ref={containerRef} className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-hover space-y-8">
+    <div ref={containerRef} className="max-w-4xl mx-auto relative">
+
+      {/* ─── FULL-SCREEN LOADING OVERLAY ─────────────────────────────────────
+          Shown during: booking creation, Razorpay init, payment verification.
+          Blocks all background UI so no intermediate state can flash through.
+          ─────────────────────────────────────────────────────────────────── */}
+      {paymentPhase !== 'idle' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-6 text-center max-w-sm px-6">
+            {/* Animated ring spinner */}
+            <div className="relative w-20 h-20">
+              <div className="absolute inset-0 rounded-full border-4 border-blue-100" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                {paymentPhase === 'verifying-payment' ? (
+                  <ShieldCheck className="w-8 h-8 text-blue-600" />
+                ) : (
+                  <CreditCard className="w-8 h-8 text-blue-600" />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="font-serif text-xl font-semibold text-slate-900">
+                {paymentPhase === 'creating-booking' && 'Creating your booking…'}
+                {paymentPhase === 'initializing-razorpay' && 'Connecting to Razorpay…'}
+                {paymentPhase === 'verifying-payment' && 'Verifying Payment…'}
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {paymentPhase === 'creating-booking' &&
+                  'Reserving your slot and preparing your booking record. This takes just a moment.'}
+                {paymentPhase === 'initializing-razorpay' &&
+                  'Preparing your secure payment session. The Razorpay checkout will open shortly.'}
+                {paymentPhase === 'verifying-payment' &&
+                  'Confirming your payment with our server using HMAC SHA256 cryptographic verification.'}
+              </p>
+              {paymentPhase === 'verifying-payment' && (
+                <p className="text-[11px] font-semibold text-slate-600 mt-2">
+                  Please do not close or refresh this page.
+                </p>
+              )}
+            </div>
+
+            {/* Pulsing progress dots */}
+            <div className="flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-hover space-y-8">
       
       {/* Slim Elegant Progress Line */}
       <div className="space-y-4">
@@ -1143,67 +1222,92 @@ export function BookingWizard() {
       {/* STEP 6: RAZORPAY CHECKOUT & RETRY */}
       {step === 6 && (
         <div className="space-y-6 text-center">
-          <div className="p-8 bg-white border border-slate-200 rounded-3xl space-y-6">
+          <div className="p-10 bg-white border border-slate-100 rounded-3xl space-y-6">
 
-            {/* ── VERIFYING: Backend signature check in progress ───────── */}
+            {/* ── VERIFYING: Backend signature check in progress ─────── */}
             {paymentStatus === 'VERIFYING' && (
-              <div className="space-y-4">
-                <div className="w-16 h-16 bg-blue-50 border border-blue-200 rounded-full flex items-center justify-center mx-auto">
-                  <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+              <div className="space-y-5">
+                <div className="w-20 h-20 bg-blue-50 border-2 border-blue-200 rounded-full flex items-center justify-center mx-auto">
+                  <ShieldCheck className="w-10 h-10 text-blue-600 animate-pulse" />
                 </div>
-                <h3 className="font-heading font-extrabold text-2xl text-slate-900">Verifying Payment…</h3>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  Confirming your payment with our server via HMAC SHA256 signature verification.
-                  <strong className="block mt-1 text-slate-600">Please do not close this page.</strong>
-                </p>
+                <div className="space-y-2">
+                  <h3 className="font-serif text-2xl text-slate-900">Verifying Payment…</h3>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                    Your payment is being cryptographically verified via HMAC SHA256 signature.
+                  </p>
+                  <p className="text-[11px] font-semibold text-slate-600">
+                    Please do not close or refresh this page.
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* ── PAID: Backend confirmed ─────────────────────────────── */}
+            {/* ── PAID: Backend confirmed ──────────────────────────────── */}
             {paymentStatus === 'PAID' && (
-              <div className="space-y-4">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-400 border border-emerald-300 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
+              <div className="space-y-5">
+                <div className="w-20 h-20 bg-emerald-50 border-2 border-emerald-300 rounded-full flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-500" />
                 </div>
-                <h3 className="font-heading font-extrabold text-2xl text-slate-900">Payment Successful!</h3>
-                <p className="text-xs text-slate-400">
-                  Your payment was verified via HMAC SHA256 signature. Booking status updated to{' '}
-                  <strong className="text-emerald-400">CONFIRMED</strong>.
-                </p>
-                <p className="text-[10px] text-slate-400">Redirecting to your Booking Confirmed page…</p>
+                <div className="space-y-2">
+                  <h3 className="font-serif text-2xl text-slate-900">Payment Successful!</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    ✓ Your payment has been verified securely.
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Booking status updated to{' '}
+                    <strong className="text-emerald-600">CONFIRMED</strong>.
+                  </p>
+                  <p className="text-[11px] text-slate-400 animate-pulse">Redirecting to your Booking Confirmed page…</p>
+                </div>
               </div>
             )}
 
-            {/* ── FAILED: Payment failed or dismissed ─────────────────── */}
+            {/* ── FAILED / CANCELLED: Show retry options ───────────────── */}
             {paymentStatus === 'FAILED' && (
-              <div className="space-y-4">
-                <div className="w-16 h-16 bg-rose-50 text-rose-400 border border-rose-300 rounded-full flex items-center justify-center mx-auto">
-                  <AlertCircle className="w-8 h-8" />
+              <div className="space-y-5">
+                <div className="w-20 h-20 bg-rose-50 border-2 border-rose-200 rounded-full flex items-center justify-center mx-auto">
+                  <AlertCircle className="w-10 h-10 text-rose-500" />
                 </div>
-                <h3 className="font-heading font-extrabold text-2xl text-slate-900">Payment Failed or Cancelled</h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  Your booking record (<code className="text-blue-600 font-mono">{createdBookingId}</code>) remains saved as{' '}
-                  <strong className="text-blue-600">PENDING</strong>. You can retry payment below without losing your slot.
-                </p>
-                <div className="pt-2 flex justify-center gap-4">
+                <div className="space-y-2">
+                  <h3 className="font-serif text-2xl text-slate-900">Payment Failed or Cancelled</h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                    Your booking slot is still reserved (status: <strong className="text-blue-600">PENDING</strong>).
+                    No duplicate booking will be created if you retry.
+                  </p>
+                </div>
+                <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
                   <button
                     disabled={loading}
-                    onClick={() => createdBookingId && launchRazorpayCheckout(createdBookingId)}
-                    className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-600/15"
+                    onClick={() => {
+                      setError(null);
+                      createdBookingId && launchRazorpayCheckout(createdBookingId);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-600/15 transition"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    <span>Retry Payment Now</span>
+                    <span>Retry Payment</span>
+                  </button>
+                  <button
+                    onClick={() => { setStep(5); setPaymentStatus('IDLE'); setPaymentPhase('idle'); }}
+                    className="border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider transition"
+                  >
+                    Return to Booking
                   </button>
                 </div>
               </div>
             )}
 
-            {/* ── DEFAULT: Initializing / waiting for Razorpay modal ─── */}
-            {(paymentStatus === 'IDLE' || paymentStatus === 'PENDING') && !loading && (
+            {/* ── PENDING / IDLE: Razorpay modal is open, waiting ──────── */}
+            {(paymentStatus === 'IDLE' || paymentStatus === 'PENDING') && (
               <div className="space-y-4">
-                <RefreshCw className="w-10 h-10 animate-spin text-blue-600 mx-auto" />
-                <h3 className="font-heading font-bold text-xl text-slate-900">Initializing Razorpay Checkout…</h3>
-                <p className="text-xs text-slate-400">Please complete the payment in the popup window.</p>
+                <div className="w-20 h-20 bg-slate-50 border-2 border-slate-200 rounded-full flex items-center justify-center mx-auto">
+                  <CreditCard className="w-10 h-10 text-slate-400 animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-serif text-2xl text-slate-900">Complete Payment</h3>
+                  <p className="text-xs text-slate-500">Please complete your payment in the Razorpay popup window.</p>
+                  <p className="text-[11px] text-slate-400">Do not close or refresh this page while the payment window is open.</p>
+                </div>
               </div>
             )}
 
@@ -1211,6 +1315,7 @@ export function BookingWizard() {
         </div>
       )}
 
+    </div>
     </div>
   );
 }
