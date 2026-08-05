@@ -24,11 +24,16 @@ import {
   RefreshCw,
   Fingerprint,
   UserCheck,
+  AlertTriangle,
+  CreditCard,
+  Package,
 } from 'lucide-react';
 import Link from 'next/link';
 
+type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
+
 export default function EngineeringPage() {
-  const [activeTab, setActiveTab] = useState<'security' | 'auth' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend'>('security');
+  const [activeTab, setActiveTab] = useState<TabId>('security');
   const [searchQuery, setSearchQuery] = useState('');
 
   const securityAuditItems = [
@@ -104,79 +109,88 @@ export default function EngineeringPage() {
     },
   ];
 
+  const owaspItems = [
+    { rank: 'A01', threat: 'Broken Access Control (IDOR/BOLA)', context: 'Student fetching another student\'s bookings', fix: 'Per-request userId ownership check on every API route', color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' },
+    { rank: 'A02', threat: 'Cryptographic Failures', context: 'Weak JWT secrets, plain-text passwords', fix: 'HMAC-SHA256 JWT, bcrypt password hashing (cost=12)', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
+    { rank: 'A03', threat: 'Injection (SQL, XSS)', context: 'Unsanitized query params in DB reads', fix: 'Prisma parameterized queries; server-side Zod validation', color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/30' },
+    { rank: 'A04', threat: 'Insecure Design', context: 'Missing rate limits on OTP dispatch', fix: 'Sliding window rate limiter on all cost-bearing endpoints', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30' },
+    { rank: 'A05', threat: 'Security Misconfiguration', context: 'Default security headers absent', fix: 'CSP, HSTS, X-Frame-Options enforced in next.config.mjs', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+    { rank: 'A06', threat: 'Vulnerable Components', context: 'Outdated npm packages', fix: 'npm audit, Dependabot auto-PR alerts, package-lock.json', color: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/30' },
+    { rank: 'A07', threat: 'Auth & Session Failures', context: 'Token reuse, missing HttpOnly cookie', fix: 'Refresh token rotation with family revocation', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30' },
+    { rank: 'A08', threat: 'Software & Data Integrity (SSRF)', context: 'Unvalidated external URL fetches', fix: 'URL allowlist validation before any server-side fetch', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/30' },
+    { rank: 'A09', threat: 'Security Logging Failures', context: 'Silent auth errors undetected', fix: 'Structured error logging with severity tagging per endpoint', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30' },
+    { rank: 'A10', threat: 'SSRF via Webhook Callbacks', context: 'Malicious webhook callback URLs', fix: 'HMAC signature verification before any webhook processing', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/30' },
+  ];
+
   const filteredSecurity = securityAuditItems.filter(
     (item) =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.found.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const tabs = [
+    { id: 'security' as TabId,      label: '10-Point Audit',       icon: ShieldCheck,    count: '10 PASS' },
+    { id: 'auth' as TabId,          label: 'Auth & Identity',      icon: Fingerprint,    count: undefined },
+    { id: 'appsecurity' as TabId,   label: 'App Security',         icon: AlertTriangle,  count: undefined },
+    { id: 'payments' as TabId,      label: 'Payments',             icon: CreditCard,     count: undefined },
+    { id: 'foundations' as TabId,   label: 'Foundations',          icon: Cpu,            count: undefined },
+    { id: 'architecture' as TabId,  label: 'Architecture',         icon: Layers,         count: undefined },
+    { id: 'backend' as TabId,       label: 'Backend',              icon: Server,         count: undefined },
+    { id: 'databases' as TabId,     label: 'Databases',            icon: HardDrive,      count: undefined },
+    { id: 'frontend' as TabId,      label: 'Frontend',             icon: Layout,         count: undefined },
+  ];
+
   return (
     <div className="min-h-screen bg-[#060913] text-slate-100 font-sans selection:bg-amber-400/20 selection:text-amber-400 py-12 px-4 sm:px-6 lg:px-8 space-y-12">
-      
-      {/* 1. HERO HEADER */}
+
+      {/* HERO */}
       <div className="max-w-7xl mx-auto text-center space-y-6 pt-6">
-        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-amber-500/30 text-amber-400 text-xs font-semibold uppercase tracking-widest bg-amber-500/10 backdrop-blur-md">
-          <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-          <span>Enterprise Technical Documentation & Security Audit</span>
+        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-amber-500/30 text-amber-400 text-xs font-semibold uppercase tracking-widest bg-amber-500/10">
+          <Sparkles className="w-4 h-4 animate-pulse" />
+          <span>Enterprise Technical Documentation — DriveSuccess Academy</span>
         </div>
 
         <h1 className="font-heading font-extrabold text-4xl sm:text-6xl text-slate-100 tracking-tight">
-          DriveSuccess <span className="text-amber-400">Engineering & Architecture</span>
+          Engineering, Security <span className="text-amber-400">&amp; Architecture</span>
         </h1>
 
         <p className="text-sm sm:text-base text-slate-400 max-w-3xl mx-auto leading-relaxed font-light">
-          A complete engineering blueprint covering Software Engineering Foundations, Distributed Architecture, Backend Systems, Database Engineering, Identity & Auth, Next.js & React Mechanics, and Pre-Launch Security Audit Results.
+          A complete engineering blueprint spanning Software Foundations, Distributed Architecture, Backend Systems, Database Engineering, Identity & Auth, Application Security, Payments, and Pre-Launch Security Audit Results.
         </p>
 
-        {/* Quick Metrics Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto pt-6">
-          <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
-            <span className="text-xs text-slate-400 font-mono block">READINESS SCORE</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono mt-1 block">100 / 100</span>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
-            <span className="text-xs text-slate-400 font-mono block">SECURITY AUDIT</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-amber-400 font-mono mt-1 block">10 / 10 PASS</span>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
-            <span className="text-xs text-slate-400 font-mono block">IDENTITY ENGINE</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-blue-400 font-mono mt-1 block">OIDC + JWT</span>
-          </div>
-          <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
-            <span className="text-xs text-slate-400 font-mono block">FRAMEWORK</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-purple-400 font-mono mt-1 block">NEXT.JS 14</span>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto pt-4">
+          {[
+            { label: 'READINESS SCORE', value: '100 / 100', color: 'text-emerald-400' },
+            { label: 'SECURITY AUDIT', value: '10 / 10 PASS', color: 'text-amber-400' },
+            { label: 'IDENTITY ENGINE', value: 'OIDC + JWT', color: 'text-blue-400' },
+            { label: 'PAYMENT ENGINE', value: 'RAZORPAY', color: 'text-purple-400' },
+          ].map((m) => (
+            <div key={m.label} className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
+              <span className="text-xs text-slate-400 font-mono block">{m.label}</span>
+              <span className={`text-xl sm:text-2xl font-extrabold font-mono mt-1 block ${m.color}`}>{m.value}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* 2. TAB NAVIGATION */}
+      {/* TABS */}
       <div className="max-w-7xl mx-auto">
-        <div className="flex border-b border-slate-800/80 overflow-x-auto gap-4 sm:gap-8 justify-start sm:justify-center">
-          {[
-            { id: 'security', label: '10-Point Security Audit', icon: ShieldCheck, count: '10 PASS' },
-            { id: 'auth', label: 'Auth & Identity', icon: Fingerprint },
-            { id: 'foundations', label: 'Foundations', icon: Cpu },
-            { id: 'architecture', label: 'Architecture', icon: Layers },
-            { id: 'backend', label: 'Backend', icon: Server },
-            { id: 'databases', label: 'Databases', icon: HardDrive },
-            { id: 'frontend', label: 'Frontend', icon: Layout },
-          ].map((tab) => {
+        <div className="flex border-b border-slate-800/80 overflow-x-auto gap-1 sm:gap-4">
+          {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`pb-4 px-2 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex items-center gap-2.5 cursor-pointer ${
-                  isActive
-                    ? 'border-amber-400 text-amber-400 font-bold'
-                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-4 px-2 sm:px-3 text-[10px] sm:text-xs font-semibold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap flex items-center gap-1.5 sm:gap-2 cursor-pointer ${
+                  isActive ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-slate-500'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-amber-400' : 'text-slate-500'}`} />
                 <span>{tab.label}</span>
                 {tab.count && (
-                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                  <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-full hidden sm:inline">
                     {tab.count}
                   </span>
                 )}
@@ -186,69 +200,46 @@ export default function EngineeringPage() {
         </div>
       </div>
 
-      {/* 3. TAB CONTENT PANELS */}
+      {/* PANELS */}
       <div className="max-w-7xl mx-auto">
         <AnimatePresence mode="wait">
-          
-          {/* TAB: SECURITY AUDIT */}
+
+          {/* SECURITY AUDIT */}
           {activeTab === 'security' && (
-            <motion.div
-              key="security"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-8"
-            >
+            <motion.div key="security" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
                 <div>
                   <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
                     <Lock className="w-5 h-5 text-amber-400" />
                     <span>Pre-Launch Security Audit Matrix</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Verified against OWASP Top 10, Supabase/Prisma RLS policies, secrets leakage, and rate-limiting.
-                  </p>
+                  <p className="text-xs text-slate-400 mt-1">Verified against OWASP Top 10, Supabase/Prisma RLS, secrets leakage, and rate-limiting.</p>
                 </div>
-
                 <div className="relative w-full sm:w-72">
                   <Search className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
-                  <input
-                    type="text"
-                    placeholder="Search security checks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-9 pr-4 py-2 rounded-xl text-xs outline-none"
-                  />
+                  <input type="text" placeholder="Search checks..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-9 pr-4 py-2 rounded-xl text-xs outline-none" />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredSecurity.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl hover:border-slate-700 transition"
-                  >
+                  <div key={item.id} className="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl space-y-4 hover:border-slate-700 transition">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex items-center gap-3">
-                        <span className="w-7 h-7 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0">
-                          #{item.id}
-                        </span>
-                        <h3 className="font-heading font-bold text-sm text-slate-100">{item.name}</h3>
+                        <span className="w-7 h-7 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-lg flex items-center justify-center font-mono text-xs font-bold shrink-0">#{item.id}</span>
+                        <h3 className="font-bold text-sm text-slate-100">{item.name}</h3>
                       </div>
-                      <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-extrabold rounded-full tracking-wider uppercase shrink-0 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>{item.status}</span>
+                      <span className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-extrabold rounded-full uppercase shrink-0 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />{item.status}
                       </span>
                     </div>
-
                     <div className="space-y-2 text-xs">
                       <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
-                        <span className="text-[10px] text-amber-400 font-mono font-semibold uppercase block mb-1">Audit Finding:</span>
+                        <span className="text-[10px] text-amber-400 font-mono font-semibold uppercase block mb-1">Finding:</span>
                         <p className="text-slate-300 leading-relaxed font-light">{item.found}</p>
                       </div>
-
                       <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
-                        <span className="text-[10px] text-emerald-400 font-mono font-semibold uppercase block mb-1">Production Fix Applied:</span>
+                        <span className="text-[10px] text-emerald-400 font-mono font-semibold uppercase block mb-1">Fix Applied:</span>
                         <p className="text-slate-300 leading-relaxed font-light">{item.fix}</p>
                       </div>
                     </div>
@@ -258,222 +249,169 @@ export default function EngineeringPage() {
             </motion.div>
           )}
 
-          {/* TAB: AUTH & IDENTITY (PART V) */}
+          {/* AUTH & IDENTITY */}
           {activeTab === 'auth' && (
-            <motion.div
-              key="auth"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-8"
-            >
+            <motion.div key="auth" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
               <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
                 <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
                   <Fingerprint className="w-5 h-5 text-amber-400" />
                   <span>Part V — Authentication, Identity & Authorization</span>
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  Google One Tap, OIDC/OAuth 2.0, Refresh Token Rotation, HTTP-Only Cookie Enforcement, and RBAC/ABAC Access Control.
-                </p>
+                <p className="text-xs text-slate-400 mt-1">Google One Tap, OIDC/OAuth 2.0, Refresh Token Rotation, HTTP-Only Cookies, RBAC/ABAC, and Session Revocation.</p>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <UserCheck className="w-6 h-6 text-amber-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">Google One Tap & OIDC</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    Zero-friction OIDC sign-in via Google Identity Services (GSI) and FedCM prompts. Server-side verification via OAuth2Client public keys.
-                  </p>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <RefreshCw className="w-6 h-6 text-emerald-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">Refresh Token Rotation</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    Single-use refresh tokens with family reuse detection. Compromised token reuse revokes all active sessions across the entire token family automatically.
-                  </p>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <Lock className="w-6 h-6 text-blue-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">RBAC & ABAC Access Control</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    Role-Based Access Control (STUDENT vs. ADMIN) paired with dynamic Attribute-Based Access Control (ABAC) evaluating resource ownership at API & database boundaries.
-                  </p>
-                </div>
+                {[
+                  { icon: UserCheck, color: 'text-amber-400', title: 'Google One Tap & OIDC', body: 'Zero-friction OIDC sign-in via Google Identity Services (GSI) and FedCM prompts. Server-side verification via OAuth2Client RS256 public keys.' },
+                  { icon: RefreshCw, color: 'text-emerald-400', title: 'Refresh Token Rotation', body: 'Single-use refresh tokens with family reuse detection. Compromised token reuse instantly revokes all active sessions in that family.' },
+                  { icon: Lock, color: 'text-blue-400', title: 'RBAC & ABAC Access Control', body: 'Role-Based Access (STUDENT vs. ADMIN) paired with dynamic Attribute-Based Access Control evaluating resource ownership at every API boundary.' },
+                  { icon: Key, color: 'text-purple-400', title: 'HTTP-Only Cookie Sessions', body: 'Auth tokens stored in HttpOnly, Secure, SameSite=Lax cookies. Eliminates XSS token theft. 30-day rolling window with idle timeout.' },
+                  { icon: ShieldCheck, color: 'text-rose-400', title: 'Phone OTP & MFA', body: 'Firebase SMS OTP as primary mobile auth factor. TOTP-compatible MFA layer available for admin accounts. OTP rate-limited to 3 per 10 minutes.' },
+                  { icon: Fingerprint, color: 'text-teal-400', title: 'Session Revocation', body: 'Redis-backed distributed session blacklist. Immediate revocation on admin suspend, password change, or logout-all. No stale sessions survive node restarts.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
           )}
 
-          {/* TAB: DATABASES */}
-          {activeTab === 'databases' && (
-            <motion.div
-              key="databases"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-8"
-            >
+          {/* APP SECURITY (PART VI) */}
+          {activeTab === 'appsecurity' && (
+            <motion.div key="appsecurity" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
               <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
                 <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
-                  <HardDrive className="w-5 h-5 text-amber-400" />
-                  <span>Part IV — Databases, RLS & Disaster Recovery</span>
+                  <AlertTriangle className="w-5 h-5 text-amber-400" />
+                  <span>Part VI — OWASP Top 10, Injection & Supply Chain Security</span>
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  PostgreSQL, Supabase RLS, B-Tree & GIN Indexes, Non-Breaking Migrations, and Point-In-Time Recovery (PITR).
-                </p>
+                <p className="text-xs text-slate-400 mt-1">Input validation, CSP headers, TLS 1.3, HMAC verification, npm audit, Dependabot, and SBOM supply chain inventory.</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <Database className="w-6 h-6 text-amber-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">PostgreSQL & Supabase RLS</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    ACID-compliant relational schema powered by PostgreSQL. Row-Level Security (RLS) policies enforce student data isolation directly at the database engine level.
-                  </p>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {owaspItems.map((item) => (
+                  <div key={item.rank} className={`bg-slate-900 border ${item.border} p-5 rounded-2xl space-y-2`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-extrabold font-mono px-2 py-0.5 rounded-lg ${item.bg} ${item.border} border ${item.color}`}>{item.rank}</span>
+                      <h3 className={`font-bold text-xs ${item.color}`}>{item.threat}</h3>
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-light leading-relaxed">{item.context}</p>
+                    <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800/80">
+                      <p className="text-[11px] text-emerald-400 font-medium leading-relaxed">{item.fix}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-                <div className="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <RefreshCw className="w-6 h-6 text-emerald-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">Expand-Contract Migrations</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    Zero-downtime schema evolution using 4-step Expand-Contract patterns (Expand → Dual-Write → Backfill → Contract).
-                  </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Lock className="w-4 h-4 text-amber-400" />Transport Security & TLS</h3>
+                  <ul className="text-xs text-slate-300 space-y-2 font-light">
+                    <li>• <strong>TLS 1.3</strong>: Enforced at Vercel edge. Eliminates cipher downgrade attacks.</li>
+                    <li>• <strong>HSTS Preloading</strong>: max-age=63072000; includeSubDomains; preload.</li>
+                    <li>• <strong>Certificate Transparency</strong>: CT logs monitored for unauthorized re-issuance.</li>
+                  </ul>
                 </div>
-
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <ShieldCheck className="w-6 h-6 text-blue-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">PITR & Disaster Recovery</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    Continuous Write-Ahead Log (WAL) archiving enabling Point-In-Time Recovery to any exact second. Monthly automated restore drills verify RTO/RPO SLA compliance.
-                  </p>
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Package className="w-4 h-4 text-emerald-400" />Supply Chain Defense</h3>
+                  <ul className="text-xs text-slate-300 space-y-2 font-light">
+                    <li>• <strong>package-lock.json</strong>: Deterministic installs via lockfile integrity.</li>
+                    <li>• <strong>npm audit</strong>: Known CVE scanning on every CI run.</li>
+                    <li>• <strong>Dependabot / Renovate</strong>: Automated PR-based dependency upgrades.</li>
+                    <li>• <strong>GitHub Secret Scanning</strong>: Commits scanned for leaked credentials.</li>
+                    <li>• <strong>SBOM</strong>: Full software bill of materials for compliance inventory.</li>
+                  </ul>
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* TAB: BACKEND ENGINEERING */}
-          {activeTab === 'backend' && (
-            <motion.div
-              key="backend"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-8"
-            >
+          {/* PAYMENTS (PART VII) */}
+          {activeTab === 'payments' && (
+            <motion.div key="payments" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
               <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
                 <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
-                  <Server className="w-5 h-5 text-amber-400" />
-                  <span>Part III — Backend Engineering & Database Systems</span>
+                  <CreditCard className="w-5 h-5 text-amber-400" />
+                  <span>Part VII — Payment Engineering & Revenue Operations</span>
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  REST APIs, Idempotency, Concurrency Control, Optimistic/Pessimistic Locking, and Connection Pooling.
-                </p>
+                <p className="text-xs text-slate-400 mt-1">Razorpay Order-Capture-Verify pipeline, HMAC signature verification, idempotent webhook processing, dunning engine, and chargeback defense.</p>
+              </div>
+
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100">Razorpay Payment Lifecycle Pipeline</h3>
+                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 font-mono text-xs text-amber-300 overflow-x-auto leading-relaxed">
+                  <pre>{`1. Client  ──► POST /api/payments/create-order  ──► Razorpay: Create Order
+2. Razorpay Checkout SDK renders in browser
+3. User pays ──► Razorpay returns: razorpay_payment_id
+                                   razorpay_order_id
+                                   razorpay_signature
+4. Client  ──► POST /api/payments/verify  ──► HMAC-SHA256 Signature Check
+5. Webhook ──► POST /api/webhooks/razorpay  ──► payment.captured event
+6. DB updated atomically ──► Booking.paymentStatus = PAID + paidAt set`}</pre>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <Workflow className="w-6 h-6 text-amber-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">Asynchronous Queues & CDC</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    Background jobs run out-of-band via message queues (BullMQ/Redis) with exponential backoff retries and Dead Letter Queue (DLQ) isolation. Change Data Capture (CDC) streams WAL events.
-                  </p>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <Key className="w-6 h-6 text-emerald-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">Idempotency & Concurrency</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    Idempotency keys prevent duplicate payment charges. Optimistic version locking and pessimistic SELECT ... FOR UPDATE prevent slot reservation race conditions.
-                  </p>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <Database className="w-6 h-6 text-blue-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">PgBouncer Connection Pooling</h3>
-                  <p className="text-slate-300 font-light leading-relaxed">
-                    Serverless execution environments pool connections via PgBouncer transaction-level proxies, preventing client exhaustion on PostgreSQL.
-                  </p>
-                </div>
+                {[
+                  { icon: ShieldCheck, color: 'text-amber-400', title: 'HMAC Signature Verification', body: 'Every payment verification uses crypto.timingSafeEqual() to constant-time compare HMAC-SHA256 signatures, preventing timing-attack based payment forgery.' },
+                  { icon: CheckCircle2, color: 'text-emerald-400', title: 'Idempotent Webhook Events', body: 'WebhookEvent table records each event ID atomically. Duplicate events are detected and skipped. Booking status updated within same DB transaction.' },
+                  { icon: RefreshCw, color: 'text-blue-400', title: 'Dunning & Revenue Recovery', body: 'Escalating retry sequence (Day 0 → 3 → 7 → 14 → Grace Period → Suspend). Email + SMS at each failure point. Immediate reactivation on payment update.' },
+                  { icon: AlertTriangle, color: 'text-rose-400', title: 'Chargeback Defense', body: 'Payment confirmation email, signed receipt, IP logs, session timestamps, and complete webhook audit trail stored as chargeback evidence.' },
+                  { icon: CreditCard, color: 'text-purple-400', title: 'Refund Processing', body: 'Admin-initiated refunds via Razorpay API with 5-7 business day bank processing. Booking status set to REFUNDED. Student notified by email immediately.' },
+                  { icon: Lock, color: 'text-teal-400', title: 'Duplicate Payment Prevention', body: 'Redis-backed idempotency keys (24h TTL) with atomic NX locks prevent concurrent double-charge submissions from the same user session or network retry.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
           )}
 
-          {/* TAB: ENGINEERING FOUNDATIONS */}
+          {/* FOUNDATIONS */}
           {activeTab === 'foundations' && (
-            <motion.div
-              key="foundations"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-8"
-            >
+            <motion.div key="foundations" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
               <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
-                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
-                  <Cpu className="w-5 h-5 text-amber-400" />
-                  <span>Volume 1 — Engineering Mindset Foundations</span>
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  Core tenets of modern software development, AI-directed pair programming, and production economics.
-                </p>
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2"><Cpu className="w-5 h-5 text-amber-400" /><span>Volume 1 — Engineering Mindset Foundations</span></h2>
+                <p className="text-xs text-slate-400 mt-1">AI-Directed Engineering, SOLID principles, Systems Thinking, Production Mentality, and Engineering Economics.</p>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <div className="w-10 h-10 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center">
-                    <Terminal className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-heading font-bold text-base text-slate-100">AI-Directed Engineering</h3>
-                  <p className="text-xs text-slate-300 leading-relaxed font-light">
-                    Human-in-the-loop agentic workflow where engineers architect intent, specs, and verification suites while AI synthesizes implementations with AST accuracy.
-                  </p>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <div className="w-10 h-10 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center">
-                    <Code2 className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-heading font-bold text-base text-slate-100">SOLID & Clean Architecture</h3>
-                  <p className="text-xs text-slate-300 leading-relaxed font-light">
-                    Strict adherence to Single Responsibility, Dependency Inversion, and Open/Closed principles ensuring low coupling and high cohesion across modules.
-                  </p>
-                </div>
-
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <div className="w-10 h-10 bg-purple-500/10 text-purple-400 rounded-xl flex items-center justify-center">
-                    <Server className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-heading font-bold text-base text-slate-100">Systems & Production Thinking</h3>
-                  <p className="text-xs text-slate-300 leading-relaxed font-light">
-                    Designing for balancing feedback loops, rate limiting, circuit breakers, zero-downtime deployment, and blameless post-mortems.
-                  </p>
-                </div>
+                {[
+                  { icon: Terminal, color: 'bg-amber-500/10 text-amber-400', title: 'AI-Directed Engineering', body: 'Human-in-the-loop agentic workflow where engineers architect intent, specs, and verification suites while AI synthesizes implementations with AST accuracy.' },
+                  { icon: Code2, color: 'bg-blue-500/10 text-blue-400', title: 'SOLID & Clean Architecture', body: 'Strict adherence to Single Responsibility, Dependency Inversion, and Open/Closed principles ensuring low coupling and high cohesion across modules.' },
+                  { icon: Server, color: 'bg-purple-500/10 text-purple-400', title: 'Systems & Production Thinking', body: 'Designing for balancing feedback loops, rate limiting, circuit breakers, zero-downtime deployment, and blameless post-mortems.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <div className={`w-10 h-10 ${card.color} rounded-xl flex items-center justify-center`}><Icon className="w-5 h-5" /></div>
+                      <h3 className="font-bold text-base text-slate-100">{card.title}</h3>
+                      <p className="text-xs text-slate-300 leading-relaxed font-light">{card.body}</p>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
           )}
 
-          {/* TAB: SYSTEM ARCHITECTURE */}
+          {/* ARCHITECTURE */}
           {activeTab === 'architecture' && (
-            <motion.div
-              key="architecture"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-8"
-            >
+            <motion.div key="architecture" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
               <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
-                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-amber-400" />
-                  <span>Volume 2 — System Architecture & Modular Monolith</span>
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  Bounded contexts, CQRS, event sourcing, transactional outbox pattern, and C4 model hierarchy.
-                </p>
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2"><Layers className="w-5 h-5 text-amber-400" /><span>Volume 2 — System Architecture & Modular Monolith</span></h2>
+                <p className="text-xs text-slate-400 mt-1">Bounded contexts, CQRS, event sourcing, transactional outbox pattern, and C4 model hierarchy.</p>
               </div>
-
               <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl space-y-6">
-                <h3 className="font-heading font-bold text-lg text-slate-100">System Architecture Blueprint</h3>
-
+                <h3 className="font-bold text-lg text-slate-100">System Architecture Blueprint</h3>
                 <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 font-mono text-xs text-amber-300 overflow-x-auto leading-relaxed">
                   <pre>{`┌────────────────────────────────────────────────────────────────────────┐
 │                        NEXT.JS APP ROUTER ARCHITECTURE                 │
@@ -494,55 +432,82 @@ export default function EngineeringPage() {
             </motion.div>
           )}
 
-          {/* TAB: FRONTEND ENGINEERING */}
-          {activeTab === 'frontend' && (
-            <motion.div
-              key="frontend"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-8"
-            >
+          {/* BACKEND */}
+          {activeTab === 'backend' && (
+            <motion.div key="backend" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
               <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
-                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
-                  <Layout className="w-5 h-5 text-amber-400" />
-                  <span>Volume 3 — Frontend Engineering & Core Web Vitals</span>
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  React Server Components, LCP/CLS/INP optimization, WCAG 2.1 AA accessibility, and motion design systems.
-                </p>
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2"><Server className="w-5 h-5 text-amber-400" /><span>Part III — Backend Engineering & Database Systems</span></h2>
+                <p className="text-xs text-slate-400 mt-1">REST APIs, Idempotency, Concurrency Control, Optimistic/Pessimistic Locking, Rate Limiting, and PgBouncer Connection Pooling.</p>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <Zap className="w-6 h-6 text-amber-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">Core Web Vitals</h3>
-                  <ul className="space-y-2 text-slate-300 font-light">
-                    <li>• <strong>LCP ≤ 2.5s</strong>: Preloaded hero assets with Next.js &lt;Image priority /&gt;.</li>
-                    <li>• <strong>CLS ≤ 0.1</strong>: Reserved aspect ratio containers for media.</li>
-                    <li>• <strong>INP ≤ 200ms</strong>: Non-blocking state transitions via useTransition().</li>
-                  </ul>
-                </div>
+                {[
+                  { icon: Workflow, color: 'text-amber-400', title: 'Async Queues & CDC', body: 'Background jobs via BullMQ/Redis with exponential backoff retries and Dead Letter Queue (DLQ) isolation. Change Data Capture streams WAL events.' },
+                  { icon: Key, color: 'text-emerald-400', title: 'Idempotency & Concurrency', body: 'Idempotency keys prevent duplicate payment charges. Optimistic version locking and pessimistic SELECT ... FOR UPDATE prevent race conditions.' },
+                  { icon: Database, color: 'text-blue-400', title: 'PgBouncer Connection Pooling', body: 'Serverless functions pool connections via PgBouncer transaction-level proxies, preventing client exhaustion on PostgreSQL at scale.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
 
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <BookOpen className="w-6 h-6 text-blue-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">Accessibility (a11y)</h3>
-                  <ul className="space-y-2 text-slate-300 font-light">
-                    <li>• <strong>WCAG 2.1 AA</strong>: Strict ARIA roles, semantic landmarks, and skip links.</li>
-                    <li>• <strong>Focus Control</strong>: Trapped focus inside modals with visible outline rings.</li>
-                    <li>• <strong>Reduced Motion</strong>: Auto-respects prefers-reduced-motion.</li>
-                  </ul>
-                </div>
+          {/* DATABASES */}
+          {activeTab === 'databases' && (
+            <motion.div key="databases" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2"><HardDrive className="w-5 h-5 text-amber-400" /><span>Part IV — Databases, RLS & Disaster Recovery</span></h2>
+                <p className="text-xs text-slate-400 mt-1">PostgreSQL, Supabase RLS, B-Tree & GIN Indexes, Non-Breaking Migrations, and Point-In-Time Recovery (PITR).</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                {[
+                  { icon: Database, color: 'text-amber-400', title: 'PostgreSQL & Supabase RLS', body: 'ACID-compliant relational schema powered by PostgreSQL. Row-Level Security policies enforce student data isolation at the database engine level.' },
+                  { icon: RefreshCw, color: 'text-emerald-400', title: 'Expand-Contract Migrations', body: 'Zero-downtime schema evolution using 4-step Expand-Contract patterns: Expand → Dual-Write → Backfill → Contract.' },
+                  { icon: ShieldCheck, color: 'text-blue-400', title: 'PITR & Disaster Recovery', body: 'Continuous WAL archiving enabling Point-In-Time Recovery to any exact second. Monthly restore drills verify RTO/RPO SLA compliance.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
 
-                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
-                  <Database className="w-6 h-6 text-emerald-400" />
-                  <h3 className="font-heading font-bold text-base text-slate-100">Hydration & RSC</h3>
-                  <ul className="space-y-2 text-slate-300 font-light">
-                    <li>• <strong>Zero-Bundle RSCs</strong>: Server component default reduces JS shipped.</li>
-                    <li>• <strong>Progressive Fallbacks</strong>: Native form actions work prior to JS hydration.</li>
-                    <li>• <strong>Skeleton Loaders</strong>: Prevents layout shifts during data streaming.</li>
-                  </ul>
-                </div>
+          {/* FRONTEND */}
+          {activeTab === 'frontend' && (
+            <motion.div key="frontend" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2"><Layout className="w-5 h-5 text-amber-400" /><span>Volume 3 — Frontend Engineering & Core Web Vitals</span></h2>
+                <p className="text-xs text-slate-400 mt-1">React Server Components, LCP/CLS/INP optimization, WCAG 2.1 AA accessibility, and motion design systems.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                {[
+                  { icon: Zap, color: 'text-amber-400', title: 'Core Web Vitals', items: ['LCP ≤ 2.5s: Preloaded hero assets with Next.js <Image priority />.', 'CLS ≤ 0.1: Reserved aspect ratio containers for media.', 'INP ≤ 200ms: Non-blocking state transitions via useTransition().'] },
+                  { icon: BookOpen, color: 'text-blue-400', title: 'Accessibility (a11y)', items: ['WCAG 2.1 AA: Strict ARIA roles, semantic landmarks, and skip links.', 'Focus Control: Trapped focus inside modals with visible outline rings.', 'Reduced Motion: Auto-respects prefers-reduced-motion CSS media query.'] },
+                  { icon: Database, color: 'text-emerald-400', title: 'Hydration & RSC', items: ['Zero-Bundle RSCs: Server component default reduces JS shipped.', 'Progressive Fallbacks: Native form actions work prior to JS hydration.', 'Skeleton Loaders: Prevents layout shifts during data streaming.'] },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <ul className="space-y-2 text-slate-300 font-light">
+                        {card.items.map((item, i) => <li key={i}>• {item}</li>)}
+                      </ul>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
           )}
@@ -550,12 +515,9 @@ export default function EngineeringPage() {
         </AnimatePresence>
       </div>
 
-      {/* 4. FOOTER CTA */}
+      {/* FOOTER CTA */}
       <div className="max-w-7xl mx-auto pt-8 text-center border-t border-slate-800/80">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-8 py-3.5 rounded-full text-xs uppercase tracking-wider shadow-xl transition cursor-pointer"
-        >
+        <Link href="/" className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-8 py-3.5 rounded-full text-xs uppercase tracking-wider shadow-xl transition cursor-pointer">
           <span>Return to Homepage</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
