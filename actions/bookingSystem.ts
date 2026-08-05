@@ -128,7 +128,16 @@ export async function getAvailableSlotsAction({
   dateStr: z.string().min(1, 'Date is required'),
   timeSlot: z.string().min(1, 'Time slot is required'),
   studentName: z.string().optional(),
-  studentPhone: z.string().regex(/^\+?\d{10,15}$/, 'A valid 10-digit mobile number is required'),
+  // Phone is optional at the schema level — the frontend guard handles the
+  // required case. When provided, it must be a valid international/local number.
+  // This prevents ZodError when Google-auth users have no phone stored yet.
+  studentPhone: z
+    .string()
+    .optional()
+    .refine(
+      (v) => !v || /^\+?\d{10,15}$/.test(v.replace(/[\s\-()]/g, '')),
+      'A valid 10–15 digit mobile number is required'
+    ),
   studentEmail: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -149,6 +158,63 @@ export async function createBookingTransactionAction(inputData: unknown) {
     }
 
     const studentId = session.sub;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PRE-FLIGHT: Update student phone number OUTSIDE the booking transaction.
+    //
+    // Why outside? Student.phone is @unique in the schema. If the phone number
+    // already exists on a DIFFERENT student record, the update throws Prisma
+    // error P2002 (unique constraint violation). Keeping it inside the $transaction
+    // would roll back the entire booking (no booking created, no slot held) and
+    // return only the generic error message.
+    //
+    // By running it first, we can catch the constraint violation specifically,
+    // return a clear message, and never touch the booking transaction.
+    // ─────────────────────────────────────────────────────────────────────────
+    if (data.studentPhone) {
+      const normalizedPhone = data.studentPhone.replace(/[\s\-()]/g, '');
+      try {
+        // Check if this phone belongs to a DIFFERENT student first.
+        const existing = await prisma.student.findUnique({
+          where: { phone: normalizedPhone },
+          select: { id: true },
+        });
+
+        if (existing && existing.id !== studentId) {
+          return {
+            success: false,
+            error: 'This phone number is already registered to another account. Please use a different number or log in with the account linked to this phone.',
+          };
+        }
+
+        // Safe to update — phone is either not taken or already belongs to this student.
+        await prisma.student.update({
+          where: { id: studentId },
+          data: { phone: normalizedPhone },
+        });
+      } catch (phoneErr: any) {
+        console.error('createBookingTransactionAction — phone update error:', {
+          code: phoneErr?.code,
+          meta: phoneErr?.meta,
+          message: phoneErr?.message,
+        });
+        if (phoneErr?.code === 'P2002') {
+          return {
+            success: false,
+            error: 'This phone number is already registered to another account. Please use a different number.',
+          };
+        }
+        if (phoneErr?.code === 'P2025') {
+          return {
+            success: false,
+            error: 'Student account not found. Please log out and log back in.',
+          };
+        }
+        // Non-blocking: phone update failed for an unexpected reason but we
+        // should still allow the booking to proceed (phone is optional data).
+        console.warn('Phone update failed with unexpected error, continuing with booking creation:', phoneErr?.message);
+      }
+    }
 
     // Parse scheduled datetime
     const [timeStr, period] = data.timeSlot.split(' ');
@@ -192,13 +258,6 @@ export async function createBookingTransactionAction(inputData: unknown) {
         throw new Error('DOUBLE_BOOKING_CONFLICT');
       }
 
-      if (data.studentPhone) {
-        await tx.student.update({
-          where: { id: studentId },
-          data: { phone: data.studentPhone },
-        });
-      }
-
       // 2. Create Booking (Status: PENDING)
       const newBooking = await tx.booking.create({
         data: {
@@ -240,12 +299,19 @@ export async function createBookingTransactionAction(inputData: unknown) {
       session: result.session,
     };
   } catch (error: any) {
-    console.error('createBookingTransactionAction Error:', error);
+    // Log the full error server-side so it appears in Vercel/server logs.
+    console.error('createBookingTransactionAction Error:', {
+      name: error?.name,
+      code: error?.code,        // Prisma error code e.g. P2002, P2003
+      meta: error?.meta,        // Prisma metadata (target field, model)
+      message: error?.message,
+      stack: error?.stack,
+    });
 
-    if (error.message === 'DOUBLE_BOOKING_CONFLICT') {
+    if (error?.message === 'DOUBLE_BOOKING_CONFLICT') {
       return {
         success: false,
-        error: 'Slot conflict: The selected instructor or vehicle was just booked by another student. Please select another slot.',
+        error: 'Slot conflict: The selected instructor or vehicle was just booked by another student. Please select another time slot.',
       };
     }
 
@@ -253,6 +319,25 @@ export async function createBookingTransactionAction(inputData: unknown) {
       return { success: false, error: error.errors[0].message };
     }
 
-    return { success: false, error: 'Failed to process booking. Please try again.' };
+    // Prisma unique constraint (P2002): field-level conflict inside the transaction.
+    if (error?.code === 'P2002') {
+      const field = error?.meta?.target as string[] | undefined;
+      if (field?.includes('razorpayOrderId')) {
+        return { success: false, error: 'A payment order already exists for this booking. Please refresh and try again.' };
+      }
+      return { success: false, error: `A record with this information already exists (${field?.join(', ') ?? 'unknown field'}). Please contact support if this persists.` };
+    }
+
+    // Prisma foreign key violation (P2003): referenced record does not exist.
+    if (error?.code === 'P2003') {
+      return { success: false, error: 'One of the selected items (package, instructor, or vehicle) no longer exists. Please refresh and try again.' };
+    }
+
+    // Prisma record not found (P2025): update target missing.
+    if (error?.code === 'P2025') {
+      return { success: false, error: 'Your student account was not found. Please log out and log back in.' };
+    }
+
+    return { success: false, error: 'Failed to process booking. Please try again or contact support.' };
   }
 }
