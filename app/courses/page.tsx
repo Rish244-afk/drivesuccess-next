@@ -158,83 +158,74 @@ function CoursesContent() {
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
               >
                 {paginatedPackages.map((pkg) => {
-                  const isHighlight = pkg.isPopular || pkg.badge === 'Best Seller' || pkg.badge === 'Best Value';
-                  
+                  const isPopular = pkg.isPopular || pkg.badge === 'MOST POPULAR';
+                  const bulletPoints = pkg.description.split(';');
+                  const isTrainingOnly = pkg.badge === 'Training Only';
+
                   return (
                     <InspiraCard
                       key={pkg.id}
-                      isHighlight={isHighlight}
-                      className="p-8 space-y-8 flex flex-col justify-between h-full relative"
+                      isHighlight={isPopular}
+                      spotlightColor={isPopular ? 'rgba(124, 58, 237, 0.15)' : 'rgba(37, 99, 235, 0.12)'}
+                      className={`p-8 pt-10 flex flex-col justify-between h-full relative overflow-visible ${
+                        isPopular
+                          ? 'border-2 border-purple-400/80 bg-purple-50/20 shadow-[0_20px_50px_rgba(124,58,237,0.1)]'
+                          : 'bg-white/80 border border-slate-200 shadow-premium-sm'
+                      }`}
                     >
-                      <div className="space-y-6">
-                        
-                        {/* Top Row: Badge & Price */}
-                        <div className="flex justify-between items-start gap-4">
-                          <span
-                            className={`text-[10px] uppercase tracking-widest font-bold px-3.5 py-1.5 rounded-full border ${
-                              isHighlight
-                                ? 'bg-blue-600 text-white border-blue-600 font-extrabold shadow-md'
-                                : 'bg-white/80 text-blue-600 border-blue-200'
-                            }`}
-                          >
-                            {pkg.badge || 'Accredited'}
-                          </span>
-                          <div className="text-right">
-                            <span className="font-serif text-3xl font-normal text-blue-600 block font-mono">
-                              ₹{pkg.price.toLocaleString()}
-                            </span>
-                            <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-semibold">All-Inclusive Fee</span>
-                          </div>
+                      {/* Top Offset Badge for popular item */}
+                      {isPopular && (
+                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[9px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md whitespace-nowrap z-30">
+                          Most Popular
                         </div>
+                      )}
 
-                        {/* Title & Description */}
-                        <div className="space-y-2.5">
-                          <h3 className="font-serif text-3xl text-slate-900 font-normal tracking-tight leading-snug">
+                      <div className="space-y-6">
+                        {/* Title */}
+                        <div className="space-y-1">
+                          <h3 className="font-heading font-extrabold text-xs tracking-wider text-slate-800 uppercase">
                             {pkg.name}
                           </h3>
-                          <p className="text-xs text-slate-500 font-light leading-relaxed">
-                            {pkg.description}
-                          </p>
                         </div>
 
-                        {/* Feature Bullet List with Animated Icons */}
-                        <div className="space-y-2.5 pt-4 border-t border-slate-200/60 text-xs text-slate-500 font-light">
-                          <div className="flex items-center gap-2.5">
-                            <AnimatedIcon animation="scale">
-                              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                            </AnimatedIcon>
-                            <span>{pkg.sessionsCount} Practical 1-on-1 Sessions</span>
+                        {/* Price Area */}
+                        <div className="space-y-1">
+                          <div className="flex items-baseline gap-1">
+                            <span className="font-sans text-5xl font-extrabold text-purple-600 tracking-tight">
+                              ₹{pkg.price.toLocaleString()}
+                            </span>
                           </div>
-                          <div className="flex items-center gap-2.5">
-                            <AnimatedIcon animation="scale">
-                              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                            </AnimatedIcon>
-                            <span>Dual-Control Fleet Vehicle Included</span>
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                            <AnimatedIcon animation="scale">
-                              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                            </AnimatedIcon>
-                            <span>Mock RTO Exam Track Prep</span>
-                          </div>
+                          <span className="text-[10px] text-slate-400 font-semibold block">
+                            {isTrainingOnly ? '(Training Only)' : '(incl. Govt. Fees)'}
+                          </span>
                         </div>
 
+                        {/* Feature Bullet List with Purple Icons */}
+                        <div className="space-y-3.5 pt-4 border-t border-slate-200/50 text-xs text-slate-700 font-medium">
+                          {bulletPoints.map((bullet, idx) => (
+                            <div key={idx} className="flex items-center gap-3">
+                              <AnimatedIcon animation="scale">
+                                <CheckCircle2 className="w-4 h-4 text-purple-600 fill-purple-50 shrink-0" />
+                              </AnimatedIcon>
+                              <span>{bullet}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                       {/* Bottom CTA Button */}
-                      <div className="pt-6">
+                      <div className="pt-8">
                         <Link
                           href="/book"
-                          className={`block text-center w-full py-4 font-bold text-xs uppercase tracking-widest rounded-full transition-all duration-300 ${
-                            isHighlight
-                              ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/15 hover:scale-[1.02]'
-                              : 'bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-500 text-slate-600 hover:text-blue-600'
+                          className={`block text-center w-full py-4 font-bold text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md ${
+                            isPopular
+                              ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/10 hover:scale-[1.02]'
+                              : 'bg-slate-950 hover:bg-slate-900 text-white hover:scale-[1.02]'
                           }`}
                         >
-                          Reserve Package Now
+                          Choose Plan
                         </Link>
                       </div>
-
                     </InspiraCard>
                   );
                 })}
