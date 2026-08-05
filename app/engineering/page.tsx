@@ -46,10 +46,12 @@ import {
   Gauge,
   Layers2,
   SplitSquareHorizontal,
+  TestTube2,
+  ClipboardCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 
-type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'observability' | 'product' | 'performance' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
+type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'observability' | 'product' | 'performance' | 'testing' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
 
 export default function EngineeringPage() {
   const [activeTab, setActiveTab] = useState<TabId>('security');
@@ -156,6 +158,7 @@ export default function EngineeringPage() {
     { id: 'observability' as TabId, label: 'Observability',        icon: Activity,       count: undefined },
     { id: 'product' as TabId,       label: 'Product',              icon: TrendingUp,     count: undefined },
     { id: 'performance' as TabId,   label: 'Performance',          icon: Gauge,          count: undefined },
+    { id: 'testing' as TabId,        label: 'Testing',              icon: TestTube2,      count: undefined },
     { id: 'foundations' as TabId,   label: 'Foundations',          icon: Cpu,            count: undefined },
     { id: 'architecture' as TabId,  label: 'Architecture',         icon: Layers,         count: undefined },
     { id: 'backend' as TabId,       label: 'Backend',              icon: Server,         count: undefined },
@@ -878,6 +881,128 @@ try {
                       <p className="text-[10px] text-slate-400 font-light pt-1">{m.fix}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TESTING (PART XII) */}
+          {activeTab === 'testing' && (
+            <motion.div key="testing" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
+                  <TestTube2 className="w-5 h-5 text-amber-400" />
+                  <span>Part XII — Testing Engineering</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">Unit, integration, E2E, regression, load, stress, chaos engineering, coverage gates, mutation testing, contract testing, and security testing.</p>
+              </div>
+
+              {/* Cost of Bug + Pyramid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                  <h3 className="font-bold text-sm text-slate-100">The Testing Pyramid</h3>
+                  <div className="space-y-2 text-xs">
+                    {[
+                      { label: 'E2E Tests',          pct: 10, color: 'bg-rose-500',    desc: 'Playwright: full booking + payment flow', border: 'border-rose-500/30' },
+                      { label: 'Integration Tests',  pct: 30, color: 'bg-amber-500',   desc: 'Vitest: API routes + DB + auth layer',     border: 'border-amber-500/30' },
+                      { label: 'Unit Tests',         pct: 60, color: 'bg-emerald-500', desc: 'Vitest: pure functions, validators, utils', border: 'border-emerald-500/30' },
+                    ].map((row) => (
+                      <div key={row.label} className="space-y-1">
+                        <div className="flex justify-between text-slate-300">
+                          <span className="font-semibold">{row.label}</span>
+                          <span className="font-mono text-slate-500">{row.pct}% of suite</span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-2.5">
+                          <div className={`${row.color} h-2.5 rounded-full`} style={{ width: `${row.pct}%` }} />
+                        </div>
+                        <p className="text-[10px] text-slate-500">{row.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100">Cost of Bug Fix Model</h3>
+                  <div className="space-y-3 text-xs">
+                    {[
+                      { phase: 'Development (Unit Test)', cost: '1×', width: '15%', color: 'bg-emerald-500', desc: 'Caught instantly during coding' },
+                      { phase: 'QA / Staging (Integration)', cost: '10×', width: '45%', color: 'bg-amber-500', desc: 'Found before production deploy' },
+                      { phase: 'Production (User Report)', cost: '100×', width: '100%', color: 'bg-rose-500', desc: 'Revenue loss + trust damage + hotfix cost' },
+                    ].map((row) => (
+                      <div key={row.phase} className="space-y-1">
+                        <div className="flex justify-between text-slate-300">
+                          <span>{row.phase}</span>
+                          <span className="font-mono font-bold">{row.cost}</span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-2">
+                          <div className={`${row.color} h-2 rounded-full`} style={{ width: row.width }} />
+                        </div>
+                        <p className="text-[10px] text-slate-500">{row.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Test Type Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                {[
+                  { icon: TestTube2,       color: 'text-emerald-400', title: 'Unit Tests (Vitest)', body: 'Test single functions in complete isolation. No DB, no HTTP. Fast: < 1s per file. Covers: signature verification, rate limiter, Zod schema validation, JWT utils.' },
+                  { icon: Workflow,        color: 'text-blue-400',    title: 'Integration Tests', body: 'Wire API route + Prisma + test database. Catches: schema mismatches, missing indexes, auth middleware bypasses. Uses isolated test schema, cleaned up after each run.' },
+                  { icon: Layout,         color: 'text-purple-400',  title: 'E2E Tests (Playwright)', body: 'Real browser, real server. Critical journeys: login → course → book → pay → confirmation. Razorpay intercepted in test mode. Runs in CI before every production deploy.' },
+                  { icon: Zap,            color: 'text-amber-400',   title: 'Load Testing (k6)', body: 'Ramp: 0 → 200 concurrent users. Thresholds: p95 < 500ms, error rate < 1%. Run before any major traffic event (marketing campaign, influencer mention).' },
+                  { icon: AlertTriangle,  color: 'text-rose-400',    title: 'Chaos Engineering', body: 'Kill DB connection, inject 500ms Redis latency, fill disk to 95%. Verify: Redis cache serves stale data gracefully, alerts fire within 60s, no silent data corruption.' },
+                  { icon: ClipboardCheck, color: 'text-teal-400',    title: 'Mutation Testing (Stryker)', body: 'Introduces bugs into source code and checks if tests catch them. Target: ≥ 85% mutation score on payment + auth modules. Prevents false-confidence test suites.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Coverage Gate + Security Testing */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-emerald-400" />Coverage Gate (CI Enforced)</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { metric: 'Lines',      target: '≥ 80%', color: 'text-emerald-400', border: 'border-emerald-500/30' },
+                      { metric: 'Branches',   target: '≥ 75%', color: 'text-blue-400',    border: 'border-blue-500/30' },
+                      { metric: 'Functions',  target: '≥ 80%', color: 'text-amber-400',   border: 'border-amber-500/30' },
+                      { metric: 'Statements', target: '≥ 80%', color: 'text-purple-400',  border: 'border-purple-500/30' },
+                    ].map((m) => (
+                      <div key={m.metric} className={`bg-slate-950 border ${m.border} p-3 rounded-xl text-center`}>
+                        <p className="text-[10px] text-slate-500">{m.metric}</p>
+                        <p className={`font-extrabold font-mono mt-1 ${m.color}`}>{m.target}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-slate-500">Build fails in CI if any threshold is breached. Excludes boilerplate: layout.tsx, *.config.*, prisma/**</p>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-rose-400" />Security Testing Matrix</h3>
+                  <div className="space-y-2">
+                    {[
+                      { test: 'Dependency CVE Scan',    tool: 'npm audit + Dependabot', freq: 'Every commit', color: 'text-emerald-400' },
+                      { test: 'DAST Scan',              tool: 'OWASP ZAP',              freq: 'Monthly',       color: 'text-amber-400' },
+                      { test: 'SQL Injection Probing',  tool: 'sqlmap (test env)',       freq: 'Quarterly',     color: 'text-orange-400' },
+                      { test: 'Auth Bypass Suite',      tool: 'Playwright custom',       freq: 'Pre-release',   color: 'text-blue-400' },
+                      { test: 'Secrets Leakage Scan',   tool: 'GitHub Secret Scanning',  freq: 'Continuous',    color: 'text-purple-400' },
+                      { test: 'Penetration Test',       tool: 'External vendor',          freq: 'Pre-launch',    color: 'text-rose-400' },
+                    ].map((r) => (
+                      <div key={r.test} className="flex justify-between items-start gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+                        <div>
+                          <p className={`font-semibold ${r.color}`}>{r.test}</p>
+                          <p className="text-[10px] text-slate-500">{r.tool}</p>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-400 shrink-0">{r.freq}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </motion.div>
