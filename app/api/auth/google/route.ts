@@ -42,7 +42,21 @@ export async function POST(req: NextRequest) {
     // 2A. Authorization Code Exchange Flow (if body.code is provided)
     if (body.code) {
       console.log('🔄 [OAuth Audit] Step 2. Exchanging Authorization Code with Google Token Endpoint...');
-      const redirectUri = `${req.nextUrl.origin}/auth/login`;
+
+      // PERMANENT FIX: The redirect_uri sent here during code exchange MUST
+      // exactly match the redirect_uri sent during the initial authorization
+      // request on the frontend. Since the frontend now uses NEXT_PUBLIC_APP_URL,
+      // we must use the same stable canonical URL here.
+      //
+      // req.nextUrl.origin resolves to the current request host, which on Vercel
+      // preview deployments is a unique per-commit URL that changes on every push.
+      // Using it here would cause Google to reject the token exchange with
+      // "redirect_uri_mismatch" on any preview deployment.
+      const redirectUri =
+        process.env.GOOGLE_REDIRECT_URI ||
+        process.env.NEXT_PUBLIC_APP_URL
+          ? `${process.env.GOOGLE_REDIRECT_URI || process.env.NEXT_PUBLIC_APP_URL}/auth/login`
+          : `${req.nextUrl.origin}/auth/login`;
 
       try {
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
