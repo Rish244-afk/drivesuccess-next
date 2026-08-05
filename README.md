@@ -1,4 +1,4 @@
-# 🏎️ DriveSuccess Academy — Production Ready Next.js 14 Platform
+# 🏎️ DriveSuccess Academy — Next-Gen Driving School Platform
 
 > Production-ready, full-stack Next.js 14 (App Router) driving school web application featuring real phone SMS OTP authentication, database-driven booking concurrency engine, Razorpay payment webhooks, student dashboard, separate admin portal, multi-channel notifications (Resend email & WhatsApp), AI assistant with live database function calling, and strict production security.
 
