@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   createRazorpayOrderAction,
@@ -18,6 +18,8 @@ export interface RazorpayCheckoutCallbacks {
 
 export function useRazorpayCheckout() {
   const router = useRouter();
+  const isSuccessRef = useRef(false);
+  const isOpeningRef = useRef(false);
 
   // Dynamically Load Razorpay Checkout Script
   useEffect(() => {
@@ -35,12 +37,23 @@ export function useRazorpayCheckout() {
   }, []);
 
   const launchRazorpayCheckout = async (bookingId: string, callbacks?: RazorpayCheckoutCallbacks) => {
+    if (isSuccessRef.current) {
+      console.warn('Payment already successful in this session. Ignoring checkout launch.');
+      return;
+    }
+    if (isOpeningRef.current) {
+      console.warn('Checkout is already opening. Ignoring duplicate click.');
+      return;
+    }
+
+    isOpeningRef.current = true;
     callbacks?.onLoading?.(true);
     callbacks?.onError?.('');
     callbacks?.onSuccess?.('');
 
     const orderRes = await createRazorpayOrderAction(bookingId);
     callbacks?.onLoading?.(false);
+    isOpeningRef.current = false;
 
     if (!orderRes.success) {
       callbacks?.onError?.(orderRes.error || 'Failed to initialize payment gateway.');
@@ -75,11 +88,16 @@ export function useRazorpayCheckout() {
           return;
         }
 
+        isSuccessRef.current = true;
         callbacks?.onSuccess?.('Payment verified & Booking status set to CONFIRMED!');
         setTimeout(() => router.push(`/booking/${bookingId}/confirmation`), 1500);
       },
       modal: {
         ondismiss: async function () {
+          if (isSuccessRef.current) {
+            console.log('Razorpay modal dismissed post-success. Ignoring.');
+            return;
+          }
           console.warn('Razorpay Checkout Modal Dismissed');
           await markPaymentFailedAction(bookingId, 'User closed checkout modal');
           callbacks?.onDismiss?.();
@@ -107,6 +125,7 @@ export function useRazorpayCheckout() {
       callbacks?.onLoading?.(false);
       
       if (verifyRes.success) {
+        isSuccessRef.current = true;
         callbacks?.onSuccess?.('Payment verified & Booking status set to CONFIRMED!');
         setTimeout(() => router.push(`/booking/${bookingId}/confirmation`), 1500);
       }

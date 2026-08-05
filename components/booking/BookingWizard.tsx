@@ -279,6 +279,53 @@ export function BookingWizard() {
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'PAID' | 'FAILED'>('IDLE');
 
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem('wizard_state');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.step) setStep(parsed.step);
+        if (parsed.selectedPackage) setSelectedPackage(parsed.selectedPackage);
+        if (parsed.selectedInstructor) setSelectedInstructor(parsed.selectedInstructor);
+        if (parsed.selectedVehicle) setSelectedVehicle(parsed.selectedVehicle);
+        if (parsed.selectedDate) setSelectedDate(parsed.selectedDate);
+        if (parsed.selectedTimeSlot) setSelectedTimeSlot(parsed.selectedTimeSlot);
+        if (parsed.notes) setNotes(parsed.notes);
+        if (parsed.studentName) setStudentName(parsed.studentName);
+        if (parsed.studentPhone) {
+          setStudentPhone(parsed.studentPhone);
+          setInitialPhone(parsed.studentPhone);
+        }
+        if (parsed.studentEmail) setStudentEmail(parsed.studentEmail);
+        if (parsed.createdBookingId) setCreatedBookingId(parsed.createdBookingId);
+        if (parsed.paymentStatus) setPaymentStatus(parsed.paymentStatus);
+      } catch (e) {
+        console.error('Failed to parse wizard state', e);
+      }
+    }
+  }, []);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (isInitialMount.current) return;
+    const state = {
+      step,
+      selectedPackage,
+      selectedInstructor,
+      selectedVehicle,
+      selectedDate,
+      selectedTimeSlot,
+      notes,
+      studentName,
+      studentPhone,
+      studentEmail,
+      createdBookingId,
+      paymentStatus
+    };
+    sessionStorage.setItem('wizard_state', JSON.stringify(state));
+  }, [step, selectedPackage, selectedInstructor, selectedVehicle, selectedDate, selectedTimeSlot, notes, studentName, studentPhone, studentEmail, createdBookingId, paymentStatus]);
+
   // UI state
   const [loading, setLoading] = useState<boolean>(false);
   const [slotsLoading, setSlotsLoading] = useState<boolean>(false);
@@ -336,6 +383,10 @@ export function BookingWizard() {
 
   // Step A: Create Pending Booking Record in DB
   const handleCreatePendingBooking = async () => {
+    if (paymentStatus === 'PAID') {
+      console.warn('Booking is already paid. Ignoring create request.');
+      return;
+    }
     if (!selectedPackage || !selectedInstructor || !selectedVehicle || !selectedDate || !selectedTimeSlot) {
       setError('Please complete all booking steps.');
       return;
@@ -377,6 +428,10 @@ export function BookingWizard() {
 
   // Step B: Create Razorpay Order & Trigger Checkout Modal
   const launchRazorpayCheckout = async (bookingId: string) => {
+    if (paymentStatus === 'PAID') {
+      console.warn('Payment already successful. Ignoring checkout launch.');
+      return;
+    }
     await launchHook(bookingId, {
       onLoading: setLoading,
       onError: (err) => {
