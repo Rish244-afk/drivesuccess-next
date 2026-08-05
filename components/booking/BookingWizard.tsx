@@ -82,7 +82,6 @@ export function BookingWizard() {
   // Scroll to top of wizard on step change, accounting for sticky header
   useEffect(() => {
     if (isInitialMount.current) {
-      isInitialMount.current = false;
       return;
     }
     if (containerRef.current) {
@@ -304,6 +303,8 @@ export function BookingWizard() {
         console.error('Failed to parse wizard state', e);
       }
     }
+    // Set flag to allow saving state on subsequent renders
+    isInitialMount.current = false;
   }, []);
 
   // Save state to sessionStorage whenever it changes
