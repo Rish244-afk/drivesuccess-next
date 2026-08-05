@@ -10,7 +10,7 @@ const PHONE_URL =
 
 export function Footer() {
   return (
-    <footer className="bg-white text-slate-500 border-t border-slate-200 pt-20 pb-12 font-sans">
+    <footer className="text-slate-500 border-t pt-20 pb-12 font-sans" style={{ background: '#F1F5F9', borderColor: 'rgba(226,232,240,0.7)' }}>
       <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
         
         {/* Top Editorial Header */}

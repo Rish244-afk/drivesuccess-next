@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   createRazorpayOrderAction,
@@ -18,6 +18,8 @@ export interface RazorpayCheckoutCallbacks {
 
 export function useRazorpayCheckout() {
   const router = useRouter();
+  const isSuccessRef = useRef(false);
+  const isOpeningRef = useRef(false);
 
   // Dynamically load the Razorpay Checkout v1 script once on mount.
   useEffect(() => {
@@ -46,6 +48,7 @@ export function useRazorpayCheckout() {
     // Step 1 — Create a Razorpay order on the backend.
     const orderRes = await createRazorpayOrderAction(bookingId);
     callbacks?.onLoading?.(false);
+    isOpeningRef.current = false;
 
     if (!orderRes.success) {
       callbacks?.onError?.(orderRes.error || 'Failed to initialize payment gateway.');
