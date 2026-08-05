@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
@@ -73,9 +73,24 @@ declare global {
 
 export function BookingWizard() {
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef(true);
 
   // Step 1 to 6
   const [step, setStep] = useState<number>(1);
+
+  // Scroll to top of wizard on step change, accounting for sticky header
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (containerRef.current) {
+      const yOffset = -120; // 80px for header + 40px breathing room
+      const y = containerRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }, [step]);
 
   // Loaded database records
   const [packages, setPackages] = useState<WizardPackage[]>([]);
@@ -370,7 +385,7 @@ export function BookingWizard() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-hover space-y-8">
+    <div ref={containerRef} className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-hover space-y-8">
       
       {/* Slim Elegant Progress Line */}
       <div className="space-y-4">
