@@ -31,10 +31,17 @@ import {
   Rocket,
   Cloud,
   ToggleLeft,
+  Activity,
+  Eye,
+  Bell,
+  BarChart3,
+  PlayCircle,
+  MousePointerClick,
+  FlaskConical,
 } from 'lucide-react';
 import Link from 'next/link';
 
-type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
+type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'observability' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
 
 export default function EngineeringPage() {
   const [activeTab, setActiveTab] = useState<TabId>('security');
@@ -138,6 +145,7 @@ export default function EngineeringPage() {
     { id: 'appsecurity' as TabId,   label: 'App Security',         icon: AlertTriangle,  count: undefined },
     { id: 'payments' as TabId,      label: 'Payments',             icon: CreditCard,     count: undefined },
     { id: 'devops' as TabId,        label: 'DevOps',               icon: Rocket,         count: undefined },
+    { id: 'observability' as TabId, label: 'Observability',        icon: Activity,       count: undefined },
     { id: 'foundations' as TabId,   label: 'Foundations',          icon: Cpu,            count: undefined },
     { id: 'architecture' as TabId,  label: 'Architecture',         icon: Layers,         count: undefined },
     { id: 'backend' as TabId,       label: 'Backend',              icon: Server,         count: undefined },
@@ -456,6 +464,113 @@ export default function EngineeringPage() {
                       <p className="text-slate-500 text-[10px]">Limit: {p.limit}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* OBSERVABILITY (PART IX) */}
+          {activeTab === 'observability' && (
+            <motion.div key="observability" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-amber-400" />
+                  <span>Part IX — Observability, Monitoring & Incident Engineering</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">Sentry error tracking, PostHog analytics, Better Stack uptime monitoring, OpenTelemetry tracing, session replays, rage click detection, funnels, heatmaps, incident runbooks, and blameless postmortems.</p>
+              </div>
+
+              {/* Three Pillars */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                {[
+                  { icon: Terminal, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30', title: 'Logs (Better Stack)', subtitle: 'What happened?', body: 'Structured JSON logs with request context, user ID, severity tags, and trace IDs. Shipped to Better Stack for full-text search, retention, and alert rules.' },
+                  { icon: Activity, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/30', title: 'Traces (OpenTelemetry + Sentry)', subtitle: 'Where did it slow down?', body: 'Distributed request traces spanning middleware → API routes → Prisma → DB. Each span carries duration, status code, and database query for P95/P99 attribution.' },
+                  { icon: BarChart3, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', title: 'Metrics (Better Stack)', subtitle: 'How is it trending?', body: 'Numeric time-series for booking conversion rate, API error rate, response latency P50/P95/P99, and DB query counts. Charted in Better Stack dashboards.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className={`bg-slate-900 border ${card.border} p-6 rounded-2xl space-y-2`}>
+                      <div className={`w-9 h-9 ${card.bg} rounded-xl flex items-center justify-center`}><Icon className={`w-4 h-4 ${card.color}`} /></div>
+                      <h3 className={`font-bold text-sm ${card.color}`}>{card.title}</h3>
+                      <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">{card.subtitle}</p>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* PostHog Real User Monitoring */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                {[
+                  { icon: PlayCircle,         color: 'text-purple-400', title: 'Session Replay', body: 'Frame-by-frame playback of exact user sessions in PostHog. Engineers watch real booking flows to diagnose UX failures without reproducing manually.' },
+                  { icon: MousePointerClick,  color: 'text-rose-400',   title: 'Rage Click Detection', body: 'Auto-flagged when users click the same element 3+ times rapidly. Surfaces frustration hotspots in booking form, payment button, and OTP entry fields.' },
+                  { icon: Eye,               color: 'text-teal-400',   title: 'Heatmaps', body: 'Click density overlays on all key pages. Identifies which CTAs get engagement and which are invisible. Informs design iteration.' },
+                  { icon: Workflow,          color: 'text-amber-400',  title: 'Conversion Funnels', body: 'Step-by-step drop-off analysis: Homepage → Courses → Booking Form → Payment → Confirmation. Each drop-off point gets a targeted investigation.' },
+                  { icon: FlaskConical,      color: 'text-blue-400',   title: 'A/B Testing', body: 'Statistically significant experiments on CTAs, pricing display, and funnel copy via PostHog feature flags. No redeploy needed to start or stop a test.' },
+                  { icon: BarChart3,         color: 'text-emerald-400', title: 'Cohort Retention', body: 'Day-7 and Day-30 retention curves by signup source (Google One Tap vs OTP). Identifies highest-LTV acquisition channels for budget allocation.' },
+                ].map((card) => {
+                  const Icon = card.icon;
+                  return (
+                    <div key={card.title} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                      <Icon className={`w-6 h-6 ${card.color}`} />
+                      <h3 className="font-bold text-sm text-slate-100">{card.title}</h3>
+                      <p className="text-slate-300 font-light leading-relaxed">{card.body}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Incident Severity Matrix */}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Bell className="w-4 h-4 text-amber-400" />Incident Severity Matrix & Response Targets</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                  {[
+                    { level: 'SEV-1', def: 'Full outage. No users can transact.', rt: '< 15 min', ex: 'DB down, payment gateway unreachable', color: 'border-red-500/40 text-red-400 bg-red-500/10' },
+                    { level: 'SEV-2', def: 'Significant degradation. > 10% affected.', rt: '< 30 min', ex: 'Slow APIs, login failures', color: 'border-orange-500/40 text-orange-400 bg-orange-500/10' },
+                    { level: 'SEV-3', def: 'Minor bug. < 5% of users affected.', rt: '< 4 hours', ex: 'Mobile layout issue', color: 'border-yellow-500/40 text-yellow-400 bg-yellow-500/10' },
+                    { level: 'SEV-4', def: 'Cosmetic / enhancement request.', rt: 'Next sprint', ex: 'Copy change, color tweak', color: 'border-slate-600/40 text-slate-400 bg-slate-800/50' },
+                  ].map((s) => (
+                    <div key={s.level} className={`border ${s.color.split(' ')[0]} ${s.color.split(' ')[2]} p-4 rounded-xl space-y-2`}>
+                      <span className={`font-extrabold text-sm font-mono ${s.color.split(' ')[1]}`}>{s.level}</span>
+                      <p className="text-slate-300 font-light">{s.def}</p>
+                      <p className="text-[10px] font-mono text-slate-500">RT: {s.rt}</p>
+                      <p className="text-[10px] text-slate-500">{s.ex}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Health Check + Postmortem */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Activity className="w-4 h-4 text-emerald-400" />Health Check API</h3>
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-amber-300 leading-relaxed">
+                    <pre>{`GET /api/health
+{
+  "status": "ok",
+  "db": "connected",
+  "version": "1.0.0",
+  "ts": 1722835200000
+}
+
+503 → "status": "degraded"
+    → Sentry alert fired
+    → Better Stack marks DOWN
+    → On-call paged within 60s`}</pre>
+                  </div>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Bell className="w-4 h-4 text-purple-400" />Blameless Postmortem Format</h3>
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-slate-300 leading-relaxed">
+                    <pre>{`IMPACT    : N users, X min, ₹Y revenue
+DETECTION : Better Stack / Sentry
+TIMELINE  : Alert → Diagnosis → Resolved
+ROOT CAUSE: One sentence. No blame.
+ACTION ITEMS:
+  □ Add regression test
+  □ Improve alert threshold
+  □ Update runbook`}</pre>
+                  </div>
                 </div>
               </div>
             </motion.div>
