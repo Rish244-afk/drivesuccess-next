@@ -278,12 +278,36 @@ export function BookingWizard() {
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'VERIFYING' | 'PAID' | 'FAILED'>('IDLE');
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // sessionStorage: resume a PARTIALLY completed booking after a page refresh.
+  //
+  // WHAT TO PERSIST: step position and selections (packages, instructor, etc.)
+  // so an in-progress booking is not lost if the browser is refreshed.
+  //
+  // WHAT NEVER TO PERSIST:
+  //   paymentStatus: 'PAID'    → booking is done; restoring PAID jumps straight
+  //                              to the success screen on the NEXT visit.
+  //   paymentStatus: 'VERIFYING' → mid-flight network state; meaningless on reload.
+  //
+  // WHEN TO ERASE: immediately when paymentStatus becomes PAID. The booking
+  // record is already CONFIRMED in the database — there is nothing to recover.
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Restore state from sessionStorage on mount
   useEffect(() => {
     const saved = sessionStorage.getItem('wizard_state');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+
+        // Safety guard: never restore a completed or mid-verification state.
+        // If the user lands on /book after a successful booking, start fresh.
+        if (parsed.paymentStatus === 'PAID' || parsed.paymentStatus === 'VERIFYING') {
+          sessionStorage.removeItem('wizard_state');
+          isInitialMount.current = false;
+          return;
+        }
+
         if (parsed.step) setStep(parsed.step);
         if (parsed.selectedPackage) setSelectedPackage(parsed.selectedPackage);
         if (parsed.selectedInstructor) setSelectedInstructor(parsed.selectedInstructor);
@@ -298,18 +322,35 @@ export function BookingWizard() {
         }
         if (parsed.studentEmail) setStudentEmail(parsed.studentEmail);
         if (parsed.createdBookingId) setCreatedBookingId(parsed.createdBookingId);
-        if (parsed.paymentStatus) setPaymentStatus(parsed.paymentStatus);
+        // Only restore FAILED or PENDING states — these allow retry without
+        // losing the bookingId. PAID and VERIFYING are intentionally excluded.
+        if (parsed.paymentStatus === 'FAILED' || parsed.paymentStatus === 'PENDING') {
+          setPaymentStatus(parsed.paymentStatus);
+        }
       } catch (e) {
         console.error('Failed to parse wizard state', e);
+        sessionStorage.removeItem('wizard_state');
       }
     }
     // Set flag to allow saving state on subsequent renders
     isInitialMount.current = false;
   }, []);
 
-  // Save state to sessionStorage whenever it changes
+  // Save state to sessionStorage whenever it changes.
+  // When payment is PAID: erase the entry entirely (booking complete, nothing to recover).
+  // When VERIFYING: skip saving (transient mid-flight state, meaningless on reload).
   useEffect(() => {
     if (isInitialMount.current) return;
+
+    // Completed: erase storage so next visit starts fresh.
+    if (paymentStatus === 'PAID') {
+      sessionStorage.removeItem('wizard_state');
+      return;
+    }
+
+    // Transient verification state: do not persist — useless on reload.
+    if (paymentStatus === 'VERIFYING') return;
+
     const state = {
       step,
       selectedPackage,
@@ -322,7 +363,7 @@ export function BookingWizard() {
       studentPhone,
       studentEmail,
       createdBookingId,
-      paymentStatus
+      paymentStatus,
     };
     sessionStorage.setItem('wizard_state', JSON.stringify(state));
   }, [step, selectedPackage, selectedInstructor, selectedVehicle, selectedDate, selectedTimeSlot, notes, studentName, studentPhone, studentEmail, createdBookingId, paymentStatus]);
