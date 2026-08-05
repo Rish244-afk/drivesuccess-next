@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   createRazorpayOrderAction,
@@ -12,14 +12,15 @@ export interface RazorpayCheckoutCallbacks {
   onLoading?: (isLoading: boolean) => void;
   onError?: (error: string) => void;
   onSuccess?: (message: string) => void;
+  /** Fired immediately when Razorpay handler fires, BEFORE the backend
+   *  verification round-trip. Use this to show "Verifying payment…" UI. */
+  onVerifying?: () => void;
   onDismiss?: () => void;
   onPaymentFailed?: (error: string) => void;
 }
 
 export function useRazorpayCheckout() {
   const router = useRouter();
-  const isSuccessRef = useRef(false);
-  const isOpeningRef = useRef(false);
 
   // Dynamically load the Razorpay Checkout v1 script once on mount.
   useEffect(() => {
@@ -40,15 +41,24 @@ export function useRazorpayCheckout() {
     bookingId: string,
     callbacks?: RazorpayCheckoutCallbacks
   ) => {
-    // Reset UI state before starting.
+    // ─────────────────────────────────────────────────────────────────────────
+    // INITIALIZATION — show loading spinner and clear previous errors only.
+    //
+    // ROOT CAUSE OF BUG (now fixed):
+    //   The previous version called `callbacks?.onSuccess?.('')` here as part
+    //   of "resetting UI state". This immediately fired setPaymentStatus('PAID')
+    //   in the wizard, rendering the "Payment Successful!" screen before any
+    //   payment had been attempted or verified.
+    //
+    // Rule: onSuccess MUST ONLY be called after backend verification succeeds.
+    // ─────────────────────────────────────────────────────────────────────────
     callbacks?.onLoading?.(true);
     callbacks?.onError?.('');
-    callbacks?.onSuccess?.('');
+    // onSuccess is intentionally NOT called here.
 
     // Step 1 — Create a Razorpay order on the backend.
     const orderRes = await createRazorpayOrderAction(bookingId);
     callbacks?.onLoading?.(false);
-    isOpeningRef.current = false;
 
     if (!orderRes.success) {
       callbacks?.onError?.(orderRes.error || 'Failed to initialize payment gateway.');
@@ -56,21 +66,18 @@ export function useRazorpayCheckout() {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // RACE CONDITION FIX: `handlerFired` guard flag.
+    // RACE CONDITION GUARD: `handlerFired` boolean.
     //
-    // Razorpay's ondismiss callback is triggered in two distinct situations:
-    //   (a) The user intentionally closes the modal without paying — we should
-    //       mark the booking as FAILED so the student can retry.
-    //   (b) On certain mobile browsers / Razorpay SDK versions, ondismiss also
-    //       fires AFTER a successful payment, racing with the success handler.
-    //       In this case we must NOT mark the booking FAILED.
+    // On certain mobile browsers and some Razorpay SDK versions, ondismiss fires
+    // AFTER the success handler, racing with it. If we allow ondismiss to run
+    // after the handler, it would mark a successfully paid booking as FAILED.
     //
-    // Fix: `handlerFired` is set to true the moment the success handler is
-    // entered. The ondismiss callback checks this flag before taking any action.
+    // Fix: Set handlerFired = true the instant the success handler is entered.
+    // ondismiss checks this flag and silently returns if already true.
     // ─────────────────────────────────────────────────────────────────────────
     let handlerFired = false;
 
-    // Guard against the script not being present (ad-blockers, slow CDN).
+    // Guard against Razorpay script being blocked (ad-blockers, slow CDN load).
     if (typeof window === 'undefined' || !(window as any).Razorpay) {
       callbacks?.onError?.(
         'Payment gateway script failed to load. Please disable any ad-blockers and refresh the page.'
@@ -90,27 +97,33 @@ export function useRazorpayCheckout() {
         email: orderRes.studentEmail,
         contact: orderRes.studentPhone,
       },
-      theme: { color: '#F59E0B' },
+      theme: { color: '#2563EB' },
 
-      // ─────────────────────────────────────────────────────────────────────
-      // SUCCESS HANDLER — called by Razorpay only after user completes payment.
+      // ───────────────────────────────────────────────────────────────────────
+      // SUCCESS HANDLER
       //
-      // Correct flow enforced here:
-      //  1. handlerFired = true  → prevents ondismiss from interfering.
-      //  2. onLoading(true)      → spinner stays visible during verification.
-      //  3. Backend verifies HMAC SHA256 signature cryptographically.
-      //  4. Backend updates booking → status: CONFIRMED, paymentStatus: PAID.
-      //  5. onLoading(false)     → spinner off.
-      //  6. ONLY after backend success → onSuccess() → "Payment Successful" UI.
-      //  7. 2-second display window → navigate to Booking Confirmed page.
-      // ─────────────────────────────────────────────────────────────────────
+      // Called by the Razorpay SDK only after the user completes the payment
+      // step inside the Razorpay modal (card details submitted, OTP verified).
+      //
+      // Production flow enforced here:
+      //  1. handlerFired = true  → blocks any spurious ondismiss from overriding.
+      //  2. onVerifying()        → wizard shows "Verifying Payment…" spinner.
+      //                           The user sees a waiting screen, NOT success.
+      //  3. Backend HMAC SHA256 signature verification (cryptographic check).
+      //  4. Backend updates booking: status → CONFIRMED, paymentStatus → PAID.
+      //  5. ONLY if backend returns { success: true } → onSuccess() is called.
+      //  6. Wizard transitions to PAID → "Payment Successful!" appears.
+      //  7. 2-second delay → navigate to /booking/[id]/confirmation.
+      //
+      // "Payment Successful!" can ONLY appear after steps 3 & 4 succeed.
+      // ───────────────────────────────────────────────────────────────────────
       handler: async function (response: any) {
-        // Prevent ondismiss race condition.
+        // Block any spurious ondismiss race immediately.
         handlerFired = true;
 
-        // Keep the loading spinner visible for the entire verification round-trip.
-        // The user will NOT see "Payment Successful" until this await resolves.
-        callbacks?.onLoading?.(true);
+        // Show VERIFYING state — the user sees a spinner while we check with
+        // the backend. They do NOT see success yet.
+        callbacks?.onVerifying?.();
 
         const verifyRes = await verifyPaymentSignatureAction({
           bookingId,
@@ -119,11 +132,7 @@ export function useRazorpayCheckout() {
           razorpaySignature: response.razorpay_signature,
         });
 
-        callbacks?.onLoading?.(false);
-
         if (!verifyRes.success) {
-          // Backend rejected the signature or encountered a server error.
-          // Do NOT show "Payment Successful" — surface the error clearly.
           callbacks?.onError?.(
             verifyRes.error ||
               'Payment signature verification failed. Your card has NOT been charged. Please contact support.'
@@ -131,36 +140,29 @@ export function useRazorpayCheckout() {
           return;
         }
 
-        // ✅ Backend has verified and confirmed. NOW it is safe to show success.
+        // ✅ Backend has cryptographically verified the payment and confirmed
+        // the booking. ONLY NOW is it safe to show "Payment Successful".
         callbacks?.onSuccess?.('Payment verified & Booking status set to CONFIRMED!');
 
-        // Give the user 2 seconds to see the "Payment Successful" screen, then
-        // navigate to the fully-confirmed Booking page.
+        // 2-second window for the user to see the success screen, then navigate.
         setTimeout(() => {
           router.push(`/booking/${bookingId}/confirmation`);
         }, 2000);
       },
 
       modal: {
-        // ─────────────────────────────────────────────────────────────────
+        // ───────────────────────────────────────────────────────────────────
         // DISMISS HANDLER
-        //
-        // Only mark the booking FAILED when the user genuinely closed the modal
-        // without completing payment. If handlerFired is already true, the
-        // success handler ran first — this dismiss is a Razorpay SDK quirk and
-        // must be silently ignored.
-        // ─────────────────────────────────────────────────────────────────
+        // Only mark as FAILED when the user genuinely closed without paying.
+        // If handlerFired is true, the success handler already ran — ignore.
+        // ───────────────────────────────────────────────────────────────────
         ondismiss: async function () {
           if (handlerFired) {
-            // Success handler already completed — this dismiss is a spurious
-            // Razorpay event on some devices. Do not override PAID status.
             console.info(
-              '[Razorpay] ondismiss fired after successful payment handler — ignoring.'
+              '[Razorpay] ondismiss fired after successful payment handler — ignoring (SDK quirk).'
             );
             return;
           }
-
-          // Genuine dismissal: user closed without paying.
           console.warn('[Razorpay] Modal dismissed by user without completing payment.');
           await markPaymentFailedAction(
             bookingId,
@@ -175,8 +177,8 @@ export function useRazorpayCheckout() {
 
     // ─────────────────────────────────────────────────────────────────────────
     // PAYMENT FAILED EVENT
-    // Fires when a payment attempt is rejected by the bank/gateway before the
-    // user even closes the modal. handlerFired remains false here.
+    // Fires when a payment attempt is rejected by the bank before the modal
+    // closes. handlerFired remains false — this is not a success.
     // ─────────────────────────────────────────────────────────────────────────
     rzp.on('payment.failed', async function (response: any) {
       console.error('[Razorpay] payment.failed event:', response.error);
