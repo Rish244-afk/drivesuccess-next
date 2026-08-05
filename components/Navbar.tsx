@@ -87,11 +87,18 @@ export function Navbar() {
   ];
 
   return (
-    <header 
+    <header
       ref={headerRef}
-      className={`sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 text-slate-900 font-sans transition-all duration-300 ${
-        scrolled ? 'shadow-md shadow-slate-900/5' : ''
-      }`}
+      className={`sticky top-0 z-50 text-slate-900 font-sans transition-all duration-300`}
+      style={{
+        background: 'rgba(248,250,252,0.82)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        borderBottom: '1px solid rgba(226,232,240,0.55)',
+        boxShadow: scrolled
+          ? '0 2px 8px rgba(15,23,42,0.05), 0 8px 32px rgba(37,99,235,0.05)'
+          : '0 1px 0 rgba(226,232,240,0.5)',
+      }}
     >
       <div className={`max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between transition-all duration-300 ${
         scrolled ? 'h-16' : 'h-20'
