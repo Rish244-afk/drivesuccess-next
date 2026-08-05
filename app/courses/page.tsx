@@ -191,7 +191,7 @@ function CoursesContent() {
                           {/* Price Area */}
                           <div className="space-y-1">
                             <div className="flex items-baseline gap-1">
-                              <span className="font-sans text-5xl font-extrabold text-purple-600 tracking-tight">
+                              <span className="font-sans text-5xl font-extrabold text-slate-900 tracking-tight">
                                 ₹{pkg.price.toLocaleString()}
                               </span>
                             </div>
@@ -205,7 +205,7 @@ function CoursesContent() {
                             {bulletPoints.map((bullet, idx) => (
                               <div key={idx} className="flex items-center gap-3">
                                 <AnimatedIcon animation="scale">
-                                  <CheckCircle2 className="w-4 h-4 text-purple-600 fill-purple-50 shrink-0" />
+                                  <CheckCircle2 className="w-4 h-4 text-slate-700 fill-slate-100 shrink-0" />
                                 </AnimatedIcon>
                                 <span>{bullet}</span>
                               </div>
@@ -217,10 +217,8 @@ function CoursesContent() {
                         <div className="pt-8">
                           <Link
                             href="/book"
-                            className={`block text-center w-full py-4 font-bold text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md ${
-                              isPopular
-                                ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/10 hover:scale-[1.02]'
-                                : 'bg-slate-950 hover:bg-slate-900 text-white hover:scale-[1.02]'
+                            className={`block text-center w-full font-bold text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md bg-slate-950 hover:bg-slate-900 text-white hover:scale-[1.02] ${
+                              isPopular ? 'py-5' : 'py-4'
                             }`}
                           >
                             Choose Plan
