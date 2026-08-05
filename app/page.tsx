@@ -249,16 +249,6 @@ export default function HomePage() {
             {/* Interactive Physical Buttons */}
             <div className="hero-ctas opacity-0 flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
               
-              <Magnetic range={30} strength={0.35}>
-                <Link
-                  href="/book"
-                  className="group relative bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-10 py-5 rounded-full flex items-center justify-center gap-3 shadow-lg shadow-blue-600/25 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
-                >
-                  <span>Reserve Training Session</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Magnetic>
- 
               <Magnetic range={25} strength={0.2}>
                 <Link
                   href="/courses"
@@ -267,7 +257,7 @@ export default function HomePage() {
                   Explore Curriculum
                 </Link>
               </Magnetic>
- 
+
             </div>
  
             {/* Floating Student Proof Bar */}
