@@ -24,7 +24,7 @@ export function GoogleSignInButton({
   const promptAttempted = useRef(false);
 
   // 1. Process Google credential after user finishes account selection (One Tap / FedCM)
-  const processGoogleCredential = async (payload: {
+  const processGoogleCredential = React.useCallback(async (payload: {
     credential?: string;
     email?: string | null;
     name?: string | null;
@@ -69,7 +69,7 @@ export function GoogleSignInButton({
     } finally {
       setLoading(false);
     }
-  };
+  }, [onSuccess, returnTo, router]);
 
   // 2. Initialize Google Identity Services (GSI) and One Tap
   useEffect(() => {
@@ -138,7 +138,7 @@ export function GoogleSignInButton({
     } else {
       initGsi();
     }
-  }, []);
+  }, [processGoogleCredential]);
 
   // 3. Fallback to standard OAuth Redirect Flow on click
   const handleGoogleClick = () => {
@@ -151,7 +151,8 @@ export function GoogleSignInButton({
     const redirectUri = encodeURIComponent(`${window.location.origin}/auth/login`);
     const stateObj = { mode: 'redirect', returnTo: returnTo || window.location.pathname };
     const stateStr = encodeURIComponent(JSON.stringify(stateObj));
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email%20profile&state=${stateStr}`;
+    const nonce = Math.random().toString(36).substring(2, 15);
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=id_token&scope=email%20profile&state=${stateStr}&nonce=${nonce}`;
     
     window.location.href = googleAuthUrl;
   };
