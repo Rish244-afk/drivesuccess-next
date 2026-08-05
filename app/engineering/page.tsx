@@ -38,10 +38,15 @@ import {
   PlayCircle,
   MousePointerClick,
   FlaskConical,
+  TrendingUp,
+  Users,
+  Target,
+  Repeat2,
+  Heart,
 } from 'lucide-react';
 import Link from 'next/link';
 
-type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'observability' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
+type TabId = 'security' | 'auth' | 'appsecurity' | 'payments' | 'devops' | 'observability' | 'product' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend';
 
 export default function EngineeringPage() {
   const [activeTab, setActiveTab] = useState<TabId>('security');
@@ -146,6 +151,7 @@ export default function EngineeringPage() {
     { id: 'payments' as TabId,      label: 'Payments',             icon: CreditCard,     count: undefined },
     { id: 'devops' as TabId,        label: 'DevOps',               icon: Rocket,         count: undefined },
     { id: 'observability' as TabId, label: 'Observability',        icon: Activity,       count: undefined },
+    { id: 'product' as TabId,       label: 'Product',              icon: TrendingUp,     count: undefined },
     { id: 'foundations' as TabId,   label: 'Foundations',          icon: Cpu,            count: undefined },
     { id: 'architecture' as TabId,  label: 'Architecture',         icon: Layers,         count: undefined },
     { id: 'backend' as TabId,       label: 'Backend',              icon: Server,         count: undefined },
@@ -572,6 +578,164 @@ ACTION ITEMS:
   □ Update runbook`}</pre>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* PRODUCT ENGINEERING (PART X) */}
+          {activeTab === 'product' && (
+            <motion.div key="product" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="space-y-8">
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-amber-400" />
+                  <span>Part X — Product Engineering & Growth</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">Activation funnels, Aha Moment engineering, churn detection, customer journey mapping, feature health scorecards, support analytics, and self-reinforcing growth loops.</p>
+              </div>
+
+              {/* NSM + Top Metrics */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { label: 'NORTH STAR METRIC', value: 'Paid Booking ≤ Day 7', color: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/10' },
+                  { label: 'ACTIVATION TARGET', value: '≥ 40% of signups', color: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10' },
+                  { label: 'DAY-7 RETENTION', value: '≥ 25%', color: 'text-blue-400', border: 'border-blue-500/30', bg: 'bg-blue-500/10' },
+                  { label: 'BOOKING CONVERSION', value: '≥ 60%', color: 'text-purple-400', border: 'border-purple-500/30', bg: 'bg-purple-500/10' },
+                ].map((m) => (
+                  <div key={m.label} className={`${m.bg} border ${m.border} p-4 rounded-2xl text-center`}>
+                    <span className="text-[10px] text-slate-400 font-mono block">{m.label}</span>
+                    <span className={`text-sm font-extrabold mt-1 block ${m.color}`}>{m.value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Activation Funnel */}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Target className="w-4 h-4 text-amber-400" />Activation Funnel — Current State</h3>
+                <div className="space-y-2">
+                  {[
+                    { step: 'Sign Up (Google / OTP)', pct: 100, color: 'bg-emerald-500', label: '100%' },
+                    { step: 'View Course Catalog',    pct: 82,  color: 'bg-blue-500',    label: '82%  (−18%)' },
+                    { step: 'Click a Package',        pct: 61,  color: 'bg-amber-500',   label: '61%  (−21%) ← BIGGEST DROP' },
+                    { step: 'Start Booking Flow',     pct: 44,  color: 'bg-orange-500',  label: '44%  (−17%)' },
+                    { step: 'Complete Payment',       pct: 31,  color: 'bg-rose-500',    label: '31%  (−13%)' },
+                  ].map((row) => (
+                    <div key={row.step} className="space-y-1">
+                      <div className="flex justify-between text-xs text-slate-300">
+                        <span>{row.step}</span>
+                        <span className="font-mono text-slate-400">{row.label}</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-2">
+                        <div className={`${row.color} h-2 rounded-full transition-all`} style={{ width: `${row.pct}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-500 font-light">Biggest lever: Step 2→3 gap. Engineering fix: Surface calendar slots directly on course card, reduce clicks to intent.</p>
+              </div>
+
+              {/* Customer Journey + Feature Health */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Users className="w-4 h-4 text-blue-400" />Customer Journey Map</h3>
+                  <div className="space-y-2">
+                    {[
+                      { stage: 'AWARE',    touch: 'Google / WOM',        emotion: '🤔', action: 'SEO: schema.org markup' },
+                      { stage: 'INTEREST', touch: 'Homepage / /courses',  emotion: '👀', action: 'LCP < 2.5s, testimonials' },
+                      { stage: 'ACTIVATE', touch: 'Booking form',         emotion: '✅', action: 'Reduce fields, progress bar' },
+                      { stage: 'TRANSACT', touch: 'Razorpay checkout',    emotion: '😟', action: 'Trust badges, secure copy' },
+                      { stage: 'SUCCEED',  touch: 'Confirmation + email', emotion: '🎉', action: 'Instant receipt + WhatsApp' },
+                      { stage: 'REFER',    touch: 'Post-completion email', emotion: '🏆', action: '₹200 referral credit link' },
+                    ].map((r) => (
+                      <div key={r.stage} className="flex items-start gap-3 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80">
+                        <span className="font-mono text-[10px] text-amber-400 w-16 shrink-0 pt-0.5">{r.stage}</span>
+                        <span className="text-lg leading-none shrink-0">{r.emotion}</span>
+                        <div>
+                          <p className="text-slate-300 font-medium">{r.touch}</p>
+                          <p className="text-slate-500 text-[10px]">{r.action}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><BarChart3 className="w-4 h-4 text-emerald-400" />Feature Health Scorecard</h3>
+                  <div className="space-y-2">
+                    {[
+                      { axis: 'Adoption',     signal: '% of eligible users used it',  healthy: '≥ 30%', unhealthy: '< 10%' },
+                      { axis: 'Frequency',    signal: 'Avg uses / active user / week', healthy: '≥ 2×',  unhealthy: '< 0.5×' },
+                      { axis: 'Retention',    signal: '% of feature users at D30',    healthy: '≥ 40%', unhealthy: '< 20%' },
+                      { axis: 'Satisfaction', signal: 'NPS / CSAT score',             healthy: '≥ 8/10', unhealthy: '< 6/10' },
+                    ].map((r) => (
+                      <div key={r.axis} className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 flex justify-between items-start gap-2">
+                        <div>
+                          <p className="font-semibold text-slate-200">{r.axis}</p>
+                          <p className="text-[10px] text-slate-500">{r.signal}</p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-emerald-400 font-mono text-[11px]">{r.healthy}</p>
+                          <p className="text-rose-400 font-mono text-[11px]">{r.unhealthy}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-slate-500">Features scoring unhealthy on all 4 axes for 30 days are sunset to avoid feature bloat.</p>
+                </div>
+              </div>
+
+              {/* Growth Loops */}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><Repeat2 className="w-4 h-4 text-purple-400" />Self-Reinforcing Growth Loops</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                  {[
+                    { icon: TrendingUp, color: 'text-amber-400', title: 'SEO Content Loop', steps: ['Student books & leaves review', 'Review improves local SEO', 'More organic discovery', 'More bookings → More reviews'] },
+                    { icon: Users,      color: 'text-blue-400',  title: 'Referral Loop', steps: ['Student completes course', 'Shares referral link (₹200)', 'Friend signs up & books', 'Both become active referrers'] },
+                    { icon: Heart,      color: 'text-rose-400',  title: 'Instructor Loop', steps: ['More bookings = higher rating', 'Rated instructors attract more students', 'More revenue = hire more instructors', 'More availability = more bookings'] },
+                  ].map((loop) => {
+                    const Icon = loop.icon;
+                    return (
+                      <div key={loop.title} className="bg-slate-950 border border-slate-800/80 p-5 rounded-2xl space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Icon className={`w-5 h-5 ${loop.color}`} />
+                          <h4 className={`font-bold ${loop.color}`}>{loop.title}</h4>
+                        </div>
+                        <div className="space-y-1.5">
+                          {loop.steps.map((step, i) => (
+                            <div key={i} className="flex items-start gap-2">
+                              <span className="text-slate-600 font-mono text-[10px] mt-0.5">{i + 1}.</span>
+                              <p className="text-slate-300 font-light">{step}</p>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                          <Repeat2 className="w-3 h-3" />
+                          <span>Self-reinforcing — compounds each cycle</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Churn Detection */}
+              <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
+                <h3 className="font-bold text-sm text-slate-100 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-rose-400" />Churn Risk Detection & Intervention</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                  {[
+                    { score: '70 – 85', risk: 'Medium', action: 'Automated "We miss you" email with discounted rebooking link', color: 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10' },
+                    { score: '85 – 95', risk: 'High', action: 'Personal WhatsApp outreach from assigned instructor', color: 'border-orange-500/30 text-orange-400 bg-orange-500/10' },
+                    { score: '> 95',   risk: 'Critical', action: 'Admin dashboard alert: high-value student at immediate churn risk', color: 'border-red-500/30 text-red-400 bg-red-500/10' },
+                  ].map((r) => (
+                    <div key={r.score} className={`border ${r.color.split(' ')[0]} ${r.color.split(' ')[2]} p-4 rounded-xl space-y-2`}>
+                      <div className="flex justify-between items-center">
+                        <span className={`font-extrabold font-mono ${r.color.split(' ')[1]}`}>Score {r.score}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border ${r.color.split(' ')[0]} ${r.color.split(' ')[1]}`}>{r.risk}</span>
+                      </div>
+                      <p className="text-slate-300 font-light leading-relaxed">{r.action}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-500">Churn signals: No login in 14 days, abandoned payment, unresolved support ticket, or failed payment with no retry.</p>
               </div>
             </motion.div>
           )}
