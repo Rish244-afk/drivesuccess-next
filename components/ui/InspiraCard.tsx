@@ -85,8 +85,8 @@ export function InspiraCard({
       ref={cardRef}
       className={`relative rounded-3xl overflow-hidden transition-all duration-300 ${
         isHighlight
-          ? 'bg-gradient-to-b from-white to-slate-50 border-2 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.18)]'
-          : 'bg-white border border-slate-200 hover:border-slate-300 shadow-card'
+          ? 'bg-white/80 backdrop-blur-md border-2 border-blue-400/80 shadow-[0_20px_50px_rgba(37,99,235,0.12)]'
+          : 'bg-white/70 backdrop-blur-md border border-slate-200/80 shadow-premium-sm hover:shadow-premium-md'
       } ${className}`}
     >
       <div
