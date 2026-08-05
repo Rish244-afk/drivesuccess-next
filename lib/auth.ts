@@ -14,8 +14,10 @@ export interface JWTPayload {
   phone: string;
   role: string;
   name?: string;
-  email?: string;
+  // email may be null for phone-only students who have not yet linked a Google account.
+  email?: string | null;
 }
+
 
 /**
  * Sign 30-day rolling JWT token using Jose

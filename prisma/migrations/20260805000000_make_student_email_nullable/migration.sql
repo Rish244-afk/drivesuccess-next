@@ -1,0 +1,24 @@
+-- Migration: make_student_email_nullable
+--
+-- Root cause fixed: Student.email was NOT NULL, which forced the phone OTP
+-- login flow to generate a synthetic email address like "student_1234@drivesuccess.edu"
+-- for phone-only accounts. When the same user later signed in via Google OAuth,
+-- the Google handler could not find the phone-only account by email (because the
+-- synthetic email != the real Google email), and created a DUPLICATE student record.
+--
+-- Fix: email is now nullable (NULL for phone-only accounts).
+-- The Google OAuth handler will find phone-only accounts via the session phone
+-- number and link the Google identity to the existing record instead of creating
+-- a new one. No more duplicate accounts across sign-in methods.
+--
+-- Existing data impact:
+--   Students who signed up via Phone OTP have synthetic email addresses.
+--   These are safe to leave as-is (they are @unique and the student is still
+--   findable by phone). When those students sign in via Google, the handler will
+--   find them by session phone and update their email to their real Google email.
+--   The synthetic email will be replaced at that point.
+--   Run the companion cleanup script (scripts/dedup-synthetic-emails.sql) if
+--   you want to proactively null out existing synthetic emails.
+
+-- AlterTable
+ALTER TABLE "students" ALTER COLUMN "email" DROP NOT NULL;

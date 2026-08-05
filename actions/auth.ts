@@ -13,62 +13,102 @@ const otpSchema = z.string().length(6, 'OTP must be exactly 6 digits');
 
 /**
  * 1. Login with Phone (Works with Firebase Phone Auth & Direct Phone Verification)
- * Creates student if first time login & sets 30-Day HTTP-Only JWT Cookie
+ *
+ * Identity Resolution Order — prevents duplicate Student records:
+ *
+ * STEP 1: If a valid JWT session already exists (e.g. the user is already
+ *         signed in via Google), LINK the verified phone to that existing
+ *         account. This handles Scenario C: Google → Phone OTP while logged in.
+ *
+ * STEP 2: Look up by phone number. If a student with this phone exists,
+ *         return that account. This handles returning phone-only users.
+ *
+ * STEP 3: No existing account found. Create a NEW phone-only account.
+ *         NOTE: We do NOT generate a synthetic email address. Student.email
+ *         is nullable — a phone-only account has email = null until the user
+ *         later links a Google account or provides their email explicitly.
+ *         This was the root cause of duplicate accounts: the old synthetic
+ *         email (student_XXXX@drivesuccess.edu) meant Google login could
+ *         never find the phone-only account by email and created a duplicate.
  */
 export async function loginWithVerifiedPhoneAction(phoneInput: string) {
   try {
     const phone = phoneInput.trim().replace(/[^\d+]/g, '');
     phoneSchema.parse(phone);
 
-    const cleanPhoneDigits = phone.replace(/[^\d]/g, '');
-    const phoneSuffix = cleanPhoneDigits.slice(-4) || '8821';
-
-    // Check if user is currently logged in via Google session to link phone
+    // ─── STEP 1: Check if user is already logged in via another method ───────
+    // If a valid session exists (e.g. Google), link the verified phone to that
+    // existing account instead of creating or finding a separate one.
     const currentSession = await getServerSession();
     let student = null;
 
     if (currentSession?.sub) {
-      student = await prisma.student.findUnique({
+      const existing = await prisma.student.findUnique({
         where: { id: currentSession.sub },
       });
+
+      if (existing) {
+        // Check if this phone already belongs to a DIFFERENT student.
+        const phoneOwner = phone ? await prisma.student.findUnique({
+          where: { phone },
+          select: { id: true },
+        }) : null;
+
+        if (phoneOwner && phoneOwner.id !== existing.id) {
+          // Phone is registered to a different account — do not link; treat as
+          // a separate login and return the phone-owner's account instead.
+          student = await prisma.student.findUnique({ where: { phone } });
+        } else {
+          // Safe to link: phone is free or already belongs to this student.
+          student = await prisma.student.update({
+            where: { id: existing.id },
+            data: { phone, phoneVerified: true },
+          });
+          console.log(`🔗 Phone ${phone} linked to existing session account: ${existing.id}`);
+        }
+      }
     }
 
-    if (student) {
-      // Update existing account with verified phone
-      student = await prisma.student.update({
-        where: { id: student.id },
-        data: {
-          phone,
-          phoneVerified: true,
-        },
-      });
-    } else {
-      // Find student by phone
+    // ─── STEP 2: Look up by phone number ─────────────────────────────────────
+    if (!student) {
       student = await prisma.student.findUnique({
         where: { phone },
       });
+    }
 
-      if (!student) {
-        student = await prisma.student.create({
-          data: {
-            phone,
-            name: `Student-${phoneSuffix}`,
-            email: `student_${cleanPhoneDigits}@drivesuccess.edu`,
-            phoneVerified: true,
-            role: Role.STUDENT,
-          },
-        });
-        console.log(`👤 New Student created on Phone login: ${student.name} (${student.phone})`);
-      }
+    // ─── STEP 3: Create new phone-only account ────────────────────────────────
+    // email is intentionally NOT set here. Student.email is nullable.
+    // A synthetic email would prevent Google login from finding this account
+    // later via email lookup, causing duplicate account creation.
+    if (!student) {
+      const cleanPhoneDigits = phone.replace(/[^\d]/g, '');
+      const phoneSuffix = cleanPhoneDigits.slice(-4) || '0000';
+      student = await prisma.student.create({
+        data: {
+          phone,
+          name: `Student-${phoneSuffix}`,
+          // email is intentionally null — phone-only account.
+          // When the user later signs in with Google, the Google handler will
+          // find this account by phone number and link the email + googleId.
+          phoneVerified: true,
+          role: Role.STUDENT,
+        },
+      });
+      console.log(`👤 New phone-only Student created: ${student.name} (${student.phone})`);
+    } else if (!student.phoneVerified) {
+      student = await prisma.student.update({
+        where: { id: student.id },
+        data: { phoneVerified: true },
+      });
     }
 
     // Issue 30-Day Rolling JWT Cookie
     const jwtPayload = {
       sub: student.id,
-      phone: student.phone!,
+      phone: student.phone || '',
       role: student.role,
       name: student.name,
-      email: student.email,
+      email: student.email || '',
     };
 
     const token = await signSessionToken(jwtPayload);
@@ -76,10 +116,7 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
 
     revalidatePath('/dashboard');
 
-    return {
-      success: true,
-      student,
-    };
+    return { success: true, student };
   } catch (error) {
     console.error('loginWithVerifiedPhoneAction Error:', error);
     if (error instanceof z.ZodError) {

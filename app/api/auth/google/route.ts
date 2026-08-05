@@ -192,28 +192,55 @@ export async function POST(req: NextRequest) {
 
     console.log('👤 [OAuth Audit] Step 4. Finding or Creating Student in Database:', { email, googleId });
 
-    // Check if user is currently logged in via Phone session to link accounts
+    // ─── Identity Resolution Chain ────────────────────────────────────────────
+    // We try each identifier in descending order of trust to find an existing
+    // account before creating a new one. This prevents duplicate records when
+    // a user authenticates with multiple methods.
+    //
+    // Resolution order:
+    //   Step 1: Active JWT session (user is already logged in via Phone OTP)
+    //   Step 2: googleId            (most stable Google identifier)
+    //   Step 3: email               (verified email from Google)
+    //   Step 4: phone via session   (handles phone-first → Google scenario)
+    //
+    // Only if ALL four steps fail is a new account created.
+    // ─────────────────────────────────────────────────────────────────────────
     const currentSession = await getServerSession();
     let student = null;
 
+    // Step 1: Existing JWT session (e.g., Phone OTP session still active)
     if (currentSession?.sub) {
       student = await prisma.student.findUnique({
         where: { id: currentSession.sub },
       });
+      if (student) {
+        console.log('🔗 [OAuth] Linking Google identity to active session account:', student.id);
+      }
     }
 
+    // Step 2: Lookup by googleId (most authoritative Google identifier)
     if (!student) {
-      // 3A. Lookup by googleId
-      student = await prisma.student.findUnique({
-        where: { googleId },
-      });
+      student = await prisma.student.findUnique({ where: { googleId } });
     }
 
-    if (!student) {
-      // 3B. Lookup by Email
-      student = await prisma.student.findUnique({
-        where: { email },
-      });
+    // Step 3: Lookup by verified email from Google
+    if (!student && email) {
+      student = await prisma.student.findUnique({ where: { email } });
+    }
+
+    // Step 3C: Lookup by phone number stored in the active JWT session.
+    // Handles Scenario B: user first signed in via Phone OTP (no email set),
+    // then later signed in via Google. The phone-only account has email=null
+    // and googleId=null, so steps 2 and 3 above would miss it.
+    // We use the phone from the JWT session payload as the bridge identifier.
+    if (!student && currentSession?.phone) {
+      const sessionPhone = currentSession.phone;
+      if (sessionPhone) {
+        student = await prisma.student.findUnique({ where: { phone: sessionPhone } });
+        if (student) {
+          console.log('🔗 [OAuth] Found phone-only account via session phone. Linking Google identity:', student.id);
+        }
+      }
     }
 
     if (student) {
