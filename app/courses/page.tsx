@@ -163,70 +163,71 @@ function CoursesContent() {
                   const isTrainingOnly = pkg.badge === 'Training Only';
 
                   return (
-                    <InspiraCard
-                      key={pkg.id}
-                      isHighlight={isPopular}
-                      spotlightColor={isPopular ? 'rgba(124, 58, 237, 0.15)' : 'rgba(37, 99, 235, 0.12)'}
-                      className={`p-8 pt-10 flex flex-col justify-between h-full relative overflow-visible ${
-                        isPopular
-                          ? 'border-2 border-purple-400/80 bg-purple-50/20 shadow-[0_20px_50px_rgba(124,58,237,0.1)]'
-                          : 'bg-white/80 border border-slate-200 shadow-premium-sm'
-                      }`}
-                    >
+                    <div key={pkg.id} className="relative group/card h-full">
                       {/* Top Offset Badge for popular item */}
                       {isPopular && (
-                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[9px] font-extrabold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md whitespace-nowrap z-30">
+                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[9px] font-extrabold px-4.5 py-1.5 rounded-full uppercase tracking-wider shadow-md whitespace-nowrap z-30">
                           Most Popular
                         </div>
                       )}
 
-                      <div className="space-y-6">
-                        {/* Title */}
-                        <div className="space-y-1">
-                          <h3 className="font-heading font-extrabold text-xs tracking-wider text-slate-800 uppercase">
-                            {pkg.name}
-                          </h3>
-                        </div>
+                      <InspiraCard
+                        isHighlight={false}
+                        spotlightColor={isPopular ? 'rgba(124, 58, 237, 0.15)' : 'rgba(37, 99, 235, 0.12)'}
+                        className={`p-8 flex flex-col justify-between h-full relative ${
+                          isPopular
+                            ? 'pt-14 border-2 border-purple-400/80 bg-purple-50/20 shadow-[0_20px_50px_rgba(124,58,237,0.1)]'
+                            : 'pt-10 bg-white/80 border border-slate-200 shadow-premium-sm'
+                        }`}
+                      >
+                        <div className="space-y-6">
+                          {/* Title */}
+                          <div className="space-y-1">
+                            <h3 className="font-heading font-extrabold text-xs tracking-wider text-slate-800 uppercase">
+                              {pkg.name}
+                            </h3>
+                          </div>
 
-                        {/* Price Area */}
-                        <div className="space-y-1">
-                          <div className="flex items-baseline gap-1">
-                            <span className="font-sans text-5xl font-extrabold text-purple-600 tracking-tight">
-                              ₹{pkg.price.toLocaleString()}
+                          {/* Price Area */}
+                          <div className="space-y-1">
+                            <div className="flex items-baseline gap-1">
+                              <span className="font-sans text-5xl font-extrabold text-purple-600 tracking-tight">
+                                ₹{pkg.price.toLocaleString()}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-semibold block">
+                              {isTrainingOnly ? '(Training Only)' : '(incl. Govt. Fees)'}
                             </span>
                           </div>
-                          <span className="text-[10px] text-slate-400 font-semibold block">
-                            {isTrainingOnly ? '(Training Only)' : '(incl. Govt. Fees)'}
-                          </span>
+
+                          {/* Feature Bullet List with Purple Icons */}
+                          <div className="space-y-3.5 pt-4 border-t border-slate-200/50 text-xs text-slate-700 font-medium">
+                            {bulletPoints.map((bullet, idx) => (
+                              <div key={idx} className="flex items-center gap-3">
+                                <AnimatedIcon animation="scale">
+                                  <CheckCircle2 className="w-4 h-4 text-purple-600 fill-purple-50 shrink-0" />
+                                </AnimatedIcon>
+                                <span>{bullet}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
 
-                        {/* Feature Bullet List with Purple Icons */}
-                        <div className="space-y-3.5 pt-4 border-t border-slate-200/50 text-xs text-slate-700 font-medium">
-                          {bulletPoints.map((bullet, idx) => (
-                            <div key={idx} className="flex items-center gap-3">
-                              <AnimatedIcon animation="scale">
-                                <CheckCircle2 className="w-4 h-4 text-purple-600 fill-purple-50 shrink-0" />
-                              </AnimatedIcon>
-                              <span>{bullet}</span>
-                            </div>
-                          ))}
+                        {/* Bottom CTA Button */}
+                        <div className="pt-8">
+                          <Link
+                            href="/book"
+                            className={`block text-center w-full py-4 font-bold text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md ${
+                              isPopular
+                                ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/10 hover:scale-[1.02]'
+                                : 'bg-slate-950 hover:bg-slate-900 text-white hover:scale-[1.02]'
+                            }`}
+                          >
+                            Choose Plan
+                          </Link>
                         </div>
-                      </div>
-
-                      {/* Bottom CTA Button */}
-                      <div className="pt-8">
-                        <Link
-                          href="/book"
-                          className={`block text-center w-full py-4 font-bold text-xs uppercase tracking-widest rounded-xl transition-all duration-300 shadow-md ${
-                            isPopular
-                              ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-purple-600/10 hover:scale-[1.02]'
-                              : 'bg-slate-950 hover:bg-slate-900 text-white hover:scale-[1.02]'
-                          }`}
-                        >
-                          Choose Plan
-                        </Link>
-                      </div>
-                    </InspiraCard>
+                      </InspiraCard>
+                    </div>
                   );
                 })}
               </motion.div>
