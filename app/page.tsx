@@ -3,8 +3,16 @@
 import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { ShieldCheck, Award, Users, CheckCircle2, ArrowRight, Star, Clock, Car, SlidersHorizontal, Sparkles, Compass } from 'lucide-react';
+
+const MeshGradient = dynamic(() => import('@/components/ui/MeshGradient'), { ssr: false });
+const FloatingParticles = dynamic(() => import('@/components/ui/FloatingParticles'), { ssr: false });
+const Hero3DScene = dynamic(() => import('@/components/ui/Hero3DScene'), {
+  ssr: false,
+  loading: () => <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-white to-purple-50/20 animate-pulse -z-10" />
+});
 
 export default function HomePage() {
   const heroRef = useRef<HTMLDivElement | null>(null);
@@ -15,8 +23,6 @@ export default function HomePage() {
   });
 
   const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-  const videoScale = useTransform(smoothProgress, [0, 0.8], [1, 1.05]);
-  const videoY = useTransform(smoothProgress, [0, 1], [0, 50]);
   const textY = useTransform(smoothProgress, [0, 0.8], [0, -40]);
   const opacity = useTransform(smoothProgress, [0, 0.7], [1, 0.2]);
 
@@ -44,43 +50,37 @@ export default function HomePage() {
   return (
     <div className="space-y-0 overflow-hidden bg-white">
       
-      {/* 1. WINZY-STYLE ATMOSPHERIC CINEMATIC HERO SECTION */}
-      <section ref={heroRef} className="relative pt-20 pb-24 lg:pt-28 lg:pb-36 border-b border-slate-200 overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 mesh-gradient">
+      {/* 1. NEXT-GENERATION SPATIAL UI HERO SECTION */}
+      <section ref={heroRef} className="relative pt-24 pb-28 lg:pt-36 lg:pb-40 border-b border-slate-200/60 overflow-hidden bg-white flex items-center min-h-[85vh]">
         
-        {/* Full-Bleed Atmospheric Background Photography Layer */}
-        <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden">
-          <Image
-            src="/images/hero_bg.jpg"
-            alt="Atmospheric Driving Road"
-            fill
-            priority
-            className="object-cover opacity-10 scale-105"
-          />
-          {/* Light Glassmorphism Radial Gradient Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/75 to-white backdrop-blur-[2px]" />
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-500/10 rounded-full blur-[150px] pointer-events-none" />
-        </div>
+        {/* Spatial Depth Layers */}
+        <MeshGradient />
+        <FloatingParticles count={30} />
+        <Hero3DScene className="absolute inset-0 w-full h-full" />
 
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 relative z-10 w-full">
           
-          {/* Top Kinetic Editorial Content */}
+          {/* Spatial Editorial Content */}
           <motion.div
             style={{ y: textY, opacity }}
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="text-center max-w-5xl mx-auto space-y-8"
+            className="text-center max-w-5xl mx-auto space-y-10"
           >
             {/* Animated Glass Badge */}
-            <motion.div variants={wordVariants} className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-blue-300 text-blue-600 text-xs font-medium tracking-widest uppercase bg-blue-50 backdrop-blur-xl shadow-hover">
-              <Sparkles className="w-3.5 h-3.5 animate-spin text-blue-600" />
+            <motion.div 
+              variants={wordVariants} 
+              className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-blue-200/80 text-blue-600 text-xs font-semibold tracking-widest uppercase bg-white/70 backdrop-blur-xl shadow-hover transition-all duration-300 hover:border-blue-300"
+            >
+              <Sparkles className="w-3.5 h-3.5 animate-pulse text-blue-600" />
               <span>Certified Automotive Pedagogy</span>
             </motion.div>
-
-            {/* Giant Kinetic Heading with Staggered Word Motion */}
+ 
+            {/* Giant Spatial Heading */}
             <motion.h1
               variants={wordVariants}
-              className="font-serif text-6xl sm:text-7xl lg:text-8xl font-normal text-slate-900 leading-[1.05] tracking-tight"
+              className="font-serif text-6xl sm:text-7xl lg:text-8xl font-normal text-slate-900 leading-[1.05] tracking-tight drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
             >
               Learn to Drive with{' '}
               <span className="relative inline-block">
@@ -93,38 +93,38 @@ export default function HomePage() {
                 />
               </span>
             </motion.h1>
-
+ 
             <motion.p
               variants={wordVariants}
-              className="text-lg sm:text-xl text-slate-600 font-light leading-relaxed max-w-2xl mx-auto drop-shadow-sm"
+              className="text-lg sm:text-xl text-slate-600 font-light leading-relaxed max-w-3xl mx-auto drop-shadow-sm"
             >
               Safe, structured instruction for first-time drivers. Our patient pedagogical methodology builds long-term competence, road safety, and stress-free license certification.
             </motion.p>
-
-            {/* Interactive Buttons + Floating Student Avatars Bar */}
+ 
+            {/* Interactive Physical Buttons */}
             <motion.div variants={wordVariants} className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
               
               <Link
                 href="/book"
-                className="group relative bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-10 py-4.5 rounded-full flex items-center justify-center gap-3 shadow-glow hover:scale-105 transition-all duration-300"
+                className="group relative bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-10 py-5 rounded-full flex items-center justify-center gap-3 shadow-lg shadow-blue-600/25 hover:scale-105 active:scale-95 transition-all duration-300"
               >
                 <span>Reserve Training Session</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-
+ 
               <Link
                 href="/courses"
-                className="border border-slate-300 hover:border-blue-400 bg-white/70 hover:bg-white text-slate-700 font-medium text-xs uppercase tracking-wider px-9 py-4.5 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 shadow-card"
+                className="border border-slate-200 hover:border-blue-400 bg-white/70 hover:bg-white text-slate-700 font-medium text-xs uppercase tracking-wider px-9 py-5 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 shadow-card hover:scale-105 active:scale-95"
               >
                 Explore Curriculum
               </Link>
-
+ 
             </motion.div>
-
-            {/* Winzy-Style Floating Student Proof Bar */}
+ 
+            {/* Floating Student Proof Bar */}
             <motion.div variants={wordVariants} className="pt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
               
-              <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl px-5 py-2 rounded-full border border-slate-200 shadow-hover">
+              <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl px-5 py-2.5 rounded-full border border-slate-200/60 shadow-card hover:scale-105 transition-all duration-300">
                 <div className="flex -space-x-2">
                   <Image src="/images/rajesh.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
                   <Image src="/images/priya.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
@@ -134,38 +134,15 @@ export default function HomePage() {
                 </div>
                 <span className="text-xs text-slate-600 font-medium">Certified Student Drivers</span>
               </div>
-
-              <div className="flex items-center gap-2 text-xs text-slate-600 font-medium bg-white/80 backdrop-blur-xl px-5 py-2 rounded-full border border-slate-200 shadow-hover">
+ 
+              <div className="flex items-center gap-2 text-xs text-slate-600 font-medium bg-white/80 backdrop-blur-xl px-5 py-2.5 rounded-full border border-slate-200/60 shadow-card hover:scale-105 transition-all duration-300">
                 <span className="text-blue-500 font-serif text-base italic">★ 5.0</span>
                 <span>98.4% First-Attempt Pass Rate</span>
               </div>
-
+ 
             </motion.div>
           </motion.div>
-
-          {/* Full-Width Parallax Video Showcase with Edge Watermark Crop */}
-          <motion.div
-            style={{ scale: videoScale, y: videoY }}
-            initial={{ opacity: 0, y: 60 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4 }}
-            className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-hover bg-slate-50 group"
-          >
-            <video
-              src="/videos/swift.mp4"
-              poster="/images/swift.jpg"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-[480px] sm:h-[620px] lg:h-[720px] object-cover scale-[1.12] origin-center transition-transform duration-1000"
-            />
-            
-            {/* Top & Bottom Vignette Overlays to Crop & Seamlessly Blend Edge Watermarks */}
-            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/20 to-transparent pointer-events-none z-10" />
-            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/40 via-white/20 to-transparent pointer-events-none z-10" />
-          </motion.div>
-
+ 
         </div>
       </section>
 
