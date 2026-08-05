@@ -22,11 +22,13 @@ import {
   Key,
   HardDrive,
   RefreshCw,
+  Fingerprint,
+  UserCheck,
 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function EngineeringPage() {
-  const [activeTab, setActiveTab] = useState<'security' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend'>('security');
+  const [activeTab, setActiveTab] = useState<'security' | 'auth' | 'foundations' | 'architecture' | 'backend' | 'databases' | 'frontend'>('security');
   const [searchQuery, setSearchQuery] = useState('');
 
   const securityAuditItems = [
@@ -123,7 +125,7 @@ export default function EngineeringPage() {
         </h1>
 
         <p className="text-sm sm:text-base text-slate-400 max-w-3xl mx-auto leading-relaxed font-light">
-          A complete engineering blueprint covering Software Engineering Foundations, Distributed Architecture, Backend Systems, Database Engineering, Next.js & React Mechanics, and Pre-Launch Security Audit Results.
+          A complete engineering blueprint covering Software Engineering Foundations, Distributed Architecture, Backend Systems, Database Engineering, Identity & Auth, Next.js & React Mechanics, and Pre-Launch Security Audit Results.
         </p>
 
         {/* Quick Metrics Cards */}
@@ -137,8 +139,8 @@ export default function EngineeringPage() {
             <span className="text-2xl sm:text-3xl font-extrabold text-amber-400 font-mono mt-1 block">10 / 10 PASS</span>
           </div>
           <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
-            <span className="text-xs text-slate-400 font-mono block">DATABASE ARCH</span>
-            <span className="text-2xl sm:text-3xl font-extrabold text-blue-400 font-mono mt-1 block">POSTGRES + RLS</span>
+            <span className="text-xs text-slate-400 font-mono block">IDENTITY ENGINE</span>
+            <span className="text-2xl sm:text-3xl font-extrabold text-blue-400 font-mono mt-1 block">OIDC + JWT</span>
           </div>
           <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-center">
             <span className="text-xs text-slate-400 font-mono block">FRAMEWORK</span>
@@ -152,6 +154,7 @@ export default function EngineeringPage() {
         <div className="flex border-b border-slate-800/80 overflow-x-auto gap-4 sm:gap-8 justify-start sm:justify-center">
           {[
             { id: 'security', label: '10-Point Security Audit', icon: ShieldCheck, count: '10 PASS' },
+            { id: 'auth', label: 'Auth & Identity', icon: Fingerprint },
             { id: 'foundations', label: 'Foundations', icon: Cpu },
             { id: 'architecture', label: 'Architecture', icon: Layers },
             { id: 'backend', label: 'Backend', icon: Server },
@@ -255,7 +258,54 @@ export default function EngineeringPage() {
             </motion.div>
           )}
 
-          {/* TAB: DATABASES (PART IV) */}
+          {/* TAB: AUTH & IDENTITY (PART V) */}
+          {activeTab === 'auth' && (
+            <motion.div
+              key="auth"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-8"
+            >
+              <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl">
+                <h2 className="font-heading font-extrabold text-xl text-slate-100 flex items-center gap-2">
+                  <Fingerprint className="w-5 h-5 text-amber-400" />
+                  <span>Part V — Authentication, Identity & Authorization</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  Google One Tap, OIDC/OAuth 2.0, Refresh Token Rotation, HTTP-Only Cookie Enforcement, and RBAC/ABAC Access Control.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <UserCheck className="w-6 h-6 text-amber-400" />
+                  <h3 className="font-heading font-bold text-base text-slate-100">Google One Tap & OIDC</h3>
+                  <p className="text-slate-300 font-light leading-relaxed">
+                    Zero-friction OIDC sign-in via Google Identity Services (GSI) and FedCM prompts. Server-side verification via OAuth2Client public keys.
+                  </p>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <RefreshCw className="w-6 h-6 text-emerald-400" />
+                  <h3 className="font-heading font-bold text-base text-slate-100">Refresh Token Rotation</h3>
+                  <p className="text-slate-300 font-light leading-relaxed">
+                    Single-use refresh tokens with family reuse detection. Compromised token reuse revokes all active sessions across the entire token family automatically.
+                  </p>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-3">
+                  <Lock className="w-6 h-6 text-blue-400" />
+                  <h3 className="font-heading font-bold text-base text-slate-100">RBAC & ABAC Access Control</h3>
+                  <p className="text-slate-300 font-light leading-relaxed">
+                    Role-Based Access Control (STUDENT vs. ADMIN) paired with dynamic Attribute-Based Access Control (ABAC) evaluating resource ownership at API & database boundaries.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* TAB: DATABASES */}
           {activeTab === 'databases' && (
             <motion.div
               key="databases"
