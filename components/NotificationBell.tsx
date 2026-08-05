@@ -80,14 +80,14 @@ export function NotificationBell() {
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 hover:text-amber-400 hover:border-slate-700 transition"
+        className="relative p-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-blue-600 hover:border-slate-300 transition"
         title="Notifications"
       >
         <Bell className="w-4 h-4" />
 
         {/* Live Notification Badge */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-amber-500 text-slate-950 text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/50 animate-pulse">
+          <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow-lg shadow-blue-600/30 animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -95,13 +95,13 @@ export function NotificationBell() {
 
       {/* Notifications Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-3">
+        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-hover p-4 z-50 space-y-3">
           
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
             <div className="flex items-center gap-2">
-              <span className="font-heading font-extrabold text-sm text-slate-100">Notifications</span>
+              <span className="font-heading font-extrabold text-sm text-slate-900">Notifications</span>
               {unreadCount > 0 && (
-                <span className="bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                <span className="bg-blue-50 text-blue-600 border border-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full">
                   {unreadCount} unread
                 </span>
               )}
@@ -110,7 +110,7 @@ export function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-[11px] font-semibold text-slate-400 hover:text-amber-400 flex items-center gap-1"
+                className="text-[11px] font-semibold text-slate-500 hover:text-blue-600 flex items-center gap-1"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 <span>Mark all read</span>
@@ -121,7 +121,7 @@ export function NotificationBell() {
           {/* List */}
           <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
             {notifications.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-500">
+              <div className="py-8 text-center text-xs text-slate-400">
                 No notifications yet.
               </div>
             ) : (
@@ -130,16 +130,16 @@ export function NotificationBell() {
                   key={n.id}
                   className={`p-3 rounded-xl border transition space-y-1.5 ${
                     !n.isRead
-                      ? 'bg-slate-950 border-amber-500/30'
-                      : 'bg-slate-950/50 border-slate-800 opacity-70'
+                      ? 'bg-slate-50 border-blue-300'
+                      : 'bg-slate-100 border-slate-200 opacity-70'
                   }`}
                 >
                   <div className="flex justify-between items-start">
-                    <h4 className="font-heading font-bold text-xs text-slate-100">{n.title}</h4>
+                    <h4 className="font-heading font-bold text-xs text-slate-900">{n.title}</h4>
                     {!n.isRead && (
                       <button
                         onClick={() => handleMarkRead(n.id)}
-                        className="text-[10px] text-amber-400 hover:underline flex items-center gap-0.5"
+                        className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
                       >
                         <Check className="w-3 h-3" />
                         <span>Read</span>
@@ -147,9 +147,9 @@ export function NotificationBell() {
                     )}
                   </div>
 
-                  <p className="text-xs text-slate-300 leading-relaxed">{n.message}</p>
+                  <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
 
-                  <div className="flex items-center gap-1 text-[10px] text-slate-500 pt-1">
+                  <div className="flex items-center gap-1 text-[10px] text-slate-400 pt-1">
                     <Clock className="w-3 h-3" />
                     <span>{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>

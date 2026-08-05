@@ -63,19 +63,19 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0b0f19]/90 backdrop-blur-xl border-b border-slate-800/80 text-slate-100 font-sans">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 text-slate-900 font-sans">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between">
         
         {/* Editorial Brand Mark */}
         <Link href="/" className="flex items-center gap-3.5 group">
-          <div className="w-10 h-10 border border-amber-400/40 text-amber-400 rounded-full flex items-center justify-center font-serif text-xl italic transition-transform duration-300 group-hover:scale-105 bg-amber-400/5 shadow-inner">
+          <div className="w-10 h-10 border border-blue-600 text-white rounded-full flex items-center justify-center font-serif text-xl italic transition-transform duration-300 group-hover:scale-105 bg-blue-600 shadow-inner">
             V
           </div>
           <div>
-            <span className="font-serif text-lg tracking-tight text-slate-100 block font-normal leading-tight">
-              Vahathi <span className="italic text-amber-400">Motor</span> Driving School
+            <span className="font-serif text-lg tracking-tight text-slate-900 block font-normal leading-tight">
+              Vahathi <span className="italic text-blue-600">Motor</span> Driving School
             </span>
-            <span className="text-[9px] font-sans font-medium tracking-[0.22em] text-slate-400 uppercase block">
+            <span className="text-[9px] font-sans font-medium tracking-[0.22em] text-slate-500 uppercase block">
               DriveSuccess Platform
             </span>
           </div>
@@ -90,14 +90,14 @@ export function Navbar() {
                 key={link.name}
                 href={link.href}
                 className={`text-xs tracking-wider uppercase font-medium transition-colors relative py-1 ${
-                  isActive ? 'text-amber-400' : 'text-slate-300 hover:text-amber-400'
+                  isActive ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'
                 }`}
               >
                 {link.name}
                 {isActive && (
                   <motion.div
                     layoutId="navbar-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-amber-400"
+                    className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-blue-600"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -110,9 +110,9 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-4">
           <a
             href="tel:7829780778"
-            className="text-xs font-semibold tracking-wider text-amber-400 hover:text-amber-300 border border-amber-400/30 px-4 py-2 rounded-full bg-amber-400/5 transition-all duration-200 flex items-center gap-1.5 hover:border-amber-400/60"
+            className="text-xs font-semibold tracking-wider text-blue-600 hover:text-blue-500 border border-blue-300 px-4 py-2 rounded-full bg-blue-50 transition-all duration-200 flex items-center gap-1.5 hover:border-blue-400"
           >
-            <Phone className="w-3.5 h-3.5 text-amber-400" />
+            <Phone className="w-3.5 h-3.5 text-blue-600" />
             <span>7829780778</span>
           </a>
 
@@ -120,21 +120,21 @@ export function Navbar() {
 
           <button
             onClick={handleStudentPortalClick}
-            className="text-xs tracking-wider uppercase font-medium text-slate-300 hover:text-amber-400 px-3 py-2 transition-colors focus:outline-none cursor-pointer"
+            className="text-xs tracking-wider uppercase font-medium text-slate-600 hover:text-blue-600 px-3 py-2 transition-colors focus:outline-none cursor-pointer"
           >
             <span>Student Portal</span>
           </button>
 
           <button
             onClick={handleAdminClick}
-            className="text-xs tracking-wider uppercase font-semibold text-amber-400/90 hover:text-amber-300 px-2 py-2 transition-colors flex items-center gap-1 cursor-pointer"
+            className="text-xs tracking-wider uppercase font-semibold text-blue-600 hover:text-blue-500 px-2 py-2 transition-colors flex items-center gap-1 cursor-pointer"
           >
             <span>Admin</span>
           </button>
 
           <Link
             href="/book"
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-amber-500/10 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-blue-600/10 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           >
             <span>Reserve Session</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -144,7 +144,7 @@ export function Navbar() {
         {/* Mobile Hamburger Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-slate-300 hover:text-amber-400 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400/40 transition"
+          className="md:hidden text-slate-600 hover:text-blue-600 p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition"
           aria-label="Toggle Navigation Menu"
           aria-expanded={mobileMenuOpen}
           aria-controls="mobile-navigation-drawer"
@@ -162,7 +162,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="md:hidden bg-[#070b19]/95 backdrop-blur-2xl border-b border-slate-800/80 px-8 py-8 space-y-6"
+            className="md:hidden bg-white/95 backdrop-blur border-b border-slate-200 px-8 py-8 space-y-6"
           >
             <div className="space-y-3">
               {navLinks.map((link) => (
@@ -171,7 +171,7 @@ export function Navbar() {
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block font-serif text-2xl py-2 transition-colors ${
-                    pathname === link.href ? 'text-amber-400 italic' : 'text-slate-300 hover:text-slate-100'
+                    pathname === link.href ? 'text-blue-600 italic' : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
                   {link.name}
@@ -179,10 +179,10 @@ export function Navbar() {
               ))}
             </div>
 
-            <div className="pt-6 border-t border-slate-800/80 flex flex-col gap-3">
+            <div className="pt-6 border-t border-slate-200 flex flex-col gap-3">
               <a
                 href="tel:7829780778"
-                className="w-full text-center py-3.5 border border-amber-400/40 text-amber-400 font-semibold text-xs tracking-wider uppercase rounded-full bg-amber-400/5 flex items-center justify-center gap-2"
+                className="w-full text-center py-3.5 border border-blue-300 text-blue-600 font-semibold text-xs tracking-wider uppercase rounded-full bg-blue-50 flex items-center justify-center gap-2"
               >
                 <Phone className="w-4 h-4" />
                 <span>Call Helpline: 7829780778</span>
@@ -193,7 +193,7 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   handleStudentPortalClick(e);
                 }}
-                className="w-full text-center py-3.5 border border-slate-800 text-slate-200 font-medium text-xs tracking-wider uppercase rounded-full bg-slate-900/60 cursor-pointer"
+                className="w-full text-center py-3.5 border border-slate-200 text-slate-700 font-medium text-xs tracking-wider uppercase rounded-full bg-slate-50 cursor-pointer"
               >
                 Student Portal
               </button>
@@ -203,7 +203,7 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   handleAdminClick(e);
                 }}
-                className="w-full text-center py-3.5 border border-amber-500/30 text-amber-400 font-semibold text-xs tracking-wider uppercase rounded-full bg-amber-500/10 cursor-pointer"
+                className="w-full text-center py-3.5 border border-blue-300 text-blue-600 font-semibold text-xs tracking-wider uppercase rounded-full bg-blue-50 cursor-pointer"
               >
                 Admin Control Portal 🔑
               </button>
@@ -211,7 +211,7 @@ export function Navbar() {
               <Link
                 href="/book"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-3.5 bg-amber-500 text-slate-950 font-bold text-xs tracking-wider uppercase rounded-full shadow-lg"
+                className="w-full text-center py-3.5 bg-blue-600 text-white font-bold text-xs tracking-wider uppercase rounded-full shadow-lg"
               >
                 Reserve Training Session
               </Link>

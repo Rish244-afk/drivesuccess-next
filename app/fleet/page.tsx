@@ -89,15 +89,15 @@ function FleetContent() {
     <div className="space-y-0 font-sans">
       
       {/* 1. HERO SECTION */}
-      <section className="bg-[#0A1128] py-24 lg:py-32 border-b border-slate-800/60 text-center">
+      <section className="bg-white py-24 lg:py-32 border-b border-slate-200/80 text-center">
         <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-6">
-          <span className="text-xs font-semibold uppercase tracking-widest text-amber-400">
+          <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">
             Dual-Control Safety Fleet
           </span>
-          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-slate-100 tracking-tight leading-tight">
-            Our Learning <em className="italic text-amber-400 font-normal">Vehicles</em>
+          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-slate-900 tracking-tight leading-tight">
+            Our Learning <em className="italic text-blue-600 font-normal">Vehicles</em>
           </h1>
-          <p className="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg text-slate-600 font-light max-w-2xl mx-auto leading-relaxed">
             Every car in our academy features instructor dual-pedals, climate control, and ISO 9001:2026 certified maintenance standards.
           </p>
         </div>
@@ -121,8 +121,8 @@ function FleetContent() {
                   onClick={() => handleTierFilterChange(tab.id)}
                   className={`px-5 py-2 text-xs font-sans uppercase tracking-wider font-semibold transition-all cursor-pointer ${
                     selectedTierFilter === tab.id
-                      ? 'text-slate-900 border-b-2 border-amber-500 font-bold'
-                      : 'text-slate-500 hover:text-slate-900'
+                      ? 'text-slate-900 border-b-2 border-blue-600 font-bold'
+                      : 'text-slate-400 hover:text-slate-900'
                   }`}
                 >
                   {tab.label}
@@ -146,7 +146,7 @@ function FleetContent() {
                     key={car.id}
                     className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                   >
-                    <div className="h-64 relative overflow-hidden bg-slate-950">
+                    <div className="h-64 relative overflow-hidden bg-white">
                       <Image
                         src={car.imageUrl || `/images/${car.name.toLowerCase()}.jpg`}
                         alt={car.name}
@@ -154,7 +154,7 @@ function FleetContent() {
                         className="object-cover hover:scale-105 transition-transform duration-700"
                       />
                       <div className="absolute top-4 left-4">
-                        <span className="bg-slate-950/80 backdrop-blur-md text-slate-100 text-[10px] uppercase tracking-widest font-semibold px-3 py-1 rounded-full border border-slate-800">
+                        <span className="bg-white/10 backdrop-blur-md text-slate-900 text-[10px] uppercase tracking-widest font-semibold px-3 py-1 rounded-full border border-slate-200">
                           {formatTierLabel(car.tier)}
                         </span>
                       </div>
@@ -165,13 +165,13 @@ function FleetContent() {
                         <div className="flex justify-between items-baseline">
                           <div>
                             <h3 className="font-serif text-3xl font-normal text-slate-900">{car.name}</h3>
-                            <span className="text-xs text-slate-500 font-medium">Model Year: {car.modelYear}</span>
+                            <span className="text-xs text-slate-400 font-medium">Model Year: {car.modelYear}</span>
                           </div>
                           <div className="text-right">
                             <span className="font-serif text-2xl text-slate-900 font-normal font-mono">
                               ₹{car.ratePerSession.toLocaleString()}
                             </span>
-                            <span className="text-[11px] text-slate-500 block">/ session</span>
+                            <span className="text-[11px] text-slate-400 block">/ session</span>
                           </div>
                         </div>
 
@@ -185,7 +185,7 @@ function FleetContent() {
                           {car.transmission} Transmission
                         </span>
                         {car.hasDualControl && (
-                          <span className="text-[11px] font-semibold text-amber-700 bg-amber-500/10 px-3 py-1 rounded-full">
+                          <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-3 py-1 rounded-full">
                             Dual Control Pedals
                           </span>
                         )}
@@ -213,18 +213,18 @@ function FleetContent() {
         </div>
       </section>
 
-      {/* 3. CTA BAND */}
-      <section className="bg-[#0A1128] py-28 text-center border-t border-slate-800/60">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-8">
-          <h2 className="font-serif text-4xl sm:text-5xl font-normal text-slate-100 tracking-tight">
-            Reserve Your Training <em className="italic text-amber-400 font-normal">Vehicle</em>
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-28 text-center border-t border-slate-200/80 relative overflow-hidden font-sans">
+        <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/10 rounded-full blur-[160px] pointer-events-none" />
+        <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-8 relative z-10">
+          <h2 className="font-serif text-4xl sm:text-5xl font-normal text-white tracking-tight">
+            Reserve Your Training <em className="italic text-white/90 font-normal">Vehicle</em>
           </h2>
-          <p className="text-base text-slate-300 font-light max-w-xl mx-auto">
+          <p className="text-base text-white/80 font-light max-w-xl mx-auto">
             Pick your preferred car model and instructor for your next driving lesson.
           </p>
           <a
             href="/book"
-            className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-widest px-9 py-4 rounded-full inline-flex items-center gap-2 shadow-xl shadow-amber-500/10 hover:scale-[1.02] transition-all"
+            className="bg-white hover:bg-slate-50 text-slate-900 font-bold text-xs uppercase tracking-widest px-9 py-4 rounded-full inline-flex items-center gap-2 shadow-xl shadow-black/10 hover:scale-[1.02] transition-all"
           >
             <span>Book Driving Session</span>
             <ArrowRight className="w-4 h-4" />
@@ -238,7 +238,7 @@ function FleetContent() {
 
 export default function FleetPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0A1128] text-slate-400 p-12 text-center text-sm">Loading Fleet Vehicles...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-white text-slate-400 p-12 text-center text-sm">Loading Fleet Vehicles...</div>}>
       <FleetContent />
     </Suspense>
   );

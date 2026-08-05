@@ -13,7 +13,7 @@ interface InspiraCardProps {
 export function InspiraCard({
   children,
   className = '',
-  spotlightColor = 'rgba(245, 158, 11, 0.15)',
+  spotlightColor = 'rgba(37, 99, 235, 0.12)',
   isHighlight = false,
 }: InspiraCardProps) {
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -39,8 +39,8 @@ export function InspiraCard({
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
       className={`relative rounded-3xl overflow-hidden transition-all duration-300 ${
         isHighlight
-          ? 'bg-gradient-to-b from-[#0F172A] to-[#070B19] border-2 border-amber-400/60 shadow-[0_20px_50px_rgba(245,158,11,0.18)]'
-          : 'bg-[#070B19] border border-slate-800/80 hover:border-slate-600 shadow-xl'
+          ? 'bg-gradient-to-b from-white to-slate-50 border-2 border-blue-400 shadow-[0_20px_50px_rgba(37,99,235,0.18)]'
+          : 'bg-white border border-slate-200 hover:border-slate-300 shadow-card'
       } ${className}`}
     >
       {/* Inspira UI Spotlight Radial Glow Layer */}
@@ -54,7 +54,7 @@ export function InspiraCard({
 
       {/* Top Ambient Highlight */}
       {isHighlight && (
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 z-20" />
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 z-20" />
       )}
 
       <div className="relative z-20">{children}</div>

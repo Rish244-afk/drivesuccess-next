@@ -64,11 +64,11 @@ export function AdminInstructorsClient({ initialInstructors }: AdminInstructorsC
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-        <h2 className="font-heading font-extrabold text-xl text-slate-100">Academy Instructors ({instructors.length})</h2>
+      <div className="flex justify-between items-center bg-white border border-slate-200 p-4 rounded-2xl">
+        <h2 className="font-heading font-extrabold text-xl text-slate-900">Academy Instructors ({instructors.length})</h2>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Instructor</span>
@@ -76,7 +76,7 @@ export function AdminInstructorsClient({ initialInstructors }: AdminInstructorsC
       </div>
 
       {message && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs flex items-center gap-2">
+        <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-400 rounded-xl text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
           <span>{message}</span>
         </div>
@@ -85,37 +85,37 @@ export function AdminInstructorsClient({ initialInstructors }: AdminInstructorsC
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {instructors.map((inst) => (
-          <div key={inst.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 flex flex-col justify-between">
+          <div key={inst.id} className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 flex flex-col justify-between">
             <div className="space-y-2">
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 px-2 py-0.5 rounded text-xs font-extrabold">
-                  <Star className="w-3 h-3 fill-amber-400" />
+                <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-300 text-blue-600 px-2 py-0.5 rounded text-xs font-extrabold">
+                  <Star className="w-3 h-3 fill-blue-600" />
                   <span>{inst.rating}</span>
                 </div>
                 <button
                   onClick={() => handleDeleteInstructor(inst.id)}
-                  className="text-slate-500 hover:text-rose-400 p-1"
+                  className="text-slate-400 hover:text-rose-500 p-1"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
 
-              <h3 className="font-heading font-extrabold text-lg text-slate-100">{inst.name}</h3>
+              <h3 className="font-heading font-extrabold text-lg text-slate-900">{inst.name}</h3>
               <p className="text-xs text-slate-400">{inst.experienceYears} Years Experience</p>
-              <p className="text-xs text-slate-300 font-mono">{inst.phone} • {inst.email}</p>
+              <p className="text-xs text-slate-600 font-mono">{inst.phone} • {inst.email}</p>
               
               <div className="flex flex-wrap gap-1 pt-1">
                 {(inst.specialties || []).map((sp: string, idx: number) => (
-                  <span key={idx} className="bg-slate-950 text-slate-300 text-[10px] px-2 py-0.5 rounded border border-slate-800">
+                  <span key={idx} className="bg-white text-slate-600 text-[10px] px-2 py-0.5 rounded border border-slate-200">
                     {sp}
                   </span>
                 ))}
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
+            <div className="pt-3 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400">
               <span>RTO Certified</span>
-              <span className="font-mono text-[10px] text-slate-500">{inst.id.slice(-6)}</span>
+              <span className="font-mono text-[10px] text-slate-400">{inst.id.slice(-6)}</span>
             </div>
           </div>
         ))}
@@ -123,94 +123,94 @@ export function AdminInstructorsClient({ initialInstructors }: AdminInstructorsC
 
       {/* Create Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 max-w-md w-full space-y-4 shadow-2xl">
-            <h3 className="font-heading font-extrabold text-xl text-slate-100">Add New Instructor</h3>
+        <div className="fixed inset-0 z-50 bg-white/10 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-md w-full space-y-4 shadow-hover">
+            <h3 className="font-heading font-extrabold text-xl text-slate-900">Add New Instructor</h3>
 
             <form onSubmit={handleCreateInstructor} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold mb-1 uppercase">Full Name</label>
+                <label className="block text-slate-600 font-bold mb-1 uppercase">Full Name</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Rajesh Kumar"
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-100 p-3 rounded-xl outline-none"
+                  className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1 uppercase">Email</label>
+                  <label className="block text-slate-600 font-bold mb-1 uppercase">Email</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="rajesh@drivesuccess.edu"
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-100 p-3 rounded-xl outline-none"
+                    className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1 uppercase">Phone</label>
+                  <label className="block text-slate-600 font-bold mb-1 uppercase">Phone</label>
                   <input
                     type="text"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 98765 43210"
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-100 p-3 rounded-xl outline-none"
+                    className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1 uppercase">Exp (Years)</label>
+                  <label className="block text-slate-600 font-bold mb-1 uppercase">Exp (Years)</label>
                   <input
                     type="number"
                     required
                     value={experienceYears}
                     onChange={(e) => setExperienceYears(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-100 p-3 rounded-xl outline-none"
+                    className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-bold mb-1 uppercase">Rating (★)</label>
+                  <label className="block text-slate-600 font-bold mb-1 uppercase">Rating (★)</label>
                   <input
                     type="number"
                     step="0.1"
                     required
                     value={rating}
                     onChange={(e) => setRating(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-100 p-3 rounded-xl outline-none"
+                    className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1 uppercase">Specialties (comma separated)</label>
+                <label className="block text-slate-600 font-bold mb-1 uppercase">Specialties (comma separated)</label>
                 <input
                   type="text"
                   required
                   value={specialties}
                   onChange={(e) => setSpecialties(e.target.value)}
                   placeholder="Night Driving, Parallel Parking"
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-100 p-3 rounded-xl outline-none"
+                  className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1 uppercase">Bio</label>
+                <label className="block text-slate-600 font-bold mb-1 uppercase">Bio</label>
                 <textarea
                   required
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={2}
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-100 p-3 rounded-xl outline-none resize-none"
+                  className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl outline-none resize-none"
                 />
               </div>
 
@@ -218,14 +218,14 @@ export function AdminInstructorsClient({ initialInstructors }: AdminInstructorsC
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="w-1/2 py-3 bg-slate-800 text-slate-300 rounded-xl font-bold"
+                  className="w-1/2 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-1/2 py-3 bg-amber-500 text-slate-950 rounded-xl font-bold uppercase"
+                  className="w-1/2 py-3 bg-blue-600 text-slate-950 rounded-xl font-bold uppercase"
                 >
                   {loading ? 'Saving...' : 'Add Instructor'}
                 </button>

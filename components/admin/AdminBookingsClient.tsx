@@ -259,26 +259,26 @@ export function AdminBookingsClient({
       
       {/* Alert Notice */}
       {message && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-2xl text-xs flex items-center gap-2">
+        <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-400 rounded-2xl text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
           <span>{message}</span>
         </div>
       )}
 
       {/* Comprehensive Filter Controls */}
-      <div className="bg-[#070B19] border border-slate-800/80 p-5 rounded-3xl space-y-4 shadow-xl">
+      <div className="bg-white border border-slate-200 p-5 rounded-3xl space-y-4 shadow-xl">
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* 1. Search Bar */}
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
             <input
               type="text"
               placeholder="Search student, phone, package, payment ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-10 pr-4 py-2.5 rounded-xl text-xs outline-none transition"
+              className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 pl-10 pr-4 py-2.5 rounded-xl text-xs outline-none transition"
             />
           </div>
 
@@ -287,7 +287,7 @@ export function AdminBookingsClient({
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-xs outline-none font-medium"
+              className="w-full bg-white border border-slate-200 text-slate-700 p-2.5 rounded-xl text-xs outline-none font-medium"
             >
               <option value="ALL">Payment: All Statuses</option>
               <option value="PAID">Payment: PAID</option>
@@ -302,7 +302,7 @@ export function AdminBookingsClient({
             <select
               value={instructorFilter}
               onChange={(e) => setInstructorFilter(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-xs outline-none font-medium"
+              className="w-full bg-white border border-slate-200 text-slate-700 p-2.5 rounded-xl text-xs outline-none font-medium"
             >
               <option value="ALL">Instructor: All Instructors</option>
               {allInstructors.map((inst) => (
@@ -318,7 +318,7 @@ export function AdminBookingsClient({
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2.5 rounded-xl text-xs outline-none font-medium"
+              className="w-full bg-white border border-slate-200 text-slate-700 p-2.5 rounded-xl text-xs outline-none font-medium"
             >
               <option value="ALL">Date Range: All Time</option>
               <option value="TODAY">Date Range: Booked Today</option>
@@ -330,10 +330,10 @@ export function AdminBookingsClient({
         </div>
 
         {/* Booking Status Tabs & Sort Buttons */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-800/60">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t border-slate-200/80">
           
           <div className="flex gap-1.5 overflow-x-auto w-full sm:w-auto">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest self-center mr-2 hidden md:inline">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest self-center mr-2 hidden md:inline">
               Booking State:
             </span>
             {['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'].map((st) => (
@@ -342,8 +342,8 @@ export function AdminBookingsClient({
                 onClick={() => setStatusFilter(st)}
                 className={`px-3.5 py-1.5 rounded-xl text-[11px] font-extrabold tracking-wider transition-all ${
                   statusFilter === st
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                    : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                    ? 'bg-blue-600 text-slate-950 shadow-md shadow-blue-600/15'
+                    : 'bg-white text-slate-400 hover:text-slate-700 border border-slate-200'
                 }`}
               >
                 {st}
@@ -352,11 +352,11 @@ export function AdminBookingsClient({
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto text-xs text-slate-400">
-            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Sort:</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Sort:</span>
             <button
               onClick={() => toggleSort('createdAt')}
               className={`px-3 py-1 rounded-lg border text-[11px] flex items-center gap-1 font-semibold ${
-                sortField === 'createdAt' ? 'border-amber-400 text-amber-400 bg-amber-400/10' : 'border-slate-800 text-slate-400'
+                sortField === 'createdAt' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-slate-200 text-slate-400'
               }`}
             >
               <span>Date</span>
@@ -366,7 +366,7 @@ export function AdminBookingsClient({
             <button
               onClick={() => toggleSort('student')}
               className={`px-3 py-1 rounded-lg border text-[11px] flex items-center gap-1 font-semibold ${
-                sortField === 'student' ? 'border-amber-400 text-amber-400 bg-amber-400/10' : 'border-slate-800 text-slate-400'
+                sortField === 'student' ? 'border-blue-500 text-blue-600 bg-blue-50' : 'border-slate-200 text-slate-400'
               }`}
             >
               <span>Student</span>
@@ -379,7 +379,7 @@ export function AdminBookingsClient({
       </div>
 
       {/* Full Operational Table */}
-      <div className="bg-[#070B19] border border-slate-800/80 rounded-3xl overflow-hidden shadow-2xl">
+      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-hover">
         {filteredBookings.length === 0 ? (
           <div className="text-center py-16 text-slate-400 text-xs font-light">
             No bookings matching the active filters or search criteria.
@@ -388,7 +388,7 @@ export function AdminBookingsClient({
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-900/80 text-slate-400 uppercase tracking-widest text-[10px] font-bold border-b border-slate-800">
+                <tr className="bg-white/90 text-slate-400 uppercase tracking-widest text-[10px] font-bold border-b border-slate-200">
                   <th className="py-4 px-6">Student & Contact</th>
                   <th className="py-4 px-4">Package & Price</th>
                   <th className="py-4 px-4">Slot Date / Timestamps</th>
@@ -405,17 +405,17 @@ export function AdminBookingsClient({
                   const completedSessions = (b.sessions || []).filter((s: any) => s.status === 'COMPLETED').length;
 
                   return (
-                    <tr key={b.id} className="hover:bg-slate-900/50 transition-colors">
+                    <tr key={b.id} className="hover:bg-white/50 transition-colors">
                       {/* 1. Student & Contact */}
                       <td className="py-4 px-6 align-top">
                         <div className="space-y-1">
-                          <h4 className="font-serif text-base text-slate-100 font-normal">{b.student?.name}</h4>
+                          <h4 className="font-serif text-base text-slate-900 font-normal">{b.student?.name}</h4>
                           <div className="flex items-center gap-2">
                             {b.student?.phone ? (
                               <>
                                 <a
                                   href={`tel:${b.student.phone}`}
-                                  className="text-[11px] font-mono text-amber-400 hover:underline flex items-center gap-1"
+                                  className="text-[11px] font-mono text-blue-600 hover:underline flex items-center gap-1"
                                 >
                                   <Phone className="w-3 h-3" />
                                   <span>{b.student.phone}</span>
@@ -435,18 +435,18 @@ export function AdminBookingsClient({
                                 </a>
                               </>
                             ) : (
-                              <span className="text-slate-500 italic text-[11px]">No phone</span>
+                              <span className="text-slate-400 italic text-[11px]">No phone</span>
                             )}
                           </div>
-                          <p className="text-[10px] text-slate-500 font-mono">ID: {b.id.slice(-8)}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">ID: {b.id.slice(-8)}</p>
                         </div>
                       </td>
 
                       {/* 2. Package & Price */}
                       <td className="py-4 px-4 align-top">
                         <div className="space-y-1">
-                          <p className="font-semibold text-slate-200">{b.package?.name}</p>
-                          <p className="font-serif text-sm text-amber-400">₹{b.totalAmount.toLocaleString()}</p>
+                          <p className="font-semibold text-slate-700">{b.package?.name}</p>
+                          <p className="font-serif text-sm text-blue-600">₹{b.totalAmount.toLocaleString()}</p>
                           <p className="text-[10px] text-emerald-400 font-medium">
                             {completedSessions} / {b.package?.sessionsCount || 10} Sessions Done
                           </p>
@@ -456,25 +456,25 @@ export function AdminBookingsClient({
                       {/* 3. Slot Date / Timestamps */}
                       <td className="py-4 px-4 align-top text-[11px] space-y-1">
                         <div>
-                          <span className="text-slate-500 text-[10px] uppercase font-bold block">Slot Time:</span>
+                          <span className="text-slate-400 text-[10px] uppercase font-bold block">Slot Time:</span>
                           {firstSessionSlot ? (
-                            <span className="text-slate-200 font-medium">{formatDate(firstSessionSlot)}</span>
+                            <span className="text-slate-700 font-medium">{formatDate(firstSessionSlot)}</span>
                           ) : (
                             <span className="text-slate-400 italic">Not Scheduled</span>
                           )}
                         </div>
                         <div>
-                          <span className="text-slate-500 text-[10px] uppercase font-bold block">Booked:</span>
+                          <span className="text-slate-400 text-[10px] uppercase font-bold block">Booked:</span>
                           <span className="text-slate-400">{formatDate(b.createdAt)}</span>
                         </div>
                         {b.paidAt && (
                           <div>
-                            <span className="text-slate-500 text-[10px] uppercase font-bold block">Paid At:</span>
+                            <span className="text-slate-400 text-[10px] uppercase font-bold block">Paid At:</span>
                             <span className="text-emerald-400">{formatDate(b.paidAt)}</span>
                           </div>
                         )}
                         {b.razorpayPaymentId && (
-                          <p className="text-[9.5px] font-mono text-slate-500 pt-1">
+                          <p className="text-[9.5px] font-mono text-slate-400 pt-1">
                             PayID: {b.razorpayPaymentId}
                           </p>
                         )}
@@ -485,7 +485,7 @@ export function AdminBookingsClient({
                         <select
                           value={b.instructorId || ''}
                           onChange={(e) => handleUpdateAssignment(b.id, { instructorId: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-xl outline-none text-xs font-medium"
+                          className="w-full bg-white border border-slate-200 text-slate-700 p-2 rounded-xl outline-none text-xs font-medium"
                         >
                           <option value="">-- Unassigned --</option>
                           {allInstructors.map((inst) => (
@@ -501,7 +501,7 @@ export function AdminBookingsClient({
                         <select
                           value={b.vehicleId || ''}
                           onChange={(e) => handleUpdateAssignment(b.id, { vehicleId: e.target.value })}
-                          className="w-full bg-slate-950 border border-slate-800 text-slate-200 p-2 rounded-xl outline-none text-xs font-medium"
+                          className="w-full bg-white border border-slate-200 text-slate-700 p-2 rounded-xl outline-none text-xs font-medium"
                         >
                           <option value="">-- Unassigned --</option>
                           {allVehicles.map((veh) => (
@@ -518,14 +518,14 @@ export function AdminBookingsClient({
                           <select
                             value={b.status}
                             onChange={(e) => handleUpdateAssignment(b.id, { status: e.target.value as any })}
-                            className={`w-full bg-slate-950 border text-center p-1.5 rounded-xl outline-none text-[10px] font-extrabold uppercase ${
+                            className={`w-full bg-white border text-center p-1.5 rounded-xl outline-none text-[10px] font-extrabold uppercase ${
                               b.status === 'CONFIRMED'
-                                ? 'border-emerald-500/40 text-emerald-400'
+                                ? 'border-emerald-300 text-emerald-400'
                                 : b.status === 'COMPLETED'
-                                ? 'border-sky-500/40 text-sky-400'
+                                ? 'border-sky-300 text-sky-400'
                                 : b.status === 'CANCELLED'
-                                ? 'border-rose-500/40 text-rose-400'
-                                : 'border-amber-500/40 text-amber-400'
+                                ? 'border-rose-300 text-rose-400'
+                                : 'border-blue-400 text-blue-600'
                             }`}
                           >
                             <option value="PENDING">PENDING</option>
@@ -539,14 +539,14 @@ export function AdminBookingsClient({
                           <select
                             value={b.paymentStatus}
                             onChange={(e) => handleUpdateAssignment(b.id, { paymentStatus: e.target.value as any })}
-                            className={`w-full bg-slate-950 border text-center p-1.5 rounded-xl outline-none text-[10px] font-extrabold uppercase ${
+                            className={`w-full bg-white border text-center p-1.5 rounded-xl outline-none text-[10px] font-extrabold uppercase ${
                               b.paymentStatus === 'PAID'
-                                ? 'border-emerald-500/40 text-emerald-300'
+                                ? 'border-emerald-300 text-emerald-300'
                                 : b.paymentStatus === 'REFUNDED'
-                                ? 'border-purple-500/40 text-purple-300'
+                                ? 'border-purple-300 text-purple-300'
                                 : b.paymentStatus === 'FAILED'
-                                ? 'border-rose-500/40 text-rose-300'
-                                : 'border-amber-500/40 text-amber-300'
+                                ? 'border-rose-300 text-rose-300'
+                                : 'border-blue-400 text-blue-500'
                             }`}
                           >
                             <option value="PENDING">PENDING</option>
@@ -575,7 +575,7 @@ export function AdminBookingsClient({
                             type="button"
                             disabled={loadingId === b.id || completedSessions === 0}
                             onClick={() => handleRemoveSession(b.id)}
-                            className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold px-2 py-1.5 rounded-lg text-[11px] flex items-center gap-1 transition disabled:opacity-30"
+                            className="bg-rose-50 hover:bg-rose-100 text-rose-400 border border-rose-300 font-bold px-2 py-1.5 rounded-lg text-[11px] flex items-center gap-1 transition disabled:opacity-30"
                             title="Undo Last Completed Session"
                           >
                             <MinusCircle className="w-3 h-3" />
@@ -588,7 +588,7 @@ export function AdminBookingsClient({
                             type="button"
                             disabled={loadingId === b.id}
                             onClick={() => handleMarkNoShow(b.id)}
-                            className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-1 rounded-lg text-[10px] font-semibold transition"
+                            className="bg-blue-50 hover:bg-blue-100 text-blue-500 border border-blue-300 px-2 py-1 rounded-lg text-[10px] font-semibold transition"
                           >
                             No-Show
                           </button>
@@ -598,7 +598,7 @@ export function AdminBookingsClient({
                               type="button"
                               disabled={loadingId === b.id}
                               onClick={() => setCancelModalBooking(b)}
-                              className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-1 rounded-lg text-[10px] font-semibold transition"
+                              className="bg-rose-50 hover:bg-rose-100 text-rose-400 border border-rose-300 px-2 py-1 rounded-lg text-[10px] font-semibold transition"
                             >
                               Cancel
                             </button>
@@ -617,13 +617,13 @@ export function AdminBookingsClient({
 
       {/* Cancellation Reason Modal */}
       {cancelModalBooking && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-white/10 backdrop-blur-sm flex items-center justify-center p-4">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl"
+            className="bg-white border border-slate-200 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-hover"
           >
-            <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-rose-400" />
               <span>Cancel Booking for {cancelModalBooking.student?.name}</span>
             </h3>
@@ -636,7 +636,7 @@ export function AdminBookingsClient({
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 placeholder="e.g. Student requested reschedule, medical emergency, vehicle unavailable..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 p-3 rounded-xl text-xs outline-none focus:border-amber-400 h-24"
+                className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl text-xs outline-none focus:border-blue-500 h-24"
                 required
               />
 
@@ -644,7 +644,7 @@ export function AdminBookingsClient({
                 <button
                   type="button"
                   onClick={() => setCancelModalBooking(null)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700 transition"
+                  className="px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-200 transition"
                 >
                   Close
                 </button>

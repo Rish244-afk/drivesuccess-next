@@ -15,7 +15,7 @@ export function Skeleton({ className = '', style }: SkeletonProps) {
   return (
     <div
       style={style}
-      className={`relative overflow-hidden bg-slate-800/60 rounded-xl before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-slate-700/40 before:to-transparent ${className}`}
+      className={`relative overflow-hidden bg-slate-100 rounded-xl before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-slate-200/60 before:to-transparent ${className}`}
     />
   );
 }
@@ -69,7 +69,7 @@ export function CourseCardSkeleton({ count = 3 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="bg-[#070B19] border border-slate-800/80 p-8 rounded-3xl space-y-6 flex flex-col justify-between"
+          className="bg-white border border-slate-200 p-8 rounded-3xl space-y-6 flex flex-col justify-between"
         >
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -81,7 +81,7 @@ export function CourseCardSkeleton({ count = 3 }: { count?: number }) {
             <Skeleton className="h-4 w-5/6" />
           </div>
 
-          <div className="space-y-3 pt-4 border-t border-slate-800/80">
+          <div className="space-y-3 pt-4 border-t border-slate-200">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-4/5" />
             <Skeleton className="h-12 w-full rounded-full pt-2" />
@@ -100,7 +100,7 @@ export function VehicleCardSkeleton({ count = 4 }: { count?: number }) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm flex flex-col">
-          <Skeleton className="h-64 w-full rounded-none bg-slate-900" />
+          <Skeleton className="h-64 w-full rounded-none bg-slate-100" />
           <div className="p-8 space-y-4">
             <div className="flex justify-between items-center">
               <Skeleton className="h-8 w-1/3" />
@@ -124,12 +124,12 @@ export function VehicleCardSkeleton({ count = 4 }: { count?: number }) {
  */
 export function TableSkeleton({ rows = 5, cols = 4 }: { rows?: number; cols?: number }) {
   return (
-    <div className="border border-slate-800 rounded-2xl overflow-hidden bg-[#070B19]">
-      <div className="p-4 bg-slate-900/60 border-b border-slate-800 flex justify-between">
+    <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+      <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between">
         <Skeleton className="h-6 w-32" />
         <Skeleton className="h-6 w-24" />
       </div>
-      <div className="divide-y divide-slate-800/60">
+      <div className="divide-y divide-slate-200">
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="p-4 flex items-center justify-between gap-4">
             {Array.from({ length: cols }).map((_, j) => (
@@ -149,7 +149,7 @@ export function StatCardSkeleton({ count = 3 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-[#070B19] border border-slate-800/80 p-6 rounded-2xl space-y-3">
+        <div key={i} className="bg-white border border-slate-200 p-6 rounded-2xl space-y-3">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-10 w-36" />
         </div>

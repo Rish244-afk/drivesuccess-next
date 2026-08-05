@@ -45,8 +45,8 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title={
-        <div className="flex items-center gap-2 text-amber-400">
-          <ShieldCheck className="w-5 h-5 text-amber-400" />
+        <div className="flex items-center gap-2 text-blue-600">
+          <ShieldCheck className="w-5 h-5 text-blue-600" />
           <span className="font-heading font-extrabold uppercase tracking-wider text-xs">
             Admin Control Center
           </span>
@@ -56,10 +56,10 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
     >
       <div className="space-y-6 font-sans">
         <div className="text-center space-y-2">
-          <h3 className="font-heading font-extrabold text-xl text-slate-100">
+          <h3 className="font-heading font-extrabold text-xl text-slate-900">
             Secure Admin Access
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Administrative Credential Portal
           </p>
         </div>
@@ -73,7 +73,7 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Admin Email
             </label>
             <div className="relative">
@@ -83,14 +83,14 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@drivesuccess.edu"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-10 pr-4 py-3 rounded-xl outline-none text-sm"
+                className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 pl-10 pr-4 py-3 rounded-xl outline-none text-sm"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
               Admin Password
             </label>
             <div className="relative">
@@ -100,7 +100,7 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 pl-10 pr-4 py-3 rounded-xl outline-none text-sm"
+                className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 pl-10 pr-4 py-3 rounded-xl outline-none text-sm"
                 required
               />
             </div>
@@ -109,7 +109,7 @@ export function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-sm shadow-xl shadow-amber-500/20 transition disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-sm shadow-xl shadow-blue-600/15 transition disabled:opacity-50"
           >
             {loading ? (
               <RefreshCw className="w-4 h-4 animate-spin" />

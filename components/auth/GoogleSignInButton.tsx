@@ -251,8 +251,8 @@ export function GoogleSignInButton({
       )}
 
       {loading ? (
-        <div className="w-full py-3.5 bg-slate-950 border border-slate-800 text-slate-300 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
-          <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+        <div className="w-full py-3.5 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
+          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
           <span>Verifying Google Account...</span>
         </div>
       ) : (
@@ -263,7 +263,7 @@ export function GoogleSignInButton({
             <button
               type="button"
               onClick={handleGoogleClick}
-              className="w-full bg-slate-950 hover:bg-slate-900 border border-slate-800 text-slate-200 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 text-xs tracking-wider transition shadow-md focus:outline-none focus:ring-2 focus:ring-amber-400/40 cursor-pointer"
+              className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 text-xs tracking-wider transition shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
             >
               <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

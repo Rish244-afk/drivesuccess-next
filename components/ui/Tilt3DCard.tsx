@@ -61,7 +61,7 @@ export function Tilt3DCard({ children, className = '', intensity = 15 }: Tilt3DC
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 hover:opacity-20 transition-opacity duration-300"
           style={{
-            background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(245, 158, 11, 0.4), transparent 70%)`,
+            background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(37, 99, 235, 0.3), transparent 70%)`,
           }}
         />
       </motion.div>

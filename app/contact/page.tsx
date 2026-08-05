@@ -47,8 +47,8 @@ export default function ContactPage() {
       
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
-        <span className="text-xs font-extrabold uppercase tracking-wider text-amber-400">Get In Touch</span>
-        <h1 className="font-heading font-extrabold text-4xl sm:text-5xl text-slate-100">
+        <span className="text-xs font-extrabold uppercase tracking-wider text-blue-600">Get In Touch</span>
+        <h1 className="font-heading font-extrabold text-4xl sm:text-5xl text-slate-900">
           Contact Our Driving Advisors
         </h1>
         <p className="text-sm sm:text-base text-slate-400 leading-relaxed font-light">
@@ -64,64 +64,64 @@ export default function ContactPage() {
             href={GOOGLE_MAPS_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="block bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl hover:border-amber-500/50 transition cursor-pointer group"
+            className="block bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xl hover:border-blue-400 transition cursor-pointer group"
           >
-            <div className="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <MapPin className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-lg text-slate-100 group-hover:text-amber-400 transition-colors">Vahathi Motor Driving School</h3>
-              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                <span className="text-amber-400 font-bold group-hover:underline">Address</span>:
+              <h3 className="font-heading font-extrabold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">Vahathi Motor Driving School</h3>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                <span className="text-blue-600 font-bold group-hover:underline">Address</span>:
                 Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
               </p>
-              <p className="text-[11px] text-amber-400 font-semibold mt-2">
+              <p className="text-[11px] text-blue-600 font-semibold mt-2">
                 📍 Open in Google Maps →
               </p>
             </div>
           </a>
 
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
-            <div className="w-12 h-12 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center shrink-0">
+          <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xl">
+            <div className="w-12 h-12 bg-blue-50 text-blue-400 rounded-xl flex items-center justify-center shrink-0">
               <Phone className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-lg text-slate-100">Phone</h3>
+              <h3 className="font-heading font-extrabold text-lg text-slate-900">Phone</h3>
               <p className="mt-1">
                 <a
                   href={PHONE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-amber-400 font-bold text-base hover:underline"
+                  className="text-blue-600 font-bold text-base hover:underline"
                 >
                   078297 80778
                 </a>
               </p>
-              <p className="text-[11px] text-slate-500 mt-1">Mon - Sat: 6:00 AM - 8:00 PM IST</p>
+              <p className="text-[11px] text-slate-400 mt-1">Mon - Sat: 6:00 AM - 8:00 PM IST</p>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl">
-            <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center shrink-0">
+          <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-4 shadow-xl">
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-400 rounded-xl flex items-center justify-center shrink-0">
               <Mail className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading font-extrabold text-lg text-slate-100">Email & Enquiries</h3>
-              <p className="text-xs text-slate-300 mt-1 font-mono">support@drivesuccess.edu</p>
-              <p className="text-[11px] text-slate-500 mt-1">Instant Phone & WhatsApp support</p>
+              <h3 className="font-heading font-extrabold text-lg text-slate-900">Email & Enquiries</h3>
+              <p className="text-xs text-slate-600 mt-1 font-mono">support@drivesuccess.edu</p>
+              <p className="text-[11px] text-slate-400 mt-1">Instant Phone & WhatsApp support</p>
             </div>
           </div>
         </div>
 
         {/* Right 2 Cols: Contact Form */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl">
+        <div className="lg:col-span-2 bg-white border border-slate-200 p-8 sm:p-10 rounded-3xl shadow-hover">
           <div className="flex items-center gap-3 mb-6">
-            <MessageSquare className="w-6 h-6 text-amber-400" />
-            <h2 className="font-heading font-extrabold text-2xl text-slate-100">Send Us a Message</h2>
+            <MessageSquare className="w-6 h-6 text-blue-600" />
+            <h2 className="font-heading font-extrabold text-2xl text-slate-900">Send Us a Message</h2>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-2xl text-xs flex items-center gap-2">
+            <div className="mb-6 p-4 bg-rose-50 border border-rose-300 text-rose-400 rounded-2xl text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4" />
               <span>{error}</span>
             </div>
@@ -131,11 +131,11 @@ export default function ContactPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="p-8 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-center space-y-4"
+              className="p-8 bg-emerald-50 border border-emerald-300 rounded-2xl text-center space-y-4"
             >
               <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto" />
-              <h3 className="font-heading font-extrabold text-xl text-slate-100">Message Received!</h3>
-              <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
+              <h3 className="font-heading font-extrabold text-xl text-slate-900">Message Received!</h3>
+              <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
                 Thank you for reaching out. A Senior Driving Advisor will contact you at your phone number or email within 2 hours.
               </p>
               <button
@@ -146,7 +146,7 @@ export default function ContactPage() {
                   setEmail('');
                   setInquiry('');
                 }}
-                className="text-xs font-bold text-amber-400 hover:underline pt-2 inline-block cursor-pointer"
+                className="text-xs font-bold text-blue-600 hover:underline pt-2 inline-block cursor-pointer"
               >
                 Send another message
               </button>
@@ -155,7 +155,7 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                     Full Name
                   </label>
                   <input
@@ -164,12 +164,12 @@ export default function ContactPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Sarah Jenkins"
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition"
+                    className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 px-4 py-3 rounded-xl outline-none text-sm transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                     Phone Number
                   </label>
                   <input
@@ -178,13 +178,13 @@ export default function ContactPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+91 078297 80778"
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition"
+                    className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 px-4 py-3 rounded-xl outline-none text-sm transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                   Email Address
                 </label>
                 <input
@@ -193,12 +193,12 @@ export default function ContactPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="sarah@example.com"
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition"
+                  className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 px-4 py-3 rounded-xl outline-none text-sm transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
                   Program Interest / Inquiry
                 </label>
                 <textarea
@@ -207,14 +207,14 @@ export default function ContactPage() {
                   value={inquiry}
                   onChange={(e) => setInquiry(e.target.value)}
                   placeholder="I am looking for information on 4-wheeler driver licensing packages and weekend slot availability..."
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-3 rounded-xl outline-none text-sm transition resize-none"
+                  className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 px-4 py-3 rounded-xl outline-none text-sm transition resize-none"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-sm shadow-xl shadow-amber-500/20 transition disabled:opacity-50 cursor-pointer"
+                className="w-full bg-blue-600 hover:bg-blue-500 text-slate-950 font-extrabold py-4 px-6 rounded-xl flex items-center justify-center gap-2 text-sm shadow-xl shadow-blue-600/15 transition disabled:opacity-50 cursor-pointer"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>{loading ? 'Sending Message...' : 'Submit Inquiry'}</span>

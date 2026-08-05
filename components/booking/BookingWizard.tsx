@@ -370,15 +370,15 @@ export function BookingWizard() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-[#070B19] border border-slate-800/80 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
+    <div className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-hover space-y-8">
       
       {/* Slim Elegant Progress Line */}
       <div className="space-y-4">
         <div className="flex justify-between items-baseline text-xs uppercase tracking-widest text-slate-400 font-sans">
-          <span className="font-serif text-lg text-slate-200 normal-case font-normal">
-            Step <em className="italic text-amber-400 font-normal">{step}</em> of 6
+          <span className="font-serif text-lg text-slate-700 normal-case font-normal">
+            Step <em className="italic text-blue-600 font-normal">{step}</em> of 6
           </span>
-          <span className="text-amber-400 font-medium tracking-widest">
+          <span className="text-blue-600 font-medium tracking-widest">
             {step === 1 && 'Select Driving Package'}
             {step === 2 && 'Select Certified Instructor'}
             {step === 3 && 'Select Training Vehicle'}
@@ -387,9 +387,9 @@ export function BookingWizard() {
             {step === 6 && 'Complete Secure Payment'}
           </span>
         </div>
-        <div className="h-1 bg-slate-900 rounded-full overflow-hidden">
+        <div className="h-1 bg-white rounded-full overflow-hidden">
           <div
-            className="h-full bg-amber-400 rounded-full transition-all duration-500"
+            className="h-full bg-blue-500 rounded-full transition-all duration-500"
             style={{ width: `${(step / 6) * 100}%` }}
           />
         </div>
@@ -397,7 +397,7 @@ export function BookingWizard() {
 
       {/* Error Alert */}
       {error && (
-        <div className="p-4 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl text-xs flex items-center gap-3">
+        <div className="p-4 bg-rose-50 border border-rose-300 text-rose-400 rounded-xl text-xs flex items-center gap-3">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -405,7 +405,7 @@ export function BookingWizard() {
 
       {/* Success Alert */}
       {successMessage && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs flex items-center gap-3">
+        <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-400 rounded-xl text-xs flex items-center gap-3">
           <CheckCircle2 className="w-5 h-5 shrink-0" />
           <span>{successMessage}</span>
         </div>
@@ -415,15 +415,15 @@ export function BookingWizard() {
       {step === 1 && (
         <div className="space-y-6">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-100 flex items-center gap-3">
-              <Package className="w-6 h-6 text-amber-400" />
+            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
+              <Package className="w-6 h-6 text-blue-600" />
               <span>Select Driving Package</span>
             </h2>
             <p className="text-xs text-slate-400 mt-1">Loaded live from database. Select your course package.</p>
           </div>
 
           {/* Vehicle Category Filter Tabs */}
-          <div className="flex flex-wrap gap-2 border-b border-slate-800/80 pb-4">
+          <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-4">
             {[
               { id: 'ALL', label: 'All Packages' },
               { id: 'CRETA', label: 'Hyundai Creta SUV' },
@@ -436,8 +436,8 @@ export function BookingWizard() {
                 onClick={() => setPackageCategoryTab(tab.id as any)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
                   packageCategoryTab === tab.id
-                    ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
-                    : 'bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200'
+                    ? 'bg-blue-600 text-slate-950 shadow-md shadow-blue-600/15'
+                    : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-700'
                 }`}
               >
                 {tab.label}
@@ -447,7 +447,7 @@ export function BookingWizard() {
 
           {loading ? (
             <div className="text-center py-12 text-slate-400">
-              <RefreshCw className="w-6 h-6 animate-spin text-amber-400 mx-auto" />
+              <RefreshCw className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -469,20 +469,20 @@ export function BookingWizard() {
                       onClick={() => handleSelectPackage(pkg, vehicles)}
                       className={`p-5 rounded-2xl border cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-amber-500/10 border-amber-500 shadow-lg shadow-amber-500/10'
-                          : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                          ? 'bg-blue-50 border-blue-600 shadow-lg shadow-blue-600/10'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex justify-between items-start">
-                        <h3 className="font-heading font-bold text-slate-100 text-base">{pkg.name}</h3>
-                        <span className="font-heading font-extrabold text-lg text-amber-400">
+                        <h3 className="font-heading font-bold text-slate-900 text-base">{pkg.name}</h3>
+                        <span className="font-heading font-extrabold text-lg text-blue-600">
                           ₹{pkg.price.toLocaleString()}
                         </span>
                       </div>
                       <p className="text-xs text-slate-400 mt-2 line-clamp-2">{pkg.description}</p>
                       <div className="mt-4 flex items-center justify-between text-[11px] text-slate-400">
                         <span>{pkg.sessionsCount} Practical Sessions</span>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-amber-400" />}
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-blue-600" />}
                       </div>
                     </div>
                   );
@@ -494,7 +494,7 @@ export function BookingWizard() {
             <button
               disabled={!selectedPackage}
               onClick={() => setStep(2)}
-              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
             >
               <span>Next: Choose Instructor</span>
               <ArrowRight className="w-4 h-4" />
@@ -507,8 +507,8 @@ export function BookingWizard() {
       {step === 2 && (
         <div className="space-y-6">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-100 flex items-center gap-3">
-              <User className="w-6 h-6 text-amber-400" />
+            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
+              <User className="w-6 h-6 text-blue-600" />
               <span>Select Certified Instructor</span>
             </h2>
             <p className="text-xs text-slate-400 mt-1">Choose a senior pedagogical instructor.</p>
@@ -523,22 +523,22 @@ export function BookingWizard() {
                   onClick={() => setSelectedInstructor(inst)}
                   className={`p-5 rounded-2xl border cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-amber-500/10 border-amber-500 shadow-lg shadow-amber-500/10'
-                      : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                      ? 'bg-blue-50 border-blue-600 shadow-lg shadow-blue-600/10'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-heading font-bold text-slate-100 text-base">{inst.name}</h3>
+                      <h3 className="font-heading font-bold text-slate-900 text-base">{inst.name}</h3>
                       <span className="text-[11px] text-slate-400">{inst.experienceYears} Years Exp</span>
                     </div>
-                    <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
                       ★ {inst.rating}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {inst.specialties.map((spec) => (
-                      <span key={spec} className="text-[10px] bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-800">
+                      <span key={spec} className="text-[10px] bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200">
                         {spec}
                       </span>
                     ))}
@@ -551,14 +551,14 @@ export function BookingWizard() {
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setStep(1)}
-              className="px-6 py-3 rounded-xl border border-slate-800 text-slate-300 text-xs font-bold"
+              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
             </button>
             <button
               disabled={!selectedInstructor}
               onClick={() => setStep(3)}
-              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
             >
               <span>Next: Choose Vehicle</span>
               <ArrowRight className="w-4 h-4" />
@@ -571,8 +571,8 @@ export function BookingWizard() {
       {step === 3 && (
         <div className="space-y-6">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-100 flex items-center gap-3">
-              <Car className="w-6 h-6 text-amber-400" />
+            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
+              <Car className="w-6 h-6 text-blue-600" />
               <span>Select Training Vehicle</span>
             </h2>
             <p className="text-xs text-slate-400 mt-1">Dual-control certified fleet vehicles.</p>
@@ -580,11 +580,11 @@ export function BookingWizard() {
 
           {/* Package Vehicle Lock Notice */}
           {selectedPackage && (
-            <div className="p-4 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-2xl text-xs flex items-center justify-between">
+            <div className="p-4 bg-blue-50 border border-blue-300 text-blue-500 rounded-2xl text-xs flex items-center justify-between">
               <span>
                 <strong>Selected Package:</strong> {selectedPackage.name}
               </span>
-              <span className="text-[10px] bg-amber-500 text-slate-950 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+              <span className="text-[10px] bg-blue-600 text-slate-950 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
                 {selectedPackage.targetVehicleCategory || 'Vehicle Auto-Matched'}
               </span>
             </div>
@@ -614,18 +614,18 @@ export function BookingWizard() {
                   }}
                   className={`p-5 rounded-2xl border transition-all ${
                     !isAllowed
-                      ? 'bg-slate-950/40 border-slate-900 opacity-40 cursor-not-allowed'
+                      ? 'bg-slate-50 border-slate-200 opacity-40 cursor-not-allowed'
                       : isSelected
-                      ? 'bg-amber-500/10 border-amber-500 shadow-lg shadow-amber-500/10 cursor-pointer'
-                      : 'bg-slate-950 border-slate-800 hover:border-slate-700 cursor-pointer'
+                      ? 'bg-blue-50 border-blue-600 shadow-lg shadow-blue-600/10 cursor-pointer'
+                      : 'bg-white border-slate-200 hover:border-slate-300 cursor-pointer'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-heading font-bold text-slate-100 text-base">{veh.name}</h3>
+                      <h3 className="font-heading font-bold text-slate-900 text-base">{veh.name}</h3>
                       <span className="text-[11px] text-slate-400">{veh.transmission} Transmission</span>
                     </div>
-                    <span className="font-heading font-bold text-amber-400 text-sm">
+                    <span className="font-heading font-bold text-blue-600 text-sm">
                       ₹{veh.ratePerSession}/sess
                     </span>
                   </div>
@@ -634,7 +634,7 @@ export function BookingWizard() {
                     {!isAllowed ? (
                       <span className="text-[10px] text-rose-400 font-medium">Not for selected package</span>
                     ) : isSelected ? (
-                      <span className="flex items-center gap-1 text-amber-400 font-bold">
+                      <span className="flex items-center gap-1 text-blue-600 font-bold">
                         <CheckCircle2 className="w-4 h-4" /> Selected
                       </span>
                     ) : null}
@@ -647,14 +647,14 @@ export function BookingWizard() {
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setStep(2)}
-              className="px-6 py-3 rounded-xl border border-slate-800 text-slate-300 text-xs font-bold"
+              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
             </button>
             <button
               disabled={!selectedVehicle}
               onClick={() => setStep(4)}
-              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
             >
               <span>Next: Select Date & Slots</span>
               <ArrowRight className="w-4 h-4" />
@@ -667,8 +667,8 @@ export function BookingWizard() {
       {step === 4 && (
         <div className="space-y-6">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-100 flex items-center gap-3">
-              <Calendar className="w-6 h-6 text-amber-400" />
+            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
+              <Calendar className="w-6 h-6 text-blue-600" />
               <span>Select Date & Calculated Available Slots</span>
             </h2>
             <p className="text-xs text-slate-400 mt-1">
@@ -676,8 +676,8 @@ export function BookingWizard() {
             </p>
           </div>
 
-          <div className="space-y-4 bg-slate-950 p-6 rounded-2xl border border-slate-800">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+          <div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-200">
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
               Pick Date
             </label>
             <input
@@ -688,18 +688,18 @@ export function BookingWizard() {
                 setSelectedTimeSlot(null);
               }}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full bg-slate-900 border border-slate-800 text-slate-100 px-4 py-3 rounded-xl text-sm font-medium outline-none"
+              className="w-full bg-white border border-slate-200 text-slate-900 px-4 py-3 rounded-xl text-sm font-medium outline-none"
             />
           </div>
 
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
               Available Time Slots for {selectedInstructor?.name}
             </label>
 
             {slotsLoading ? (
               <div className="text-center py-8 text-slate-400">
-                <RefreshCw className="w-6 h-6 animate-spin text-amber-400 mx-auto" />
+                <RefreshCw className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
                 <p className="text-xs mt-2">Calculating available slots from database...</p>
               </div>
             ) : (
@@ -713,10 +713,10 @@ export function BookingWizard() {
                       onClick={() => setSelectedTimeSlot(slot.time)}
                       className={`p-3.5 rounded-xl border text-xs font-bold transition-all text-center ${
                         !slot.available
-                          ? 'bg-slate-950/50 border-slate-900 text-slate-600 cursor-not-allowed line-through'
+                          ? 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed line-through'
                           : isSelected
-                          ? 'bg-amber-500 border-amber-500 text-slate-950 shadow-lg shadow-amber-500/20'
-                          : 'bg-slate-950 border-slate-800 text-slate-200 hover:border-amber-500/50'
+                          ? 'bg-blue-600 border-blue-600 text-slate-950 shadow-lg shadow-blue-600/15'
+                          : 'bg-white border-slate-200 text-slate-700 hover:border-blue-400'
                       }`}
                     >
                       <span>{slot.time}</span>
@@ -731,14 +731,14 @@ export function BookingWizard() {
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setStep(3)}
-              className="px-6 py-3 rounded-xl border border-slate-800 text-slate-300 text-xs font-bold"
+              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
             </button>
             <button
               disabled={!selectedTimeSlot}
               onClick={() => setStep(5)}
-              className="bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
             >
               <span>Next: Summary</span>
               <ArrowRight className="w-4 h-4" />
@@ -751,17 +751,17 @@ export function BookingWizard() {
       {step === 5 && (
         <div className="space-y-6">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-100 flex items-center gap-3">
-              <ShieldCheck className="w-6 h-6 text-amber-400" />
+            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
+              <ShieldCheck className="w-6 h-6 text-blue-600" />
               <span>Booking Summary</span>
             </h2>
             <p className="text-xs text-slate-400 mt-1">Review details before creating pending booking and initializing Razorpay Checkout.</p>
           </div>
 
-          <div className="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-800">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
+            <div className="flex justify-between items-center pb-4 border-b border-slate-200">
               <span className="text-xs text-slate-400 uppercase font-bold">Booking Status</span>
-              <span className="bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-extrabold px-3 py-1 rounded-full uppercase">
+              <span className="bg-blue-50 border border-blue-300 text-blue-600 text-xs font-extrabold px-3 py-1 rounded-full uppercase">
                 PENDING
               </span>
             </div>
@@ -769,34 +769,34 @@ export function BookingWizard() {
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-slate-400">Selected Package:</span>
-                <strong className="text-slate-100">{selectedPackage?.name}</strong>
+                <strong className="text-slate-900">{selectedPackage?.name}</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Assigned Instructor:</span>
-                <strong className="text-slate-100">{selectedInstructor?.name}</strong>
+                <strong className="text-slate-900">{selectedInstructor?.name}</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Selected Vehicle:</span>
-                <strong className="text-slate-100">{selectedVehicle?.name} ({selectedVehicle?.transmission})</strong>
+                <strong className="text-slate-900">{selectedVehicle?.name} ({selectedVehicle?.transmission})</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Scheduled Date & Slot:</span>
-                <strong className="text-amber-400">{selectedDate} at {selectedTimeSlot}</strong>
+                <strong className="text-blue-600">{selectedDate} at {selectedTimeSlot}</strong>
               </div>
-              <div className="flex justify-between pt-2 border-t border-slate-800 text-sm">
-                <span className="text-slate-300 font-bold">Total Amount Payable:</span>
-                <strong className="text-amber-400 font-extrabold text-lg">₹{selectedPackage?.price.toLocaleString()}</strong>
+              <div className="flex justify-between pt-2 border-t border-slate-200 text-sm">
+                <span className="text-slate-600 font-bold">Total Amount Payable:</span>
+                <strong className="text-blue-600 font-extrabold text-lg">₹{selectedPackage?.price.toLocaleString()}</strong>
               </div>
             </div>
 
             {isGuest ? (
-              <div className="pt-4 border-t border-slate-800 space-y-4">
+              <div className="pt-4 border-t border-slate-200 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-extrabold uppercase text-amber-400 tracking-wider flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <h4 className="text-xs font-extrabold uppercase text-blue-600 tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-blue-600" />
                     <span>Student Authentication Required</span>
                   </h4>
-                  <span className="text-[10px] text-amber-400/90 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30 uppercase font-extrabold">
+                  <span className="text-[10px] text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-300 uppercase font-extrabold">
                     Real OTP / Google Verification
                   </span>
                 </div>
@@ -807,13 +807,13 @@ export function BookingWizard() {
 
                 {/* Inline Auth Errors / Messages */}
                 {authError && (
-                  <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-xl text-xs flex items-center gap-2">
+                  <div className="p-3 bg-rose-50 border border-rose-300 text-rose-300 rounded-xl text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                     <span>{authError}</span>
                   </div>
                 )}
                 {authMessage && (
-                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs flex items-center gap-2">
+                  <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-300 rounded-xl text-xs flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
                     <span>{authMessage}</span>
                   </div>
@@ -822,11 +822,11 @@ export function BookingWizard() {
                 {/* Invisible reCAPTCHA container for bot protection */}
                 <div id="wizard-recaptcha-container"></div>
 
-                <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
+                <div className="bg-white border border-slate-200 p-5 rounded-2xl space-y-4">
                   {/* Phone OTP Section */}
                   {authStep === 'PHONE' ? (
                     <div className="space-y-3">
-                      <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                      <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
                         Enter Mobile Phone Number
                       </label>
                       <div className="flex gap-2">
@@ -835,13 +835,13 @@ export function BookingWizard() {
                           placeholder="Enter 10-digit mobile number"
                           value={authPhone}
                           onChange={(e) => setAuthPhone(e.target.value)}
-                          className="flex-1 bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 px-4 py-2.5 rounded-xl outline-none text-xs"
+                          className="flex-1 bg-white border border-slate-200 focus:border-blue-500 text-slate-900 px-4 py-2.5 rounded-xl outline-none text-xs"
                         />
                         <button
                           type="button"
                           disabled={authLoading}
                           onClick={handleSendWizardOtp}
-                          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0"
+                          className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0"
                         >
                           {authLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Send OTP</span>}
                         </button>
@@ -850,13 +850,13 @@ export function BookingWizard() {
                   ) : (
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
                           Enter 6-Digit OTP Code
                         </label>
                         <button
                           type="button"
                           onClick={() => setAuthStep('PHONE')}
-                          className="text-[11px] text-amber-400 hover:underline"
+                          className="text-[11px] text-blue-600 hover:underline"
                         >
                           Change Phone
                         </button>
@@ -868,13 +868,13 @@ export function BookingWizard() {
                           placeholder="••••••"
                           value={authOtp}
                           onChange={(e) => setAuthOtp(e.target.value.replace(/[^\d]/g, ''))}
-                          className="flex-1 bg-slate-950 border border-slate-800 focus:border-amber-400 text-slate-100 text-center tracking-widest text-base font-bold py-2.5 rounded-xl outline-none"
+                          className="flex-1 bg-white border border-slate-200 focus:border-blue-500 text-slate-900 text-center tracking-widest text-base font-bold py-2.5 rounded-xl outline-none"
                         />
                         <button
                           type="button"
                           disabled={authLoading}
                           onClick={handleVerifyWizardOtp}
-                          className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0"
+                          className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0"
                         >
                           {authLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Verify & Authenticate</span>}
                         </button>
@@ -884,9 +884,9 @@ export function BookingWizard() {
 
                   {/* Divider */}
                   <div className="flex items-center gap-3 my-2">
-                    <div className="h-[1px] bg-slate-800 flex-1" />
-                    <span className="text-[10px] font-semibold text-slate-500 uppercase">OR</span>
-                    <div className="h-[1px] bg-slate-800 flex-1" />
+                    <div className="h-[1px] bg-slate-100 flex-1" />
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase">OR</span>
+                    <div className="h-[1px] bg-slate-100 flex-1" />
                   </div>
 
                   {/* Google Sign In Button */}
@@ -901,29 +901,29 @@ export function BookingWizard() {
                 </div>
               </div>
             ) : (
-              <div className="pt-4 border-t border-slate-800 space-y-3">
+              <div className="pt-4 border-t border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-extrabold uppercase text-emerald-400 tracking-wider flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     <span>Verified Student Account (Database Record)</span>
                   </h4>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30 uppercase font-extrabold">
+                  <span className="text-[10px] text-emerald-400 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-300 uppercase font-extrabold">
                     Authenticated
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-slate-200 text-xs">
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Student Name *</span>
                     {studentName ? (
-                      <strong className="text-slate-100">{studentName}</strong>
+                      <strong className="text-slate-900">{studentName}</strong>
                     ) : (
                       <input
                         type="text"
                         placeholder="Complete Full Name"
                         value={studentName}
                         onChange={(e) => setStudentName(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-amber-400"
+                        className="w-full bg-white border border-slate-300 text-slate-900 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-blue-500"
                         required
                       />
                     )}
@@ -932,14 +932,14 @@ export function BookingWizard() {
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Mobile Phone *</span>
                     {initialPhone ? (
-                      <strong className="text-amber-400">{studentPhone}</strong>
+                      <strong className="text-blue-600">{studentPhone}</strong>
                     ) : (
                       <input
                         type="tel"
                         placeholder="Add a contact number to continue"
                         value={studentPhone}
                         onChange={(e) => setStudentPhone(e.target.value.replace(/[^\d+]/g, ''))}
-                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-amber-400"
+                        className="w-full bg-white border border-slate-300 text-slate-900 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-blue-500"
                         required
                       />
                     )}
@@ -948,14 +948,14 @@ export function BookingWizard() {
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Email Address</span>
                     {studentEmail ? (
-                      <strong className="text-slate-100">{studentEmail}</strong>
+                      <strong className="text-slate-900">{studentEmail}</strong>
                     ) : (
                       <input
                         type="email"
                         placeholder="Add Email (Optional)"
                         value={studentEmail}
                         onChange={(e) => setStudentEmail(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 text-slate-100 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-amber-400"
+                        className="w-full bg-white border border-slate-300 text-slate-900 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-blue-500"
                       />
                     )}
                   </div>
@@ -964,7 +964,7 @@ export function BookingWizard() {
             )}
 
             <div className="pt-2">
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
                 Additional Notes (Optional)
               </label>
               <textarea
@@ -972,7 +972,7 @@ export function BookingWizard() {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any special instruction or request..."
                 rows={2}
-                className="w-full bg-slate-900 border border-slate-800 text-slate-100 p-3 rounded-xl text-xs outline-none"
+                className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl text-xs outline-none"
               />
             </div>
           </div>
@@ -980,14 +980,14 @@ export function BookingWizard() {
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setStep(4)}
-              className="px-6 py-3 rounded-xl border border-slate-800 text-slate-300 text-xs font-bold"
+              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
             </button>
             <button
               disabled={loading || isGuest}
               onClick={handleCreatePendingBooking}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-8 py-4 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-amber-500/20 disabled:opacity-50"
+              className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-extrabold px-8 py-4 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-blue-600/15 disabled:opacity-50"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
@@ -1009,32 +1009,32 @@ export function BookingWizard() {
       {/* STEP 6: RAZORPAY CHECKOUT & RETRY */}
       {step === 6 && (
         <div className="space-y-6 text-center">
-          <div className="p-8 bg-slate-950 border border-slate-800 rounded-3xl space-y-6">
+          <div className="p-8 bg-white border border-slate-200 rounded-3xl space-y-6">
             
             {paymentStatus === 'PAID' ? (
               <div className="space-y-4">
-                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 bg-emerald-50 text-emerald-400 border border-emerald-300 rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h3 className="font-heading font-extrabold text-2xl text-slate-100">Payment Successful!</h3>
+                <h3 className="font-heading font-extrabold text-2xl text-slate-900">Payment Successful!</h3>
                 <p className="text-xs text-slate-400">
                   Your payment was verified via HMAC SHA256 signature and booking status updated to <strong className="text-emerald-400">CONFIRMED</strong>.
                 </p>
               </div>
             ) : paymentStatus === 'FAILED' ? (
               <div className="space-y-4">
-                <div className="w-16 h-16 bg-rose-500/10 text-rose-400 border border-rose-500/30 rounded-full flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 bg-rose-50 text-rose-400 border border-rose-300 rounded-full flex items-center justify-center mx-auto">
                   <AlertCircle className="w-8 h-8" />
                 </div>
-                <h3 className="font-heading font-extrabold text-2xl text-slate-100">Payment Failed or Cancelled</h3>
+                <h3 className="font-heading font-extrabold text-2xl text-slate-900">Payment Failed or Cancelled</h3>
                 <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  Your booking record (<code className="text-amber-400 font-mono">{createdBookingId}</code>) remains saved as <strong className="text-amber-400">PENDING</strong>. You can retry payment below without losing your slot.
+                  Your booking record (<code className="text-blue-600 font-mono">{createdBookingId}</code>) remains saved as <strong className="text-blue-600">PENDING</strong>. You can retry payment below without losing your slot.
                 </p>
                 <div className="pt-2 flex justify-center gap-4">
                   <button
                     disabled={loading}
                     onClick={() => createdBookingId && launchRazorpayCheckout(createdBookingId)}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-amber-500/20"
+                    className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-blue-600/15"
                   >
                     <RotateCcw className="w-4 h-4" />
                     <span>Retry Payment Now</span>
@@ -1043,8 +1043,8 @@ export function BookingWizard() {
               </div>
             ) : (
               <div className="space-y-4">
-                <RefreshCw className="w-10 h-10 animate-spin text-amber-400 mx-auto" />
-                <h3 className="font-heading font-bold text-xl text-slate-100">Initializing Razorpay Checkout...</h3>
+                <RefreshCw className="w-10 h-10 animate-spin text-blue-600 mx-auto" />
+                <h3 className="font-heading font-bold text-xl text-slate-900">Initializing Razorpay Checkout...</h3>
                 <p className="text-xs text-slate-400">Please complete the payment modal.</p>
               </div>
             )}

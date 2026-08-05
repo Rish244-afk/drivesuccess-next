@@ -156,16 +156,16 @@ export function AppleScrollCanvasSequence({
 
   return (
     <section ref={containerRef} className={`relative w-full h-[300vh] ${className}`}>
-      <div className="sticky top-0 w-full h-screen overflow-hidden bg-[#070B19] flex items-center justify-center">
+      <div className="sticky top-0 w-full h-screen overflow-hidden bg-white flex items-center justify-center">
         
         {!isLoaded && (
-          <div className="absolute inset-0 z-50 bg-[#070B19] flex flex-col items-center justify-center space-y-4">
-            <span className="text-xs uppercase tracking-widest text-slate-300 font-medium">
+          <div className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center space-y-4">
+            <span className="text-xs uppercase tracking-widest text-slate-600 font-medium">
               Preloading Precision Sequence ({loadingProgress}%)
             </span>
-            <div className="w-60 h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div className="w-60 h-1 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-amber-400 rounded-full transition-all duration-150"
+                className="h-full bg-blue-500 rounded-full transition-all duration-150"
                 style={{ width: `${loadingProgress}%` }}
               />
             </div>

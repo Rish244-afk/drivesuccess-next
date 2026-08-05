@@ -20,14 +20,14 @@ export default async function AdminDocumentsPage() {
   const documents = data || [];
 
   return (
-    <div className="min-h-screen bg-[#0A1128] text-slate-100 font-sans pb-20">
+    <div className="min-h-screen bg-white text-slate-900 font-sans pb-20">
       <AdminHeader />
       <div className="max-w-7xl mx-auto px-6 sm:px-8 py-12 space-y-8">
         <div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-normal text-slate-100">
-            Student <em className="italic text-amber-400 font-normal">Documents Review</em>
+          <h1 className="font-serif text-3xl sm:text-4xl font-normal text-slate-900">
+            Student <em className="italic text-blue-600 font-normal">Documents Review</em>
           </h1>
-          <p className="text-slate-400 font-light mt-2 max-w-2xl text-sm">
+          <p className="text-slate-500 font-light mt-2 max-w-2xl text-sm">
             Review uploaded Government IDs, RTO Form 20, Learner Licenses, and Medical Certificates. Ensure legitimacy before verifying.
           </p>
         </div>

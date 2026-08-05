@@ -67,7 +67,7 @@ export function Modal({
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-900/20 backdrop-blur-md">
           {/* Backdrop Overlay Click Handler */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -90,19 +90,19 @@ export function Modal({
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()} // Prevent click-outside from firing when clicking inside modal
-            className={`relative z-10 w-full ${maxWidth} my-auto bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl shadow-slate-950/90 overflow-hidden outline-none max-h-[90vh] flex flex-col ${className}`}
+            className={`relative z-10 w-full ${maxWidth} my-auto bg-white border border-slate-200 rounded-3xl shadow-2xl shadow-slate-200/50 overflow-hidden outline-none max-h-[90vh] flex flex-col ${className}`}
           >
             {/* Header with Title & Explicit X Close Button */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-950/80 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50 shrink-0">
               {title ? (
-                <div className="font-heading font-bold text-slate-100 text-sm">{title}</div>
+                <div className="font-heading font-bold text-slate-900 text-sm">{title}</div>
               ) : (
                 <div />
               )}
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 rounded-full transition focus:outline-none focus:ring-2 focus:ring-amber-400/40"
+                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition focus:outline-none focus:ring-2 focus:ring-blue-500/30"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
