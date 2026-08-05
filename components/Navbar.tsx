@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, ArrowUpRight, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NotificationBell } from '@/components/NotificationBell';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { AdminAuthModal } from '@/components/auth/AdminAuthModal';
+import { Magnetic } from '@/components/ui/Magnetic';
+import gsap from 'gsap';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -15,6 +18,27 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [adminModalOpen, setAdminModalOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const headerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+    // Elegant slide-down animation on mount
+    gsap.fromTo(headerRef.current,
+      { y: -100, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', delay: 0.6 }
+    );
+  }, []);
 
   const handleStudentPortalClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,20 +87,36 @@ export function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 text-slate-900 font-sans">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between">
+    <header
+      ref={headerRef}
+      className={`sticky top-0 z-50 text-slate-900 font-sans transition-all duration-300`}
+      style={{
+        background: 'rgba(248,250,252,0.82)',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        borderBottom: '1px solid rgba(226,232,240,0.55)',
+        boxShadow: scrolled
+          ? '0 2px 8px rgba(15,23,42,0.05), 0 8px 32px rgba(37,99,235,0.05)'
+          : '0 1px 0 rgba(226,232,240,0.5)',
+      }}
+    >
+      <div className={`max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between transition-all duration-300 ${
+        scrolled ? 'h-16' : 'h-20'
+      }`}>
         
-        {/* Editorial Brand Mark */}
-        <Link href="/" className="flex items-center gap-3.5 group">
-          <div className="w-10 h-10 border border-blue-600 text-white rounded-full flex items-center justify-center font-serif text-xl italic transition-transform duration-300 group-hover:scale-105 bg-blue-600 shadow-inner">
-            V
-          </div>
-          <div>
-            <span className="font-serif text-lg tracking-tight text-slate-900 block font-normal leading-tight">
-              Vahathi <span className="italic text-blue-600">Motor</span> Driving School
-            </span>
-          </div>
-        </Link>
+        {/* Brand Logo */}
+        <Magnetic range={25} strength={0.2}>
+          <Link href="/" className="flex items-center group cursor-pointer py-1">
+            <Image
+              src="/images/logo.png"
+              alt="Vahathi Motor Driving School"
+              width={140}
+              height={80}
+              className="h-14 w-auto object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105"
+              priority
+            />
+          </Link>
+        </Magnetic>
 
         {/* Desktop Nav Links */}
         <nav className="hidden md:flex items-center gap-8">
@@ -121,13 +161,15 @@ export function Navbar() {
             <span>Admin</span>
           </button>
 
-          <Link
-            href="/book"
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-blue-600/10 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <span>Reserve Session</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
+          <Magnetic range={30} strength={0.35}>
+            <Link
+              href="/book"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-blue-600/10 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            >
+              <span>Reserve Session</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </Magnetic>
         </div>
 
         {/* Mobile Hamburger Toggle */}

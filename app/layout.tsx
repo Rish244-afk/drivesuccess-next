@@ -6,6 +6,9 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
 import { JsonLdSchemas } from '@/components/seo/JsonLdSchemas';
+import { PageTransitionProvider } from '@/components/providers/PageTransitionProvider';
+import { PremiumCursor } from '@/components/ui/PremiumCursor';
+import { LoadingScreen } from '@/components/ui/LoadingScreen';
 
 const AIChatWidget = dynamic(() => import('@/components/ai/AIChatWidget').then((mod) => mod.AIChatWidget), { ssr: false });
 const CookieConsentBanner = dynamic(() => import('@/components/privacy/CookieConsentBanner').then((mod) => mod.CookieConsentBanner), { ssr: false });
@@ -71,6 +74,8 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans bg-white text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-500/20 selection:text-blue-600">
         <JsonLdSchemas />
+        <PremiumCursor />
+        <LoadingScreen />
         <SmoothScrollProvider>
           {/* Accessibility Skip Link */}
           <a
@@ -84,7 +89,9 @@ export default function RootLayout({
 
           {/* Main Accessibility Landmark */}
           <main id="main-content" className="flex-1" tabIndex={-1}>
-            {children}
+            <PageTransitionProvider>
+              {children}
+            </PageTransitionProvider>
           </main>
 
           <Footer />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
@@ -73,9 +73,23 @@ declare global {
 
 export function BookingWizard() {
   const router = useRouter();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInitialMount = useRef(true);
 
   // Step 1 to 6
   const [step, setStep] = useState<number>(1);
+
+  // Scroll to top of wizard on step change, accounting for sticky header
+  useEffect(() => {
+    if (isInitialMount.current) {
+      return;
+    }
+    if (containerRef.current) {
+      const yOffset = -120; // 80px for header + 40px breathing room
+      const y = containerRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }, [step]);
 
   // Loaded database records
   const [packages, setPackages] = useState<WizardPackage[]>([]);
@@ -130,6 +144,20 @@ export function BookingWizard() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+
+  useEffect(() => {
+    if (authError && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      import('gsap').then(({ default: gsap }) => {
+        const el = document.querySelector('.auth-error-box');
+        if (el) {
+          gsap.fromTo(el,
+            { x: -6 },
+            { x: 6, duration: 0.08, repeat: 5, yoyo: true, onComplete: () => gsap.set(el, { x: 0 }) }
+          );
+        }
+      });
+    }
+  }, [authError]);
 
   const setupWizardRecaptcha = () => {
     if (typeof window === 'undefined') return null;
@@ -250,6 +278,55 @@ export function BookingWizard() {
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'PENDING' | 'VERIFYING' | 'PAID' | 'FAILED'>('IDLE');
 
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem('wizard_state');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.step) setStep(parsed.step);
+        if (parsed.selectedPackage) setSelectedPackage(parsed.selectedPackage);
+        if (parsed.selectedInstructor) setSelectedInstructor(parsed.selectedInstructor);
+        if (parsed.selectedVehicle) setSelectedVehicle(parsed.selectedVehicle);
+        if (parsed.selectedDate) setSelectedDate(parsed.selectedDate);
+        if (parsed.selectedTimeSlot) setSelectedTimeSlot(parsed.selectedTimeSlot);
+        if (parsed.notes) setNotes(parsed.notes);
+        if (parsed.studentName) setStudentName(parsed.studentName);
+        if (parsed.studentPhone) {
+          setStudentPhone(parsed.studentPhone);
+          setInitialPhone(parsed.studentPhone);
+        }
+        if (parsed.studentEmail) setStudentEmail(parsed.studentEmail);
+        if (parsed.createdBookingId) setCreatedBookingId(parsed.createdBookingId);
+        if (parsed.paymentStatus) setPaymentStatus(parsed.paymentStatus);
+      } catch (e) {
+        console.error('Failed to parse wizard state', e);
+      }
+    }
+    // Set flag to allow saving state on subsequent renders
+    isInitialMount.current = false;
+  }, []);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (isInitialMount.current) return;
+    const state = {
+      step,
+      selectedPackage,
+      selectedInstructor,
+      selectedVehicle,
+      selectedDate,
+      selectedTimeSlot,
+      notes,
+      studentName,
+      studentPhone,
+      studentEmail,
+      createdBookingId,
+      paymentStatus
+    };
+    sessionStorage.setItem('wizard_state', JSON.stringify(state));
+  }, [step, selectedPackage, selectedInstructor, selectedVehicle, selectedDate, selectedTimeSlot, notes, studentName, studentPhone, studentEmail, createdBookingId, paymentStatus]);
+
   // UI state
   const [loading, setLoading] = useState<boolean>(false);
   const [slotsLoading, setSlotsLoading] = useState<boolean>(false);
@@ -307,6 +384,10 @@ export function BookingWizard() {
 
   // Step A: Create Pending Booking Record in DB
   const handleCreatePendingBooking = async () => {
+    if (paymentStatus === 'PAID') {
+      console.warn('Booking is already paid. Ignoring create request.');
+      return;
+    }
     if (!selectedPackage || !selectedInstructor || !selectedVehicle || !selectedDate || !selectedTimeSlot) {
       setError('Please complete all booking steps.');
       return;
@@ -348,6 +429,10 @@ export function BookingWizard() {
 
   // Step B: Create Razorpay Order & Trigger Checkout Modal
   const launchRazorpayCheckout = async (bookingId: string) => {
+    if (paymentStatus === 'PAID') {
+      console.warn('Payment already successful. Ignoring checkout launch.');
+      return;
+    }
     await launchHook(bookingId, {
       onLoading: (isLoading) => {
         setLoading(isLoading);
@@ -379,7 +464,7 @@ export function BookingWizard() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-hover space-y-8">
+    <div ref={containerRef} className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-hover space-y-8">
       
       {/* Slim Elegant Progress Line */}
       <div className="space-y-4">
@@ -816,7 +901,7 @@ export function BookingWizard() {
 
                 {/* Inline Auth Errors / Messages */}
                 {authError && (
-                  <div className="p-3 bg-rose-50 border border-rose-300 text-rose-300 rounded-xl text-xs flex items-center gap-2">
+                  <div className="auth-error-box p-3 bg-rose-50 border border-rose-300 text-rose-300 rounded-xl text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                     <span>{authError}</span>
                   </div>
@@ -844,7 +929,7 @@ export function BookingWizard() {
                           placeholder="Enter 10-digit mobile number"
                           value={authPhone}
                           onChange={(e) => setAuthPhone(e.target.value)}
-                          className="flex-1 bg-white border border-slate-200 focus:border-blue-500 text-slate-900 px-4 py-2.5 rounded-xl outline-none text-xs"
+                          className="flex-1 bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:scale-[1.01] text-slate-900 px-4 py-2.5 rounded-xl outline-none text-xs transition-all duration-200"
                         />
                         <button
                           type="button"
@@ -901,7 +986,6 @@ export function BookingWizard() {
                   {/* Google Sign In Button */}
                   <GoogleAuthProvider>
                     <GoogleSignInButton 
-                      mode="popup"
                       onSuccess={async () => {
                         await refreshSessionData();
                       }}

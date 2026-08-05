@@ -272,7 +272,16 @@ export function AuthModal({
 
         {/* Google OAuth Button */}
         <GoogleAuthProvider>
-          <GoogleSignInButton />
+          <GoogleSignInButton
+            onSuccess={() => {
+              if (onSuccess) onSuccess();
+              if (redirectToDashboard) {
+                router.push('/dashboard');
+              }
+              onClose();
+              router.refresh();
+            }}
+          />
         </GoogleAuthProvider>
       </div>
     </Modal>
