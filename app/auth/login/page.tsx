@@ -31,9 +31,11 @@ function LoginFormContent() {
     const hash = window.location.hash;
 
     let tokenToVerify: string | null = null;
+    let stateFromHash: string | null = null;
     if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
       const hashParams = new URLSearchParams(hash.substring(1));
       tokenToVerify = hashParams.get('id_token') || hashParams.get('access_token');
+      stateFromHash = hashParams.get('state');
     }
 
     console.log('🔍 [OAuth Audit] Page Load Check:', {
@@ -65,7 +67,7 @@ function LoginFormContent() {
             console.log('✅ [OAuth Audit] Session created! Checking window type...');
             setMessage('Authenticated via Google! Redirecting...');
             
-            const stateParam = urlParams.get('state');
+            const stateParam = urlParams.get('state') || stateFromHash;
             let stateData: any = null;
             try {
               if (stateParam) stateData = JSON.parse(stateParam);
