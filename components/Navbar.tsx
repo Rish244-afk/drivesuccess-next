@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, ArrowUpRight, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -96,17 +97,17 @@ export function Navbar() {
         scrolled ? 'h-16' : 'h-20'
       }`}>
         
-        {/* Editorial Brand Mark */}
+        {/* Brand Logo */}
         <Magnetic range={25} strength={0.2}>
-          <Link href="/" className="flex items-center gap-3.5 group cursor-pointer">
-            <div className="w-10 h-10 border border-blue-600 text-white rounded-full flex items-center justify-center font-serif text-xl italic transition-transform duration-300 group-hover:scale-105 bg-blue-600 shadow-inner">
-              V
-            </div>
-            <div>
-              <span className="font-serif text-lg tracking-tight text-slate-900 block font-normal leading-tight">
-                Vahathi <span className="italic text-blue-600">Motor</span> Driving School
-              </span>
-            </div>
+          <Link href="/" className="flex items-center group cursor-pointer py-1">
+            <Image
+              src="/images/logo.png"
+              alt="Vahathi Motor Driving School"
+              width={140}
+              height={80}
+              className="h-14 w-auto object-contain mix-blend-multiply transition-transform duration-300 group-hover:scale-105"
+              priority
+            />
           </Link>
         </Magnetic>
 

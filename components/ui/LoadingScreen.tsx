@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import gsap from 'gsap';
 
 export function LoadingScreen() {
@@ -67,12 +68,16 @@ export function LoadingScreen() {
       }}
     >
       <div className="flex flex-col items-center gap-6 max-w-xs w-full px-4">
-        {/* Brand V Mark */}
-        <div
-          ref={logoRef}
-          className="w-16 h-16 border border-white/20 text-white rounded-full flex items-center justify-center font-serif text-3xl italic bg-blue-600 shadow-inner tracking-widest font-normal"
-        >
-          V
+        {/* Brand Logo */}
+        <div ref={logoRef} className="w-48 h-20 relative flex items-center justify-center">
+          <Image
+            src="/images/logo.png"
+            alt="Vahathi Motor Driving School"
+            width={160}
+            height={90}
+            className="h-16 w-auto object-contain invert brightness-200"
+            priority
+          />
         </div>
 
         {/* Dynamic loading track */}

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ShieldCheck, LayoutDashboard, Calendar, Package, Car, UserCheck, LogOut, FileText } from 'lucide-react';
 import { adminLogoutAction } from '@/actions/admin';
@@ -24,15 +25,17 @@ export function AdminHeader() {
         
         {/* Brand */}
         <Link href="/admin" className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-600 text-slate-950 rounded-xl flex items-center justify-center font-extrabold shadow-md">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
+          <Image
+            src="/images/logo.png"
+            alt="Vahathi Motor Driving School"
+            width={84}
+            height={48}
+            className="h-10 w-auto object-contain mix-blend-multiply"
+            priority
+          />
           <div>
-            <span className="font-heading font-extrabold text-base tracking-tight text-slate-900 block">
-              DriveSuccess Admin
-            </span>
-            <span className="text-[9px] font-extrabold tracking-[0.2em] text-blue-600 uppercase block -mt-1">
-              Control Center
+            <span className="font-heading font-extrabold text-[10px] tracking-[0.1em] text-slate-500 uppercase block">
+              Admin Portal
             </span>
           </div>
         </Link>
