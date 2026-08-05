@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { ShieldCheck, Award, Users, CheckCircle2, ArrowRight, Star, Clock, Car, SlidersHorizontal, Sparkles, Compass } from 'lucide-react';
+import { ShieldCheck, Award, Users, ArrowRight, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Magnetic } from '@/components/ui/Magnetic';
 
 const MeshGradient = dynamic(() => import('@/components/ui/MeshGradient'), { ssr: false });
 const FloatingParticles = dynamic(() => import('@/components/ui/FloatingParticles'), { ssr: false });
@@ -15,127 +15,263 @@ const Hero3DScene = dynamic(() => import('@/components/ui/Hero3DScene'), {
 });
 
 export default function HomePage() {
-  const heroRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  });
+  useEffect(() => {
+    // Respect prefers-reduced-motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
 
-  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
-  const textY = useTransform(smoothProgress, [0, 0.8], [0, -40]);
-  const opacity = useTransform(smoothProgress, [0, 0.7], [1, 0.2]);
+    const initGsap = async () => {
+      const { default: gsap } = await import('gsap');
+      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
+      const { default: SplitType } = await import('split-type');
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
+      gsap.registerPlugin(ScrollTrigger);
 
-  const wordVariants = {
-    hidden: { opacity: 0, y: 35, rotateX: -20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      rotateX: 0,
-      transition: { type: 'spring' as const, stiffness: 200, damping: 20 },
-    },
-  };
+      // 1. Text Splitting for Mask Reveal
+      const titleText = new SplitType('.hero-title', { types: 'words' });
+      titleText.words?.forEach((word) => {
+        const wrapper = document.createElement('span');
+        wrapper.className = 'inline-block overflow-hidden mr-3 pb-2 last:mr-0 align-bottom';
+        word.parentNode?.insertBefore(wrapper, word);
+        wrapper.appendChild(word);
+        word.className = 'inline-block translate-y-[110%] hero-title-word';
+      });
+
+      // 2. Cinematic Hero Timeline
+      const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+      // Ambient background fade
+      tl.fromTo('.hero-bg-img', 
+        { opacity: 0, scale: 1.05 },
+        { opacity: 0.55, scale: 1, duration: 1.6 }
+      )
+      // Mesh gradient overlay appears
+      .fromTo('.mesh-gradient-container',
+        { opacity: 0, scale: 0.85 },
+        { opacity: 1, scale: 1, duration: 1.4 },
+        '-=1.2'
+      )
+      // Floating particles fade-in
+      .fromTo('.floating-particles-container',
+        { opacity: 0 },
+        { opacity: 1, duration: 1.2 },
+        '-=1.0'
+      )
+      // Badge slide reveal
+      .fromTo('.hero-badge',
+        { opacity: 0, y: 25 },
+        { opacity: 1, y: 0, duration: 0.8 },
+        '-=0.8'
+      )
+      // Mask Heading reveal
+      .to('.hero-title-word',
+        { y: '0%', stagger: 0.05, duration: 0.95, ease: 'power3.out' },
+        '-=0.7'
+      )
+      // Subtitle reveal
+      .fromTo('.hero-subtitle',
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.8 },
+        '-=0.6'
+      )
+      // CTA buttons reveal
+      .fromTo('.hero-ctas',
+        { opacity: 0, scale: 0.95, y: 10 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.8 },
+        '-=0.6'
+      )
+      // Proof bar reveal
+      .fromTo('.hero-proof',
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.8 },
+        '-=0.5'
+      );
+
+      // 3. Stats Rolling Counters
+      gsap.utils.toArray<HTMLElement>('.stat-count').forEach((el) => {
+        const target = parseFloat(el.getAttribute('data-target') || '0');
+        const decimals = parseInt(el.getAttribute('data-decimals') || '0', 10);
+        const obj = { val: 0 };
+
+        gsap.to(obj, {
+          val: target,
+          duration: 2.2,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+          },
+          onUpdate: () => {
+            el.innerText = obj.val.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+          }
+        });
+      });
+
+      // 4. Section Reveals (Stat Band Reveal)
+      gsap.fromTo(
+        '.stat-item',
+        { opacity: 0, y: 25 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.12,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '.stat-section',
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+          },
+        }
+      );
+
+      // 5. Pedagogy Section Reveal
+      gsap.fromTo(
+        '.pedagogy-header',
+        { opacity: 0, y: 35 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.9,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '.pedagogy-section',
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+          },
+        }
+      );
+
+      gsap.fromTo(
+        '.pedagogy-card-container',
+        { opacity: 0, y: 40 },
+        {
+          opacity: 1,
+          y: 0,
+          stagger: 0.15,
+          duration: 0.85,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: '.pedagogy-cards-grid',
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+          },
+        }
+      );
+
+      // 6. Parallax Storytelling Background Layers
+      gsap.to('.hero-bg-layer', {
+        yPercent: 12,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.hero-section',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        },
+      });
+
+      // 7. Slow Ambient Float Loop for Floating Blobs/Mesh
+      gsap.to('.ambient-float-item', {
+        y: 'random(-10, 10)',
+        x: 'random(-6, 6)',
+        rotation: 'random(-5, 5)',
+        duration: 'random(4, 7)',
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        stagger: 0.2
+      });
+    };
+
+    initGsap();
+
+    return () => {
+      // Safely kill and clean up all ScrollTriggers on unmount
+      import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
+        ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+      });
+    };
+  }, []);
 
   return (
-    <div className="space-y-0 overflow-hidden bg-white">
+    <div ref={containerRef} className="space-y-0 overflow-hidden bg-white">
       
       {/* 1. NEXT-GENERATION SPATIAL UI HERO SECTION */}
-      <section ref={heroRef} className="relative pt-24 pb-28 lg:pt-36 lg:pb-40 border-b border-slate-200/60 overflow-hidden bg-white flex items-center min-h-[85vh]">
+      <section className="hero-section relative pt-24 pb-28 lg:pt-36 lg:pb-40 border-b border-slate-200/60 overflow-hidden bg-white flex items-center min-h-[85vh]">
         
         {/* Full-Bleed Atmospheric Background Photography Layer */}
-        <div aria-hidden="true" className="absolute inset-0 z-0 overflow-hidden">
+        <div aria-hidden="true" className="hero-bg-layer absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
           <Image
             src="/images/hero_spatial_bg.jpg"
             alt="Scenic Mountain Road"
             fill
             priority
-            className="object-cover opacity-[0.55] scale-[1.03] transition-transform duration-700 select-none pointer-events-none"
+            className="hero-bg-img object-cover opacity-0 scale-[1.05] select-none pointer-events-none"
+            style={{ willChange: 'opacity, transform' }}
           />
           {/* Light Glassmorphism Radial Gradient Vignette */}
           <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/40 to-white/75" />
         </div>
 
         {/* Spatial Depth Layers */}
-        <MeshGradient />
-        <FloatingParticles count={30} />
-        <Hero3DScene className="absolute inset-0 w-full h-full" />
+        <div className="mesh-gradient-container opacity-0 absolute inset-0 z-0 pointer-events-none" style={{ willChange: 'opacity, transform' }}>
+          <MeshGradient />
+        </div>
+        <div className="floating-particles-container opacity-0 absolute inset-0 z-0 pointer-events-none" style={{ willChange: 'opacity' }}>
+          <FloatingParticles count={30} />
+        </div>
+        <Hero3DScene className="ambient-float-item absolute inset-0 w-full h-full" />
 
         <div className="max-w-7xl mx-auto px-6 sm:px-8 relative z-10 w-full">
           
           {/* Spatial Editorial Content */}
-          <motion.div
-            style={{ y: textY, opacity }}
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="text-center max-w-5xl mx-auto space-y-10"
-          >
+          <div className="text-center max-w-5xl mx-auto space-y-10">
             {/* Animated Glass Badge */}
-            <motion.div 
-              variants={wordVariants} 
-              className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-blue-200/80 text-blue-600 text-xs font-semibold tracking-widest uppercase bg-white/70 backdrop-blur-xl shadow-hover transition-all duration-300 hover:border-blue-300"
-            >
+            <div className="hero-badge opacity-0 inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-blue-200/80 text-blue-600 text-xs font-semibold tracking-widest uppercase bg-white/70 backdrop-blur-xl shadow-hover transition-all duration-300 hover:border-blue-300 select-none">
               <Sparkles className="w-3.5 h-3.5 animate-pulse text-blue-600" />
               <span>Certified Automotive Pedagogy</span>
-            </motion.div>
+            </div>
  
             {/* Giant Spatial Heading */}
-            <motion.h1
-              variants={wordVariants}
-              className="font-serif text-6xl sm:text-7xl lg:text-8xl font-normal text-slate-900 leading-[1.05] tracking-tight drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
-            >
-              Learn to Drive with{' '}
-              <span className="relative inline-block">
-                <em className="italic text-blue-600 font-normal">Confidence</em>
-                <motion.span
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 1, delay: 0.8 }}
-                  className="absolute bottom-1 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-600 to-transparent origin-left"
-                />
-              </span>
-            </motion.h1>
+            <h1 className="hero-title font-serif text-6xl sm:text-7xl lg:text-8xl font-normal text-slate-900 leading-[1.05] tracking-tight drop-shadow-[0_2px_15px_rgba(255,255,255,0.6)]">
+              Learn to Drive with Confidence
+            </h1>
  
-            <motion.p
-              variants={wordVariants}
-              className="text-lg sm:text-xl text-slate-600 font-light leading-relaxed max-w-3xl mx-auto drop-shadow-sm"
-            >
+            <p className="hero-subtitle opacity-0 text-lg sm:text-xl text-slate-600 font-light leading-relaxed max-w-3xl mx-auto drop-shadow-[0_1px_4px_rgba(255,255,255,0.8)]">
               Safe, structured instruction for first-time drivers. Our patient pedagogical methodology builds long-term competence, road safety, and stress-free license certification.
-            </motion.p>
+            </p>
  
             {/* Interactive Physical Buttons */}
-            <motion.div variants={wordVariants} className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
+            <div className="hero-ctas opacity-0 flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
               
-              <Link
-                href="/book"
-                className="group relative bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-10 py-5 rounded-full flex items-center justify-center gap-3 shadow-lg shadow-blue-600/25 hover:scale-105 active:scale-95 transition-all duration-300"
-              >
-                <span>Reserve Training Session</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              <Magnetic range={30} strength={0.35}>
+                <Link
+                  href="/book"
+                  className="group relative bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-10 py-5 rounded-full flex items-center justify-center gap-3 shadow-lg shadow-blue-600/25 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
+                >
+                  <span>Reserve Training Session</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Magnetic>
  
-              <Link
-                href="/courses"
-                className="border border-slate-200 hover:border-blue-400 bg-white/70 hover:bg-white text-slate-700 font-medium text-xs uppercase tracking-wider px-9 py-5 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 shadow-card hover:scale-105 active:scale-95"
-              >
-                Explore Curriculum
-              </Link>
+              <Magnetic range={25} strength={0.2}>
+                <Link
+                  href="/courses"
+                  className="border border-slate-200 hover:border-blue-400 bg-white/70 hover:bg-white text-slate-700 font-medium text-xs uppercase tracking-wider px-9 py-5 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 shadow-card hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  Explore Curriculum
+                </Link>
+              </Magnetic>
  
-            </motion.div>
+            </div>
  
             {/* Floating Student Proof Bar */}
-            <motion.div variants={wordVariants} className="pt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+            <div className="hero-proof opacity-0 pt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-12 select-none">
               
               <div className="flex items-center gap-3 bg-white/80 backdrop-blur-xl px-5 py-2.5 rounded-full border border-slate-200/60 shadow-card hover:scale-105 transition-all duration-300">
                 <div className="flex -space-x-2">
@@ -153,65 +289,56 @@ export default function HomePage() {
                 <span>98.4% First-Attempt Pass Rate</span>
               </div>
  
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
  
         </div>
       </section>
 
       {/* 2. STAT BAND */}
-      <section className="bg-slate-50 py-24 border-b border-slate-200">
+      <section className="stat-section bg-slate-50 py-24 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-6 sm:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center divide-y md:divide-y-0 md:divide-x divide-slate-200">
             
-            <motion.div
-              whileHover={{ y: -6 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-2 py-4 md:py-0 transition-transform cursor-default"
-            >
+            <div className="stat-item opacity-0 space-y-2 py-4 md:py-0 cursor-default">
               <p className="font-serif text-5xl sm:text-6xl text-slate-900 font-normal tracking-tight">
-                2,400<em className="italic text-blue-600 font-normal">+</em>
+                <span className="stat-count" data-target="2400">0</span>
+                <em className="italic text-blue-600 font-normal">+</em>
               </p>
               <p className="text-xs uppercase tracking-widest text-slate-500 font-medium">
                 Students Certified
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div
-              whileHover={{ y: -6 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-2 py-4 md:py-0 transition-transform cursor-default"
-            >
+            <div className="stat-item opacity-0 space-y-2 py-4 md:py-0 cursor-default">
               <p className="font-serif text-5xl sm:text-6xl text-slate-900 font-normal tracking-tight">
-                12<em className="italic text-blue-600 font-normal">Years</em>
+                <span className="stat-count" data-target="12">0</span>
+                <em className="italic text-blue-600 font-normal"> Years</em>
               </p>
               <p className="text-xs uppercase tracking-widest text-slate-500 font-medium">
                 Pedagogical Experience
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div
-              whileHover={{ y: -6 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-2 py-4 md:py-0 transition-transform cursor-default"
-            >
+            <div className="stat-item opacity-0 space-y-2 py-4 md:py-0 cursor-default">
               <p className="font-serif text-5xl sm:text-6xl text-slate-900 font-normal tracking-tight">
-                98.4<em className="italic text-blue-600 font-normal">%</em>
+                <span className="stat-count" data-target="98.4" data-decimals="1">0</span>
+                <em className="italic text-blue-600 font-normal">%</em>
               </p>
               <p className="text-xs uppercase tracking-widest text-slate-500 font-medium">
                 First Attempt Pass Rate
               </p>
-            </motion.div>
+            </div>
 
           </div>
         </div>
       </section>
 
       {/* 3. ALTERNATING LIGHT SECTION: PEDAGOGY STANDARDS */}
-      <section className="bg-white text-slate-900 py-28 lg:py-36 relative">
+      <section className="pedagogy-section bg-white text-slate-900 py-28 lg:py-36 relative">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-20">
           
-          <div className="max-w-3xl space-y-4">
+          <div className="pedagogy-header opacity-0 max-w-3xl space-y-4">
             <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">
               Pedagogical Standards
             </span>
@@ -223,49 +350,43 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="pedagogy-cards-grid grid grid-cols-1 md:grid-cols-3 gap-12">
             
-            <motion.div
-              whileHover={{ y: -8 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl"
-            >
-              <ShieldCheck className="w-8 h-8 text-blue-600 stroke-[1.25]" />
-              <h3 className="font-serif text-2xl text-slate-900 font-normal">
-                Dual-Control Safety
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-light">
-                Every vehicle features instructor dual-pedal overrides, ensuring instant safety intervention during real traffic sessions.
-              </p>
-            </motion.div>
+            <div className="pedagogy-card-container opacity-0">
+              <div className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl h-full">
+                <ShieldCheck className="w-8 h-8 text-blue-600 stroke-[1.25]" />
+                <h3 className="font-serif text-2xl text-slate-900 font-normal">
+                  Dual-Control Safety
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-light">
+                  Every vehicle features instructor dual-pedal overrides, ensuring instant safety intervention during real traffic sessions.
+                </p>
+              </div>
+            </div>
 
-            <motion.div
-              whileHover={{ y: -8 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl"
-            >
-              <SlidersHorizontal className="w-8 h-8 text-blue-600 stroke-[1.25]" />
-              <h3 className="font-serif text-2xl text-slate-900 font-normal">
-                Tailored Progression
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-light">
-                Progress from private track maneuvering to main-road navigation at a pace tailored specifically to your comfort level.
-              </p>
-            </motion.div>
+            <div className="pedagogy-card-container opacity-0">
+              <div className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl h-full">
+                <SlidersHorizontal className="w-8 h-8 text-blue-600 stroke-[1.25]" />
+                <h3 className="font-serif text-2xl text-slate-900 font-normal">
+                  Tailored Progression
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-light">
+                  Progress from private track maneuvering to main-road navigation at a pace tailored specifically to your comfort level.
+                </p>
+              </div>
+            </div>
 
-            <motion.div
-              whileHover={{ y: -8 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl"
-            >
-              <Award className="w-8 h-8 text-blue-600 stroke-[1.25]" />
-              <h3 className="font-serif text-2xl text-slate-900 font-normal">
-                RTO Exam Fast-Track
-              </h3>
-              <p className="text-xs text-slate-600 leading-relaxed font-light">
-                Full documentation assistance and mock driver tests covering track parallel parking, H-tracks, and gradient starts.
-              </p>
-            </motion.div>
+            <div className="pedagogy-card-container opacity-0">
+              <div className="space-y-4 border border-l-4 border-l-blue-500 border-slate-200 bg-white shadow-card p-6 rounded-r-2xl h-full">
+                <Award className="w-8 h-8 text-blue-600 stroke-[1.25]" />
+                <h3 className="font-serif text-2xl text-slate-900 font-normal">
+                  RTO Exam Fast-Track
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed font-light">
+                  Full documentation assistance and mock driver tests covering track parallel parking, H-tracks, and gradient starts.
+                </p>
+              </div>
+            </div>
 
           </div>
 
@@ -284,13 +405,15 @@ export default function HomePage() {
             Reserve your preferred training vehicle, instructor, and schedule online in under 2 minutes.
           </p>
           <div className="pt-4">
-            <Link
-              href="/book"
-              className="bg-white hover:bg-blue-50 text-blue-600 font-bold text-xs uppercase tracking-widest px-10 py-5 rounded-full inline-flex items-center gap-3 shadow-2xl shadow-white/20 hover:scale-105 transition-all duration-300"
-            >
-              <span>Reserve Your Session Now</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <Magnetic range={30} strength={0.35}>
+              <Link
+                href="/book"
+                className="bg-white hover:bg-blue-55 text-blue-600 font-bold text-xs uppercase tracking-widest px-10 py-5 rounded-full inline-flex items-center gap-3 shadow-2xl shadow-white/20 hover:scale-105 transition-all duration-300 cursor-pointer"
+              >
+                <span>Reserve Your Session Now</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Magnetic>
           </div>
         </div>
       </section>

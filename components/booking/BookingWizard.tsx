@@ -146,6 +146,20 @@ export function BookingWizard() {
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
+  useEffect(() => {
+    if (authError && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      import('gsap').then(({ default: gsap }) => {
+        const el = document.querySelector('.auth-error-box');
+        if (el) {
+          gsap.fromTo(el,
+            { x: -6 },
+            { x: 6, duration: 0.08, repeat: 5, yoyo: true, onComplete: () => gsap.set(el, { x: 0 }) }
+          );
+        }
+      });
+    }
+  }, [authError]);
+
   const setupWizardRecaptcha = () => {
     if (typeof window === 'undefined') return null;
     if ((window as any).wizardRecaptchaVerifier) {
@@ -822,7 +836,7 @@ export function BookingWizard() {
 
                 {/* Inline Auth Errors / Messages */}
                 {authError && (
-                  <div className="p-3 bg-rose-50 border border-rose-300 text-rose-300 rounded-xl text-xs flex items-center gap-2">
+                  <div className="auth-error-box p-3 bg-rose-50 border border-rose-300 text-rose-300 rounded-xl text-xs flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
                     <span>{authError}</span>
                   </div>
@@ -850,7 +864,7 @@ export function BookingWizard() {
                           placeholder="Enter 10-digit mobile number"
                           value={authPhone}
                           onChange={(e) => setAuthPhone(e.target.value)}
-                          className="flex-1 bg-white border border-slate-200 focus:border-blue-500 text-slate-900 px-4 py-2.5 rounded-xl outline-none text-xs"
+                          className="flex-1 bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:scale-[1.01] text-slate-900 px-4 py-2.5 rounded-xl outline-none text-xs transition-all duration-200"
                         />
                         <button
                           type="button"
