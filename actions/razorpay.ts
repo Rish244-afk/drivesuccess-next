@@ -241,7 +241,13 @@ export async function verifyPaymentSignatureAction({
       console.warn('Non-blocking notification dispatch error:', notifErr);
     }
 
+    // Revalidate both the dashboard AND the specific confirmation page.
+    // Without the second revalidation, Next.js serves a stale ISR cache for
+    // /booking/[id]/confirmation, causing the 15–20 min delay the user sees.
+    // The webhook eventually triggers a second update, but the primary path
+    // (this action) must invalidate the confirmation cache synchronously.
     revalidatePath('/dashboard');
+    revalidatePath(`/booking/${bookingId}/confirmation`);
 
     return {
       success: true,
