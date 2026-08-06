@@ -461,14 +461,29 @@ export function BookingWizard() {
   useEffect(() => {
     if (!isRecoveringState || !createdBookingId) return;
 
+    let isMounted = true;
+    const timeoutId = setTimeout(() => {
+      if (isMounted) {
+        console.error('[P-05 Recovery] RECOVERY_ERROR: Timeout reached (10s) while verifying booking state.');
+        sessionStorage.removeItem('wizard_state');
+        resetWizard();
+        setError('Verification timed out. Please check your dashboard for booking status.');
+        setIsRecoveringState(false);
+      }
+    }, 10000);
+
     async function recoverPaymentState() {
-      console.log(`[P-05 Recovery] Starting recovery for booking: ${createdBookingId}`);
+      console.log(`[P-05 Recovery] RECOVERY_STARTED for booking: ${createdBookingId}`);
       try {
+        console.log(`[P-05 Recovery] RECOVERY_REQUEST_SENT`);
         const result = await getBookingStatusAction(createdBookingId!);
-        console.log(`[P-05 Recovery] getBookingStatusAction result:`, result);
+        console.log(`[P-05 Recovery] RECOVERY_RESPONSE_RECEIVED:`, result);
+
+        if (!isMounted) return;
+        clearTimeout(timeoutId);
 
         if (!result.success) {
-          console.log(`[P-05 Recovery] Action failed. Reason: ${result.error}. Resetting wizard.`);
+          console.log(`[P-05 Recovery] RECOVERY_ERROR: Action failed. Reason: ${result.error}`);
           sessionStorage.removeItem('wizard_state');
           resetWizard();
           setError(`Could not find your booking (${result.error}). Please start a new booking.`);
@@ -477,7 +492,6 @@ export function BookingWizard() {
         }
 
         const { bookingStatus, paymentStatus: dbPaymentStatus } = result;
-        console.log(`[P-05 Recovery] Current state -> Booking: ${bookingStatus}, Payment: ${dbPaymentStatus}`);
 
         // ── Terminal success states ────────────────────────────────────────────
         // CONFIRMED/COMPLETED + PAID/REFUNDED → confirmation page
@@ -485,7 +499,7 @@ export function BookingWizard() {
           (bookingStatus === 'CONFIRMED' || bookingStatus === 'COMPLETED') &&
           (dbPaymentStatus === 'PAID' || dbPaymentStatus === 'REFUNDED')
         ) {
-          console.log('[P-05 Recovery] Terminal success state. Navigating to confirmation.');
+          console.log('[P-05 Recovery] RECOVERY_DISPATCH_CONFIRMED: Terminal success state.');
           sessionStorage.removeItem('wizard_state');
           setIsRecoveringState(false);
           router.replace(`/booking/${createdBookingId}/confirmation`);
@@ -494,7 +508,7 @@ export function BookingWizard() {
 
         // COMPLETED + PAID (all sessions done) → dashboard
         if (bookingStatus === 'COMPLETED' && dbPaymentStatus === 'PAID') {
-          console.log('[P-05 Recovery] Terminal completed state. Navigating to dashboard.');
+          console.log('[P-05 Recovery] RECOVERY_DISPATCH_CONFIRMED: Terminal completed state.');
           sessionStorage.removeItem('wizard_state');
           setIsRecoveringState(false);
           router.replace('/dashboard');
@@ -503,7 +517,7 @@ export function BookingWizard() {
 
         // PENDING booking + PAID payment (webhook lag window) → confirmation
         if (bookingStatus === 'PENDING' && dbPaymentStatus === 'PAID') {
-          console.log('[P-05 Recovery] Pending + Paid state. Navigating to confirmation.');
+          console.log('[P-05 Recovery] RECOVERY_DISPATCH_CONFIRMED: Pending + Paid state.');
           sessionStorage.removeItem('wizard_state');
           setIsRecoveringState(false);
           router.replace(`/booking/${createdBookingId}/confirmation`);
@@ -512,7 +526,7 @@ export function BookingWizard() {
 
         // ── Cancelled states ───────────────────────────────────────────────────
         if (bookingStatus === 'CANCELLED') {
-          console.log(`[P-05 Recovery] Cancelled state. Payment: ${dbPaymentStatus}. Resetting wizard.`);
+          console.log(`[P-05 Recovery] RECOVERY_DISPATCH_FAILED: Cancelled state. Payment: ${dbPaymentStatus}.`);
           sessionStorage.removeItem('wizard_state');
           resetWizard();
           if (dbPaymentStatus === 'REFUNDED') {
@@ -529,7 +543,7 @@ export function BookingWizard() {
         // ── Recoverable states — stay on Step 6 ───────────────────────────────
         // PENDING booking + FAILED payment → retry screen
         if (bookingStatus === 'PENDING' && dbPaymentStatus === 'FAILED') {
-          console.log('[P-05 Recovery] Recoverable failed state. Displaying retry screen.');
+          console.log('[P-05 Recovery] RECOVERY_DISPATCH_FAILED: Recoverable failed state.');
           setPaymentStatus('FAILED');
           setIsRecoveringState(false);
           return;
@@ -537,20 +551,22 @@ export function BookingWizard() {
 
         // PENDING booking + PENDING payment → "Complete Payment" screen (user can retry)
         if (bookingStatus === 'PENDING' && dbPaymentStatus === 'PENDING') {
-          console.log('[P-05 Recovery] Recoverable pending state. Displaying Razorpay waiting screen.');
+          console.log('[P-05 Recovery] RECOVERY_DISPATCH_PENDING: Recoverable pending state.');
           setPaymentStatus('PENDING');
           setIsRecoveringState(false);
           return;
         }
 
         // ── Unexpected combination — safe fallback ─────────────────────────────
-        console.warn('[P-05 Recovery] Unexpected booking state combination:', { bookingStatus, dbPaymentStatus });
+        console.warn('[P-05 Recovery] RECOVERY_ERROR: Unexpected booking state combination:', { bookingStatus, dbPaymentStatus });
         sessionStorage.removeItem('wizard_state');
         resetWizard();
         setError('An unexpected booking state was detected. Please start a new booking or contact support.');
         setIsRecoveringState(false);
       } catch (err) {
-        console.error('[P-05 Recovery] Exception during recovery:', err);
+        if (!isMounted) return;
+        clearTimeout(timeoutId);
+        console.error('[P-05 Recovery] RECOVERY_ERROR: Exception during recovery:', err);
         sessionStorage.removeItem('wizard_state');
         resetWizard();
         setError('A network error occurred while verifying your booking. Please check your dashboard.');
@@ -559,6 +575,11 @@ export function BookingWizard() {
     }
 
     recoverPaymentState();
+    
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRecoveringState]);
 
