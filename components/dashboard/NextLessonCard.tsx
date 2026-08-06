@@ -51,7 +51,7 @@ export function NextLessonCard({ session }: NextLessonCardProps) {
 
   if (!session) {
     return (
-      <div className="bg-gradient-to-br from-blue-50/70 via-indigo-50/30 to-white border border-blue-100 rounded-3xl p-8 sm:p-10 shadow-sm relative overflow-hidden flex flex-col items-center justify-center text-center space-y-5">
+      <div className="bg-gradient-to-br from-blue-50/70 via-indigo-50/30 to-white border border-blue-100 rounded-3xl p-6 sm:p-10 shadow-sm relative overflow-hidden flex flex-col items-center justify-center text-center space-y-5">
         {/* Background decorative elements */}
         <div className="absolute top-0 right-0 w-40 h-40 bg-blue-100/50 rounded-full blur-2xl pointer-events-none" />
         
@@ -73,7 +73,7 @@ export function NextLessonCard({ session }: NextLessonCardProps) {
 
         <button
           onClick={handleBookNewSession}
-          className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-7 py-3.5 rounded-full flex items-center gap-2 shadow-lg shadow-blue-600/15 transition-all hover:scale-[1.02] cursor-pointer"
+          className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-7 py-4 sm:py-3.5 rounded-full flex items-center gap-2 shadow-lg shadow-blue-600/15 transition-all hover:scale-[1.02] cursor-pointer"
         >
           <span>Reserve Session</span>
           <ArrowRight className="w-4 h-4" />
@@ -95,7 +95,7 @@ export function NextLessonCard({ session }: NextLessonCardProps) {
   });
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border border-slate-700/60 rounded-3xl p-8 sm:p-10 shadow-xl relative overflow-hidden space-y-6">
+    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border border-slate-700/60 rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden space-y-6">
       {/* Glow Effect */}
       <div className="absolute top-0 right-0 w-72 h-72 bg-blue-600/15 rounded-full blur-3xl pointer-events-none" />
 
@@ -120,7 +120,7 @@ export function NextLessonCard({ session }: NextLessonCardProps) {
       </div>
 
       {/* Grid Content */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 pt-2">
         {/* Time & Location */}
         <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 space-y-3">
           <div className="flex items-center gap-2 text-blue-400 text-xs font-semibold uppercase tracking-wider">
@@ -191,17 +191,17 @@ export function NextLessonCard({ session }: NextLessonCardProps) {
       </div>
 
       {/* Card Footer Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-700/60">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 sm:pt-2 border-t border-slate-700/60">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <button
             onClick={() => alert(`Session details:\nDate: ${formattedDate}\nTime: ${formattedTime}\nInstructor: ${session.instructor?.name || 'Assigned Instructor'}`)}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl transition cursor-pointer"
+            className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider px-5 py-4 sm:py-2.5 rounded-xl transition cursor-pointer"
           >
             View Details
           </button>
           <button
             onClick={handleBookNewSession}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-5 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer"
+            className="w-full sm:w-auto justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-5 py-4 sm:py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Reschedule</span>
@@ -209,7 +209,7 @@ export function NextLessonCard({ session }: NextLessonCardProps) {
         </div>
 
         <span
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-700/40 opacity-70 cursor-not-allowed"
+          className="inline-flex justify-center items-center gap-1.5 text-xs text-slate-400 bg-slate-800/40 px-3 py-3 sm:py-1.5 rounded-xl border border-slate-700/40 opacity-70 cursor-not-allowed"
           title="Track navigation coming soon"
         >
           <Navigation className="w-3.5 h-3.5 text-slate-500" />

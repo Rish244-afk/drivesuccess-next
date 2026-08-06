@@ -97,13 +97,13 @@ export function QuickStats({
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
       {stats.map((stat) => {
         const IconComponent = stat.icon;
         return (
           <div
             key={stat.id}
-            className="group relative bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between"
+            className="group relative bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between"
           >
             <div>
               {/* Header Row: Icon + Badge */}
@@ -120,7 +120,7 @@ export function QuickStats({
               <span className="text-xs font-medium uppercase tracking-wider text-slate-500 block mb-1">
                 {stat.title}
               </span>
-              <h3 className={`font-serif tracking-tight text-slate-900 font-semibold ${stat.isText ? 'text-sm line-clamp-2' : 'text-2xl sm:text-3xl'}`}>
+              <h3 className={`font-serif tracking-tight text-slate-900 font-semibold ${stat.isText ? 'text-sm line-clamp-2' : 'text-xl sm:text-3xl'}`}>
                 {stat.value}
               </h3>
             </div>

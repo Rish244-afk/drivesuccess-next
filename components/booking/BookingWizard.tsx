@@ -651,10 +651,10 @@ export function BookingWizard() {
       {/* Slim Elegant Progress Line */}
       <div className="space-y-4">
         <div className="flex justify-between items-baseline text-xs uppercase tracking-widest text-slate-400 font-sans">
-          <span className="font-serif text-lg text-slate-700 normal-case font-normal">
+          <span className="font-serif text-lg text-slate-700 normal-case font-normal whitespace-nowrap">
             Step <em className="italic text-blue-600 font-normal">{step}</em> of 6
           </span>
-          <span className="text-blue-600 font-medium tracking-widest">
+          <span className="hidden sm:inline text-blue-600 font-medium tracking-widest text-right">
             {step === 1 && 'Select Driving Package'}
             {step === 2 && 'Select Certified Instructor'}
             {step === 3 && 'Select Training Vehicle'}
@@ -689,7 +689,7 @@ export function BookingWizard() {
 
       {/* STEP 1: CHOOSE PACKAGE */}
       {step === 1 && (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24 sm:pb-0">
           <div>
             <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
               <Package className="w-6 h-6 text-blue-600" />
@@ -726,7 +726,7 @@ export function BookingWizard() {
               <RefreshCw className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory hide-scrollbar gap-4 pb-4 sm:pb-0">
               {packages
                 .filter((pkg) => {
                   if (packageCategoryTab === 'ALL') return true;
@@ -743,7 +743,7 @@ export function BookingWizard() {
                     <div
                       key={pkg.id}
                       onClick={() => handleSelectPackage(pkg, vehicles)}
-                      className={`p-5 rounded-2xl border cursor-pointer transition-all ${
+                      className={`min-w-[85vw] sm:min-w-0 snap-center p-5 rounded-2xl border cursor-pointer transition-all ${
                         isSelected
                           ? 'bg-blue-50 border-blue-600 shadow-lg shadow-blue-600/10'
                           : 'bg-white border-slate-200 hover:border-slate-300'
@@ -766,11 +766,11 @@ export function BookingWizard() {
             </div>
           )}
 
-          <div className="flex justify-end pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex justify-end sm:pt-4">
             <button
               disabled={!selectedPackage}
               onClick={() => setStep(2)}
-              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-4 sm:py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2"
             >
               <span>Next: Choose Instructor</span>
               <ArrowRight className="w-4 h-4" />
@@ -781,7 +781,7 @@ export function BookingWizard() {
 
       {/* STEP 2: CHOOSE INSTRUCTOR */}
       {step === 2 && (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24 sm:pb-0">
           <div>
             <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
               <User className="w-6 h-6 text-blue-600" />
@@ -790,14 +790,14 @@ export function BookingWizard() {
             <p className="text-xs text-slate-400 mt-1">Choose a senior pedagogical instructor.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory hide-scrollbar gap-4 pb-4 sm:pb-0">
             {instructors.map((inst) => {
               const isSelected = selectedInstructor?.id === inst.id;
               return (
                 <div
                   key={inst.id}
                   onClick={() => setSelectedInstructor(inst)}
-                  className={`p-5 rounded-2xl border cursor-pointer transition-all ${
+                  className={`min-w-[85vw] sm:min-w-0 snap-center p-5 rounded-2xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'bg-blue-50 border-blue-600 shadow-lg shadow-blue-600/10'
                       : 'bg-white border-slate-200 hover:border-slate-300'
@@ -824,17 +824,17 @@ export function BookingWizard() {
             })}
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
             <button
               onClick={() => setStep(1)}
-              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
+              className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
             </button>
             <button
               disabled={!selectedInstructor}
               onClick={() => setStep(3)}
-              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-4 sm:py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2"
             >
               <span>Next: Choose Vehicle</span>
               <ArrowRight className="w-4 h-4" />
@@ -845,7 +845,7 @@ export function BookingWizard() {
 
       {/* STEP 3: CHOOSE VEHICLE */}
       {step === 3 && (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24 sm:pb-0">
           <div>
             <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
               <Car className="w-6 h-6 text-blue-600" />
@@ -866,7 +866,7 @@ export function BookingWizard() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory hide-scrollbar gap-4 pb-4 sm:pb-0">
             {vehicles.map((veh) => {
               const isSelected = selectedVehicle?.id === veh.id;
               const cat = selectedPackage?.targetVehicleCategory || '';
@@ -888,7 +888,7 @@ export function BookingWizard() {
                   onClick={() => {
                     if (isAllowed) setSelectedVehicle(veh);
                   }}
-                  className={`p-5 rounded-2xl border transition-all ${
+                  className={`min-w-[85vw] sm:min-w-0 snap-center p-5 rounded-2xl border transition-all ${
                     !isAllowed
                       ? 'bg-slate-50 border-slate-200 opacity-40 cursor-not-allowed'
                       : isSelected
@@ -920,17 +920,17 @@ export function BookingWizard() {
             })}
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
             <button
               onClick={() => setStep(2)}
-              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
+              className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
             </button>
             <button
               disabled={!selectedVehicle}
               onClick={() => setStep(4)}
-              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-4 sm:py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2"
             >
               <span>Next: Select Date & Slots</span>
               <ArrowRight className="w-4 h-4" />
@@ -941,7 +941,7 @@ export function BookingWizard() {
 
       {/* STEP 4: CALENDAR & AVAILABLE SLOTS */}
       {step === 4 && (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24 sm:pb-0">
           <div>
             <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
               <Calendar className="w-6 h-6 text-blue-600" />
@@ -1004,17 +1004,17 @@ export function BookingWizard() {
             )}
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
             <button
               onClick={() => setStep(3)}
-              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
+              className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
             </button>
             <button
               disabled={!selectedTimeSlot}
               onClick={() => setStep(5)}
-              className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-3 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2"
+              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-4 sm:py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2"
             >
               <span>Next: Summary</span>
               <ArrowRight className="w-4 h-4" />
@@ -1025,7 +1025,7 @@ export function BookingWizard() {
 
       {/* STEP 5: BOOKING SUMMARY */}
       {step === 5 && (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24 sm:pb-0">
           <div>
             <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
               <ShieldCheck className="w-6 h-6 text-blue-600" />
@@ -1252,17 +1252,17 @@ export function BookingWizard() {
             </div>
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
             <button
               onClick={() => setStep(4)}
-              className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
+              className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
             </button>
             <button
               disabled={loading || isGuest}
               onClick={handleCreatePendingBooking}
-              className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-extrabold px-8 py-4 rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-blue-600/15 disabled:opacity-50"
+              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-slate-950 font-extrabold px-4 sm:px-8 py-4 sm:py-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-blue-600/15 disabled:opacity-50"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />

@@ -21,6 +21,9 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef<HTMLDivElement | null>(null);
 
+  const dashboardRoutes = ['/dashboard', '/profile', '/settings'];
+  const isDashboardRoute = dashboardRoutes.some(route => pathname?.startsWith(route));
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
@@ -89,7 +92,7 @@ export function Navbar() {
   return (
     <header
       ref={headerRef}
-      className={`sticky top-0 z-50 text-slate-900 font-sans transition-all duration-300`}
+      className={`sticky top-0 z-50 text-slate-900 font-sans transition-all duration-300 ${isDashboardRoute ? 'hidden md:block' : ''}`}
       style={{
         background: 'rgba(248,250,252,0.82)',
         backdropFilter: 'blur(28px)',

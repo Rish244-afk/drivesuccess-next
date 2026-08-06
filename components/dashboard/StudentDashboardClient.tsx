@@ -157,8 +157,8 @@ export function StudentDashboardClient({
 
         {/* 4. DETAILED MANAGEMENT TABS */}
         <div className="space-y-6 pt-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200/80 gap-4 pb-2">
-            <div className="flex border-b border-transparent overflow-x-auto gap-2 sm:gap-6 w-full sm:w-auto">
+          <div className="sticky top-16 z-20 bg-slate-50/90 backdrop-blur-md pt-2 pb-3 -mx-4 px-4 sm:mx-0 sm:px-0 sm:static sm:bg-transparent flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex overflow-x-auto hide-scrollbar gap-2 w-full sm:w-auto bg-slate-200/50 p-1.5 rounded-2xl">
               {[
                 { id: 'bookings', label: 'Bookings & Packages', count: bookings.length },
                 { id: 'sessions', label: 'Sessions Schedule', count: sessions.length },
@@ -169,10 +169,10 @@ export function StudentDashboardClient({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`pb-3 text-xs font-sans uppercase tracking-widest font-semibold transition-all border-b-2 whitespace-nowrap flex items-center gap-2 px-1 cursor-pointer ${
+                  className={`px-4 py-2 text-xs font-sans uppercase tracking-widest font-semibold transition-all whitespace-nowrap flex items-center gap-2 rounded-xl cursor-pointer ${
                     activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600 font-bold'
-                      : 'border-transparent text-slate-400 hover:text-slate-700'
+                      ? 'bg-white text-blue-600 shadow-sm font-bold'
+                      : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
                   }`}
                 >
                   <span>{tab.label}</span>

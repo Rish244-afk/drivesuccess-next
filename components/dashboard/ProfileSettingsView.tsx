@@ -84,7 +84,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12 space-y-10">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-8 sm:space-y-10 pb-24 sm:pb-12">
       {/* Header Bar */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-6">
         <div className="flex items-center gap-4">
@@ -124,7 +124,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
       {/* Main Settings Form */}
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1: Identity & Avatar */}
-        <div className="bg-white border border-slate-200/80 rounded-3xl p-8 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="font-serif text-xl text-slate-900 font-normal border-b border-slate-100 pb-4">
             Personal Identity & Avatar
           </h3>
@@ -146,7 +146,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
                 value={formData.avatarUrl}
                 onChange={(e) => setFormData({ ...formData, avatarUrl: e.target.value })}
                 placeholder="https://example.com/avatar.jpg"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               <p className="text-[11px] text-slate-400 font-light">
                 Leave empty to automatically generate dynamic initials badge with gradients.
@@ -164,7 +164,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm font-medium text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
 
@@ -176,14 +176,14 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm font-medium text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
           </div>
         </div>
 
         {/* Section 2: Address & RTO License Data */}
-        <div className="bg-white border border-slate-200/80 rounded-3xl p-8 shadow-sm space-y-6">
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
           <h3 className="font-serif text-xl text-slate-900 font-normal border-b border-slate-100 pb-4">
             Address & Learner Permit
           </h3>
@@ -198,7 +198,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="123 Main Street, Suite 4B"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
 
@@ -211,7 +211,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
                   type="text"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -223,7 +223,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
                   type="text"
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
 
@@ -235,7 +235,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
                   type="text"
                   value={formData.zipCode}
                   onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -249,18 +249,18 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
                 value={formData.licenseNo}
                 onChange={(e) => setFormData({ ...formData, licenseNo: e.target.value })}
                 placeholder="LLR-2024-XXXXXX"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 sm:py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm font-mono text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
           </div>
         </div>
 
         {/* Save Button */}
-        <div className="flex justify-end">
+        <div className="flex flex-col sm:flex-row justify-end">
           <button
             type="submit"
             disabled={saving}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-8 py-3.5 rounded-full flex items-center gap-2 shadow-lg shadow-blue-600/20 transition cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-8 py-4 sm:py-3.5 rounded-full flex items-center gap-2 shadow-lg shadow-blue-600/20 transition cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Saving Changes...' : 'Save Profile'}</span>
@@ -269,7 +269,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
       </form>
 
       {/* Section 3: Danger Zone & Privacy Erasure */}
-      <div className="bg-red-50/50 border border-red-200 rounded-3xl p-8 space-y-4">
+      <div className="bg-red-50/50 border border-red-200 rounded-3xl p-6 sm:p-8 space-y-4">
         <div className="flex items-center gap-2 text-red-800 font-serif text-lg">
           <Trash2 className="w-5 h-5 text-red-600" />
           <h4>Privacy & Account Erasure (DPDP Act & GDPR)</h4>
@@ -281,7 +281,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
         {!showDeleteConfirm ? (
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl transition cursor-pointer"
+            className="w-full sm:w-auto justify-center bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-4 sm:py-2.5 rounded-xl transition cursor-pointer"
           >
             Request Account Deletion
           </button>
@@ -290,17 +290,17 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
             <p className="text-xs font-semibold text-red-900">
               Are you absolute sure? This action cannot be undone.
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <button
                 disabled={deleting}
                 onClick={handleDeleteAccount}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto justify-center bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-4 sm:py-2.5 rounded-xl transition cursor-pointer disabled:opacity-50"
               >
                 {deleting ? 'Deleting...' : 'Yes, Delete My Account'}
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="bg-slate-200 text-slate-700 font-medium text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition cursor-pointer"
+                className="w-full sm:w-auto justify-center bg-slate-200 text-slate-700 font-medium text-xs uppercase tracking-wider px-4 py-4 sm:py-2.5 rounded-xl transition cursor-pointer"
               >
                 Cancel
               </button>
