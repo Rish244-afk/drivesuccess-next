@@ -14,6 +14,8 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   redirectToDashboard?: boolean;
+  /** The path to redirect to after a successful Google OAuth login. Defaults to '/dashboard'. */
+  returnTo?: string;
 }
 
 export function AuthModal({
@@ -21,6 +23,7 @@ export function AuthModal({
   onClose,
   onSuccess,
   redirectToDashboard = true,
+  returnTo = '/dashboard',
 }: AuthModalProps) {
   const router = useRouter();
 
@@ -273,10 +276,11 @@ export function AuthModal({
         {/* Google OAuth Button */}
         <GoogleAuthProvider>
           <GoogleSignInButton
+            returnTo={returnTo}
             onSuccess={() => {
               if (onSuccess) onSuccess();
               if (redirectToDashboard) {
-                router.push('/dashboard');
+                router.push(returnTo);
               }
               onClose();
               router.refresh();

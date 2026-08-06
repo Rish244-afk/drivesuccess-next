@@ -22,7 +22,18 @@ function LoginFormContent() {
   const [cooldown, setCooldown] = useState(0);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  // Auto-redirect & OAuth Callback Handler
+  // ─── OAuth Callback Handler & Auto-redirect ─────────────────────────────────
+  // This effect runs on every page load and handles two scenarios:
+  //
+  // A. OAuth callback: Google redirected back with ?code= (authorization code flow)
+  //    or a URL fragment with #id_token= (legacy implicit flow — kept as fallback).
+  //    Forwards the credential to the backend, receives a session cookie, then
+  //    navigates to the correct post-auth destination.
+  //
+  // B. Already authenticated: No OAuth params present, but an active session
+  //    cookie exists. Redirect immediately to the destination without re-showing
+  //    the login form.
+  // ─────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -30,6 +41,7 @@ function LoginFormContent() {
     const codeParam = urlParams.get('code');
     const hash = window.location.hash;
 
+    // Legacy implicit flow: token arrives in the URL fragment (#id_token=...)
     let tokenToVerify: string | null = null;
     let stateFromHash: string | null = null;
     if (hash && (hash.includes('access_token=') || hash.includes('id_token='))) {
@@ -64,19 +76,46 @@ function LoginFormContent() {
         .then((data) => {
           console.log('🔄 [OAuth Audit] Response from /api/auth/google:', data);
           if (data.success) {
-            console.log('✅ [OAuth Audit] Session created! Checking window type...');
+            console.log('✅ [OAuth Audit] Session created! Resolving redirect destination...');
             setMessage('Authenticated via Google! Redirecting...');
-            
+
+            // ── REDIRECT DESTINATION RESOLUTION ──────────────────────────────
+            // Priority order (most reliable → least reliable):
+            //
+            // 1. sessionStorage 'ds_oauth_return_to'
+            //    Set by GoogleSignInButton.handleGoogleClick() BEFORE the redirect.
+            //    Survives the round-trip through Google's servers within the same tab.
+            //    This is the PRIMARY fix for the "redirects to home" bug.
+            //
+            // 2. state.returnTo from the OAuth state parameter
+            //    Encoded in the URL state param by GoogleSignInButton.
+            //    Secondary reliable source for authorization code flow.
+            //
+            // 3. fromPath from the ?from= query string
+            //    Set by Next.js middleware when it redirects unauthenticated users
+            //    away from protected routes (e.g., /dashboard → /auth/login?from=/dashboard).
+            //
+            // 4. /dashboard — safe universal fallback.
+            // ─────────────────────────────────────────────────────────────────
+            const storedReturn = sessionStorage.getItem('ds_oauth_return_to');
+            if (storedReturn) {
+              sessionStorage.removeItem('ds_oauth_return_to');
+              console.log('✅ [OAuth Audit] Redirect target from sessionStorage:', storedReturn);
+            }
+
             const stateParam = urlParams.get('state') || stateFromHash;
             let stateData: any = null;
             try {
               if (stateParam) stateData = JSON.parse(stateParam);
             } catch (e) {}
 
-            const isPopup = stateData?.mode === 'popup' || window.opener;
-            const targetPath = stateData?.returnTo || fromPath;
+            // Is this a popup-mode flow? (popup windows post a message and close)
+            const isPopup = window.opener != null;
+            const targetPath = storedReturn || stateData?.returnTo || fromPath || '/dashboard';
 
-            if (isPopup && window.opener) {
+            console.log('🏁 [OAuth Audit] Final redirect destination:', targetPath);
+
+            if (isPopup) {
               window.opener.postMessage({ type: 'OAUTH_COMPLETE', success: true }, window.location.origin);
               window.close();
             } else {

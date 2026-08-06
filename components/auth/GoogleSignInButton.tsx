@@ -10,6 +10,14 @@ declare global {
   }
 }
 
+/**
+ * The key used in sessionStorage to persist the post-OAuth return destination
+ * across the full-page redirect to Google and back. sessionStorage survives
+ * redirects within the same tab on the same origin, making it the most
+ * reliable mechanism to carry the returnTo path through the OAuth round-trip.
+ */
+export const OAUTH_RETURN_KEY = 'ds_oauth_return_to';
+
 export function GoogleSignInButton({ 
   onSuccess,
   returnTo 
@@ -140,45 +148,71 @@ export function GoogleSignInButton({
     }
   }, [processGoogleCredential]);
 
-  // 3. Fallback to standard OAuth Redirect Flow on click
+  // 3. OAuth Authorization Code Flow on button click
+  //
+  // KEY CHANGES from the previous implementation:
+  //
+  // A. response_type=code (Authorization Code Flow) — NOT response_type=id_token.
+  //    The implicit id_token flow returns the token in the URL FRAGMENT (#id_token=...).
+  //    Fragments are browser-only and can be lost if Next.js performs a server-side
+  //    redirect before the client reads them. The authorization code flow returns
+  //    the code in the URL QUERY STRING (?code=...) which survives all redirects.
+  //
+  // B. returnTo stored in sessionStorage BEFORE the redirect.
+  //    ROOT CAUSE OF BUG: returnTo was captured as window.location.pathname in the
+  //    OAuth state param. When the modal opens on the home page, pathname is "/".
+  //    After Google redirected back, stateData.returnTo was "/" — sending the user
+  //    back to the home page every time.
+  //    FIX: Store the resolved destination in sessionStorage before navigating away.
+  //    The login page callback reads and clears this key after a successful auth.
+  //    sessionStorage persists within the same browser tab across same-origin redirects.
   const handleGoogleClick = () => {
     setLoading(true);
     const clientId =
       process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
       '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // PERMANENT FIX: Always use the canonical production URL as redirect_uri.
-    //
-    // DO NOT use window.location.origin here.
-    //
-    // window.location.origin returns the CURRENT browser URL, which on Vercel
-    // preview deployments is a unique per-commit hostname:
-    //   https://drivesuccess-next-<hash>-rish244-afks-projects.vercel.app
-    //
-    // Every new git push creates a new such URL. Google's OAuth server validates
-    // redirect_uri against an allowlist in Cloud Console. Because the URL changes
-    // on every deployment, you would need to manually add a new entry to Google
-    // Console after every single commit — which is exactly the recurring bug.
-    //
-    // The fix: use NEXT_PUBLIC_APP_URL, which is set ONCE in Vercel's Environment
-    // Variables to the stable production alias (drivesuccess-next.vercel.app).
-    // This URL never changes regardless of how many commits are pushed.
-    //
-    // Google Console requires exactly ONE entry:
-    //   https://drivesuccess-next.vercel.app/auth/login
-    // ─────────────────────────────────────────────────────────────────────────
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
       process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ||
       (typeof window !== 'undefined' ? window.location.origin : '');
 
-    const redirectUri = encodeURIComponent(`${appUrl}/auth/login`);
-    const stateObj = { mode: 'redirect', returnTo: returnTo || (typeof window !== 'undefined' ? window.location.pathname : '/dashboard') };
-    const stateStr = encodeURIComponent(JSON.stringify(stateObj));
-    const nonce = Math.random().toString(36).substring(2, 15);
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=id_token&scope=email%20profile&state=${stateStr}&nonce=${nonce}`;
+    // Resolve the post-auth destination:
+    //  1. Explicit returnTo prop (set by AuthModal, BookingWizard, etc.) — most specific
+    //  2. Current page path if it is not the login page itself — contextual fallback
+    //  3. /dashboard — safe universal fallback
+    const destination =
+      returnTo ||
+      (typeof window !== 'undefined' && window.location.pathname !== '/auth/login'
+        ? window.location.pathname
+        : '/dashboard');
 
+    // Store in sessionStorage BEFORE navigating away. This is the key fix.
+    // The round-trip through Google's servers will clear all React state, but
+    // sessionStorage persists within the same browser tab on the same origin.
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem(OAUTH_RETURN_KEY, destination);
+      console.log('🔐 [OAuth] Stored post-auth destination:', destination);
+    }
+
+    const nonce = Math.random().toString(36).substring(2, 15);
+    const stateObj = { nonce, returnTo: destination };
+    const stateStr = encodeURIComponent(JSON.stringify(stateObj));
+    const redirectUri = encodeURIComponent(`${appUrl}/auth/login`);
+
+    // Use authorization code flow — code arrives in the query string, not fragment.
+    const googleAuthUrl = [
+      'https://accounts.google.com/o/oauth2/v2/auth',
+      `?client_id=${clientId}`,
+      `&redirect_uri=${redirectUri}`,
+      `&response_type=code`,
+      `&scope=email%20profile`,
+      `&state=${stateStr}`,
+      `&access_type=offline`,
+      `&prompt=select_account`,
+    ].join('');
+
+    console.log('🚀 [OAuth] Initiating Authorization Code Flow...');
     window.location.href = googleAuthUrl;
   };
 
@@ -212,8 +246,8 @@ export function GoogleSignInButton({
           <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
           </svg>
           <span>Continue with Google</span>
         </button>

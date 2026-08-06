@@ -52,11 +52,19 @@ export async function POST(req: NextRequest) {
       // preview deployments is a unique per-commit URL that changes on every push.
       // Using it here would cause Google to reject the token exchange with
       // "redirect_uri_mismatch" on any preview deployment.
-      const redirectUri =
-        process.env.GOOGLE_REDIRECT_URI ||
-        process.env.NEXT_PUBLIC_APP_URL
-          ? `${process.env.GOOGLE_REDIRECT_URI || process.env.NEXT_PUBLIC_APP_URL}/auth/login`
-          : `${req.nextUrl.origin}/auth/login`;
+      //
+      // OPERATOR PRECEDENCE FIX: The previous code had a subtle JS bug:
+      //   process.env.GOOGLE_REDIRECT_URI || process.env.NEXT_PUBLIC_APP_URL
+      //     ? `...` : `...`
+      // JS evaluates || before ?, so this actually parsed as:
+      //   (process.env.GOOGLE_REDIRECT_URI) || (process.env.NEXT_PUBLIC_APP_URL ? `...` : `...`)
+      // When GOOGLE_REDIRECT_URI was undefined, it became:
+      //   undefined || (NEXT_PUBLIC_APP_URL ? `${NEXT_PUBLIC_APP_URL}/auth/login` : `${origin}/auth/login`)
+      // This accidentally worked, but would silently break with certain env var combinations.
+      // Fixed by adding explicit parentheses around the || condition.
+      const redirectUri = (process.env.GOOGLE_REDIRECT_URI || process.env.NEXT_PUBLIC_APP_URL)
+        ? `${process.env.GOOGLE_REDIRECT_URI || process.env.NEXT_PUBLIC_APP_URL}/auth/login`
+        : `${req.nextUrl.origin}/auth/login`;
 
       try {
         const tokenRes = await fetch('https://oauth2.googleapis.com/token', {

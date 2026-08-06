@@ -266,6 +266,7 @@ export function Navbar() {
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
         redirectToDashboard={true}
+        returnTo="/dashboard"
       />
 
       {/* Admin Auth Overlay Modal */}

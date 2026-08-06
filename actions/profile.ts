@@ -102,6 +102,59 @@ export async function getStudentProfileDataAction() {
 }
 
 /**
+ * Update authenticated student's profile information.
+ */
+export async function updateStudentProfileAction(data: {
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  licenseNo?: string;
+  avatarUrl?: string;
+}) {
+  const session = await getServerSession();
+
+  if (!session || !session.sub) {
+    return { success: false, error: 'Unauthorized request' };
+  }
+
+  try {
+    const studentId = session.sub;
+
+    const updatedStudent = await prisma.student.update({
+      where: { id: studentId },
+      data: {
+        ...(data.name && { name: data.name.trim() }),
+        ...(data.phone && { phone: data.phone.trim() }),
+        ...(data.address !== undefined && { address: data.address.trim() }),
+        ...(data.city !== undefined && { city: data.city.trim() }),
+        ...(data.state !== undefined && { state: data.state.trim() }),
+        ...(data.zipCode !== undefined && { zipCode: data.zipCode.trim() }),
+        ...(data.licenseNo !== undefined && { licenseNo: data.licenseNo.trim() }),
+        ...(data.avatarUrl !== undefined && { avatarUrl: data.avatarUrl }),
+      },
+    });
+
+    revalidatePath('/dashboard');
+    revalidatePath('/settings');
+
+    return {
+      success: true,
+      student: updatedStudent,
+      message: 'Profile updated successfully!',
+    };
+  } catch (error: any) {
+    console.error('updateStudentProfileAction Error:', error);
+    if (error?.code === 'P2002') {
+      return { success: false, error: 'The phone number or email is already registered to another account.' };
+    }
+    return { success: false, error: 'Failed to update profile. Please try again.' };
+  }
+}
+
+/**
  * DPDP Act 2023 (Section 12) & GDPR (Article 17) - Right to Erasure / Account Deletion Action
  * Anonymizes financial records for statutory tax retention while purging PII data.
  */
