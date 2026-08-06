@@ -462,80 +462,100 @@ export function BookingWizard() {
     if (!isRecoveringState || !createdBookingId) return;
 
     async function recoverPaymentState() {
-      const result = await getBookingStatusAction(createdBookingId!);
+      console.log(`[P-05 Recovery] Starting recovery for booking: ${createdBookingId}`);
+      try {
+        const result = await getBookingStatusAction(createdBookingId!);
+        console.log(`[P-05 Recovery] getBookingStatusAction result:`, result);
 
-      if (!result.success) {
-        // Not found, unauthorized, or server error — start fresh.
-        sessionStorage.removeItem('wizard_state');
-        resetWizard();
-        setError('Could not find your booking. Please start a new booking.');
-        setIsRecoveringState(false);
-        return;
-      }
-
-      const { bookingStatus, paymentStatus: dbPaymentStatus } = result;
-
-      // ── Terminal success states ────────────────────────────────────────────
-      // CONFIRMED/COMPLETED + PAID/REFUNDED → confirmation page
-      if (
-        (bookingStatus === 'CONFIRMED' || bookingStatus === 'COMPLETED') &&
-        (dbPaymentStatus === 'PAID' || dbPaymentStatus === 'REFUNDED')
-      ) {
-        sessionStorage.removeItem('wizard_state');
-        router.replace(`/booking/${createdBookingId}/confirmation`);
-        return;
-      }
-
-      // COMPLETED + PAID (all sessions done) → dashboard
-      if (bookingStatus === 'COMPLETED' && dbPaymentStatus === 'PAID') {
-        sessionStorage.removeItem('wizard_state');
-        router.replace('/dashboard');
-        return;
-      }
-
-      // PENDING booking + PAID payment (webhook lag window) → confirmation
-      if (bookingStatus === 'PENDING' && dbPaymentStatus === 'PAID') {
-        sessionStorage.removeItem('wizard_state');
-        router.replace(`/booking/${createdBookingId}/confirmation`);
-        return;
-      }
-
-      // ── Cancelled states ───────────────────────────────────────────────────
-      if (bookingStatus === 'CANCELLED') {
-        sessionStorage.removeItem('wizard_state');
-        resetWizard();
-        if (dbPaymentStatus === 'REFUNDED') {
-          setError('Your booking was cancelled and a refund was issued. Please check your dashboard for details.');
-        } else if (dbPaymentStatus === 'FAILED') {
-          setError('Your booking was cancelled after a failed payment. Please start a new booking.');
-        } else {
-          setError('Your booking has expired or was cancelled. Please start a new booking.');
+        if (!result.success) {
+          console.log(`[P-05 Recovery] Action failed. Reason: ${result.error}. Resetting wizard.`);
+          sessionStorage.removeItem('wizard_state');
+          resetWizard();
+          setError(`Could not find your booking (${result.error}). Please start a new booking.`);
+          setIsRecoveringState(false);
+          return;
         }
-        setIsRecoveringState(false);
-        return;
-      }
 
-      // ── Recoverable states — stay on Step 6 ───────────────────────────────
-      // PENDING booking + FAILED payment → retry screen
-      if (bookingStatus === 'PENDING' && dbPaymentStatus === 'FAILED') {
-        setPaymentStatus('FAILED');
-        setIsRecoveringState(false);
-        return;
-      }
+        const { bookingStatus, paymentStatus: dbPaymentStatus } = result;
+        console.log(`[P-05 Recovery] Current state -> Booking: ${bookingStatus}, Payment: ${dbPaymentStatus}`);
 
-      // PENDING booking + PENDING payment → "Complete Payment" screen (user can retry)
-      if (bookingStatus === 'PENDING' && dbPaymentStatus === 'PENDING') {
-        setPaymentStatus('PENDING');
-        setIsRecoveringState(false);
-        return;
-      }
+        // ── Terminal success states ────────────────────────────────────────────
+        // CONFIRMED/COMPLETED + PAID/REFUNDED → confirmation page
+        if (
+          (bookingStatus === 'CONFIRMED' || bookingStatus === 'COMPLETED') &&
+          (dbPaymentStatus === 'PAID' || dbPaymentStatus === 'REFUNDED')
+        ) {
+          console.log('[P-05 Recovery] Terminal success state. Navigating to confirmation.');
+          sessionStorage.removeItem('wizard_state');
+          setIsRecoveringState(false);
+          router.replace(`/booking/${createdBookingId}/confirmation`);
+          return;
+        }
 
-      // ── Unexpected combination — safe fallback ─────────────────────────────
-      console.warn('[P-05 Recovery] Unexpected booking state:', { bookingStatus, dbPaymentStatus });
-      sessionStorage.removeItem('wizard_state');
-      resetWizard();
-      setError('An unexpected booking state was detected. Please start a new booking or contact support.');
-      setIsRecoveringState(false);
+        // COMPLETED + PAID (all sessions done) → dashboard
+        if (bookingStatus === 'COMPLETED' && dbPaymentStatus === 'PAID') {
+          console.log('[P-05 Recovery] Terminal completed state. Navigating to dashboard.');
+          sessionStorage.removeItem('wizard_state');
+          setIsRecoveringState(false);
+          router.replace('/dashboard');
+          return;
+        }
+
+        // PENDING booking + PAID payment (webhook lag window) → confirmation
+        if (bookingStatus === 'PENDING' && dbPaymentStatus === 'PAID') {
+          console.log('[P-05 Recovery] Pending + Paid state. Navigating to confirmation.');
+          sessionStorage.removeItem('wizard_state');
+          setIsRecoveringState(false);
+          router.replace(`/booking/${createdBookingId}/confirmation`);
+          return;
+        }
+
+        // ── Cancelled states ───────────────────────────────────────────────────
+        if (bookingStatus === 'CANCELLED') {
+          console.log(`[P-05 Recovery] Cancelled state. Payment: ${dbPaymentStatus}. Resetting wizard.`);
+          sessionStorage.removeItem('wizard_state');
+          resetWizard();
+          if (dbPaymentStatus === 'REFUNDED') {
+            setError('Your booking was cancelled and a refund was issued. Please check your dashboard for details.');
+          } else if (dbPaymentStatus === 'FAILED') {
+            setError('Your booking was cancelled after a failed payment. Please start a new booking.');
+          } else {
+            setError('Your booking has expired or was cancelled. Please start a new booking.');
+          }
+          setIsRecoveringState(false);
+          return;
+        }
+
+        // ── Recoverable states — stay on Step 6 ───────────────────────────────
+        // PENDING booking + FAILED payment → retry screen
+        if (bookingStatus === 'PENDING' && dbPaymentStatus === 'FAILED') {
+          console.log('[P-05 Recovery] Recoverable failed state. Displaying retry screen.');
+          setPaymentStatus('FAILED');
+          setIsRecoveringState(false);
+          return;
+        }
+
+        // PENDING booking + PENDING payment → "Complete Payment" screen (user can retry)
+        if (bookingStatus === 'PENDING' && dbPaymentStatus === 'PENDING') {
+          console.log('[P-05 Recovery] Recoverable pending state. Displaying Razorpay waiting screen.');
+          setPaymentStatus('PENDING');
+          setIsRecoveringState(false);
+          return;
+        }
+
+        // ── Unexpected combination — safe fallback ─────────────────────────────
+        console.warn('[P-05 Recovery] Unexpected booking state combination:', { bookingStatus, dbPaymentStatus });
+        sessionStorage.removeItem('wizard_state');
+        resetWizard();
+        setError('An unexpected booking state was detected. Please start a new booking or contact support.');
+        setIsRecoveringState(false);
+      } catch (err) {
+        console.error('[P-05 Recovery] Exception during recovery:', err);
+        sessionStorage.removeItem('wizard_state');
+        resetWizard();
+        setError('A network error occurred while verifying your booking. Please check your dashboard.');
+        setIsRecoveringState(false);
+      }
     }
 
     recoverPaymentState();
