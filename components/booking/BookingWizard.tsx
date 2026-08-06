@@ -20,6 +20,7 @@ import {
   getBookingVehiclesAction,
   getAvailableSlotsAction,
   createBookingTransactionAction,
+  getBookingStatusAction,
 } from '@/actions/bookingSystem';
 import { getPackagesAction } from '@/actions/package';
 // NOTE: createRazorpayOrderAction, verifyPaymentSignatureAction, and
@@ -385,6 +386,13 @@ export function BookingWizard() {
         if (parsed.paymentStatus === 'FAILED' || parsed.paymentStatus === 'PENDING') {
           setPaymentStatus(parsed.paymentStatus);
         }
+
+        // P-05 RECOVERY: If we restored step=6 with a bookingId, the user
+        // refreshed during or after payment. Trigger an on-mount status check
+        // to determine the true backend state before rendering anything.
+        if (parsed.step === 6 && parsed.createdBookingId) {
+          setIsRecoveringState(true);
+        }
       } catch (e) {
         console.error('Failed to parse wizard state', e);
         sessionStorage.removeItem('wizard_state');
@@ -433,10 +441,107 @@ export function BookingWizard() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // P-05: true while we are querying the backend to determine booking status after
+  // a page refresh during Step 6. Prevents rendering stale "Complete Payment" UI.
+  const [isRecoveringState, setIsRecoveringState] = useState<boolean>(false);
+
   // Automatically clear stale validation errors whenever the user changes steps
   useEffect(() => {
     setError(null);
   }, [step]);
+
+  // ─── P-05: POST-REFRESH BOOKING STATE RECOVERY ────────────────────────────
+  // Fires once when isRecoveringState becomes true (set in the sessionStorage
+  // restore effect when step=6 + createdBookingId are both present).
+  //
+  // This effect is READ-ONLY — it never re-runs payment verification.
+  // It queries the DB for the current booking/payment status and dispatches
+  // the user to the correct frontend state based on the full state matrix.
+  // ──────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isRecoveringState || !createdBookingId) return;
+
+    async function recoverPaymentState() {
+      const result = await getBookingStatusAction(createdBookingId!);
+
+      if (!result.success) {
+        // Not found, unauthorized, or server error — start fresh.
+        sessionStorage.removeItem('wizard_state');
+        resetWizard();
+        setError('Could not find your booking. Please start a new booking.');
+        setIsRecoveringState(false);
+        return;
+      }
+
+      const { bookingStatus, paymentStatus: dbPaymentStatus } = result;
+
+      // ── Terminal success states ────────────────────────────────────────────
+      // CONFIRMED/COMPLETED + PAID/REFUNDED → confirmation page
+      if (
+        (bookingStatus === 'CONFIRMED' || bookingStatus === 'COMPLETED') &&
+        (dbPaymentStatus === 'PAID' || dbPaymentStatus === 'REFUNDED')
+      ) {
+        sessionStorage.removeItem('wizard_state');
+        router.replace(`/booking/${createdBookingId}/confirmation`);
+        return;
+      }
+
+      // COMPLETED + PAID (all sessions done) → dashboard
+      if (bookingStatus === 'COMPLETED' && dbPaymentStatus === 'PAID') {
+        sessionStorage.removeItem('wizard_state');
+        router.replace('/dashboard');
+        return;
+      }
+
+      // PENDING booking + PAID payment (webhook lag window) → confirmation
+      if (bookingStatus === 'PENDING' && dbPaymentStatus === 'PAID') {
+        sessionStorage.removeItem('wizard_state');
+        router.replace(`/booking/${createdBookingId}/confirmation`);
+        return;
+      }
+
+      // ── Cancelled states ───────────────────────────────────────────────────
+      if (bookingStatus === 'CANCELLED') {
+        sessionStorage.removeItem('wizard_state');
+        resetWizard();
+        if (dbPaymentStatus === 'REFUNDED') {
+          setError('Your booking was cancelled and a refund was issued. Please check your dashboard for details.');
+        } else if (dbPaymentStatus === 'FAILED') {
+          setError('Your booking was cancelled after a failed payment. Please start a new booking.');
+        } else {
+          setError('Your booking has expired or was cancelled. Please start a new booking.');
+        }
+        setIsRecoveringState(false);
+        return;
+      }
+
+      // ── Recoverable states — stay on Step 6 ───────────────────────────────
+      // PENDING booking + FAILED payment → retry screen
+      if (bookingStatus === 'PENDING' && dbPaymentStatus === 'FAILED') {
+        setPaymentStatus('FAILED');
+        setIsRecoveringState(false);
+        return;
+      }
+
+      // PENDING booking + PENDING payment → "Complete Payment" screen (user can retry)
+      if (bookingStatus === 'PENDING' && dbPaymentStatus === 'PENDING') {
+        setPaymentStatus('PENDING');
+        setIsRecoveringState(false);
+        return;
+      }
+
+      // ── Unexpected combination — safe fallback ─────────────────────────────
+      console.warn('[P-05 Recovery] Unexpected booking state:', { bookingStatus, dbPaymentStatus });
+      sessionStorage.removeItem('wizard_state');
+      resetWizard();
+      setError('An unexpected booking state was detected. Please start a new booking or contact support.');
+      setIsRecoveringState(false);
+    }
+
+    recoverPaymentState();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRecoveringState]);
+
 
   // Automatically clear stale validation errors and reset created booking ID
   // whenever any key booking selection changes (date, slot, instructor, vehicle, package).
@@ -1333,18 +1438,39 @@ export function BookingWizard() {
         <div className="space-y-6 text-center">
           <div className="p-10 bg-white border border-slate-100 rounded-3xl space-y-6">
 
+            {/* ── P-05: Recovery loading gate ───────────────────────────────
+                Shown while the post-refresh status check is in progress.
+                Prevents any stale sub-state (PENDING, FAILED, etc.) from
+                flashing before the backend has confirmed the real state.
+                ─────────────────────────────────────────────────────────── */}
+            {isRecoveringState && (
+              <div className="space-y-5">
+                <div className="w-20 h-20 bg-blue-50 border-2 border-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <RefreshCw className="w-10 h-10 text-blue-400 animate-spin" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-serif text-2xl text-slate-900">Checking your booking…</h3>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                    We are confirming the status of your booking. This takes just a moment.
+                  </p>
+                  <p className="text-[11px] font-semibold text-slate-400">Please do not close or refresh this page.</p>
+                </div>
+              </div>
+            )}
+
             {/* ── VERIFYING: Backend signature check in progress ─────── */}
-            {paymentStatus === 'VERIFYING' && (
+            {!isRecoveringState && paymentStatus === 'VERIFYING' && (
               <VerifyingPaymentLogger />
             )}
 
+
             {/* ── PAID: Backend confirmed ──────────────────────────────── */}
-            {paymentStatus === 'PAID' && (
+            {!isRecoveringState && paymentStatus === 'PAID' && (
               <PaidPaymentLogger />
             )}
 
             {/* ── FAILED / CANCELLED: Show retry options ───────────────── */}
-            {paymentStatus === 'FAILED' && (
+            {!isRecoveringState && paymentStatus === 'FAILED' && (
               <div className="space-y-5">
                 <div className="w-20 h-20 bg-rose-50 border-2 border-rose-200 rounded-full flex items-center justify-center mx-auto">
                   <AlertCircle className="w-10 h-10 text-rose-500" />
@@ -1385,7 +1511,7 @@ export function BookingWizard() {
             )}
 
             {/* ── PENDING / IDLE: Razorpay modal is open, waiting ──────── */}
-            {(paymentStatus === 'IDLE' || paymentStatus === 'PENDING') && (
+            {!isRecoveringState && (paymentStatus === 'IDLE' || paymentStatus === 'PENDING') && (
               <div className="space-y-4">
                 <div className="w-20 h-20 bg-slate-50 border-2 border-slate-200 rounded-full flex items-center justify-center mx-auto">
                   <CreditCard className="w-10 h-10 text-slate-400 animate-pulse" />

@@ -362,3 +362,58 @@ export async function createBookingTransactionAction(inputData: unknown) {
     return { success: false, error: 'Failed to process booking. Please try again or contact support.' };
   }
 }
+
+/**
+ * Read the current status of a booking owned by the authenticated caller.
+ *
+ * Used EXCLUSIVELY for client-side payment state recovery after a page refresh
+ * on Step 6 of the booking wizard. This action is intentionally read-only and
+ * NEVER re-runs payment verification or modifies any booking record.
+ *
+ * Row-level security: only the booking owner (or ADMIN) can query their own booking.
+ */
+export async function getBookingStatusAction(bookingId: string): Promise<{
+  success: boolean;
+  bookingStatus?: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  paymentStatus?: 'PENDING' | 'PAID' | 'REFUNDED' | 'FAILED';
+  error?: string;
+}> {
+  try {
+    if (!bookingId || typeof bookingId !== 'string') {
+      return { success: false, error: 'INVALID_ID' };
+    }
+
+    const session = await getServerSession();
+    if (!session?.sub) {
+      return { success: false, error: 'UNAUTHENTICATED' };
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        studentId: true,
+        status: true,
+        paymentStatus: true,
+      },
+    });
+
+    if (!booking) {
+      return { success: false, error: 'NOT_FOUND' };
+    }
+
+    // Row-level access check — only owner or ADMIN may read this booking.
+    if (booking.studentId !== session.sub && session.role !== 'ADMIN') {
+      return { success: false, error: 'UNAUTHORIZED' };
+    }
+
+    return {
+      success: true,
+      bookingStatus: booking.status as 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED',
+      paymentStatus: booking.paymentStatus as 'PENDING' | 'PAID' | 'REFUNDED' | 'FAILED',
+    };
+  } catch (error: any) {
+    console.error('getBookingStatusAction error:', error);
+    return { success: false, error: 'SERVER_ERROR' };
+  }
+}
