@@ -162,13 +162,25 @@ export function Navbar() {
           </button>
 
           <Magnetic range={30} strength={0.35}>
-            <Link
-              href="/book"
+            <button
+              onClick={() => {
+                // BUG 2 FIX: Always clear saved wizard state before navigating
+                // to /book. The ?reset=1 param tells BookingWizard to ignore
+                // any sessionStorage and start at Step 1 unconditionally.
+                // This works even when the user is already on /book (mid-payment)
+                // because router.push triggers a re-render and the mount effect
+                // detects the query param.
+                if (typeof window !== 'undefined') {
+                  sessionStorage.removeItem('wizard_state');
+                }
+                router.push('/book?reset=1');
+                setMobileMenuOpen(false);
+              }}
               className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-blue-600/10 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               <span>Reserve Session</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
-            </Link>
+            </button>
           </Magnetic>
         </div>
 
@@ -231,13 +243,19 @@ export function Navbar() {
                 Admin Control Portal 🔑
               </button>
               
-              <Link
-                href="/book"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-3.5 bg-blue-600 text-white font-bold text-xs tracking-wider uppercase rounded-full shadow-lg"
+              <button
+                onClick={() => {
+                  // BUG 2 FIX: Same as desktop — clear state and force fresh wizard.
+                  if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem('wizard_state');
+                  }
+                  setMobileMenuOpen(false);
+                  router.push('/book?reset=1');
+                }}
+                className="w-full text-center py-3.5 bg-blue-600 text-white font-bold text-xs tracking-wider uppercase rounded-full shadow-lg cursor-pointer"
               >
                 Reserve Training Session
-              </Link>
+              </button>
             </div>
           </motion.div>
         )}

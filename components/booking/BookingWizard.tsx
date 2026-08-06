@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   CheckCircle2,
   Calendar,
@@ -22,11 +22,9 @@ import {
   createBookingTransactionAction,
 } from '@/actions/bookingSystem';
 import { getPackagesAction } from '@/actions/package';
-import {
-  createRazorpayOrderAction,
-  verifyPaymentSignatureAction,
-  markPaymentFailedAction,
-} from '@/actions/razorpay';
+// NOTE: createRazorpayOrderAction, verifyPaymentSignatureAction, and
+// markPaymentFailedAction are consumed exclusively inside useRazorpayCheckout.
+// They must NOT be imported here to prevent duplicate server-action calls.
 import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/actions/auth';
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
@@ -73,6 +71,7 @@ declare global {
 
 export function BookingWizard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
 
@@ -298,8 +297,45 @@ export function BookingWizard() {
   // record is already CONFIRMED in the database — there is nothing to recover.
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // resetWizard: wipes all in-memory state AND sessionStorage so the wizard
+  // starts cleanly from Step 1. Called by:
+  //   • ?reset=1 query param on mount  ("Reserve Session" navbar button)
+  //   • "Cancel Booking" button on the Step 6 failure screen
+  // ─────────────────────────────────────────────────────────────────────────
+  const resetWizard = useCallback(() => {
+    sessionStorage.removeItem('wizard_state');
+    setStep(1);
+    setSelectedPackage(null);
+    setSelectedInstructor(null);
+    setSelectedVehicle(null);
+    setSelectedDate(new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]);
+    setSelectedTimeSlot(null);
+    setNotes('');
+    setCreatedBookingId(null);
+    setPaymentStatus('IDLE');
+    setPaymentPhase('idle');
+    setLoading(false);
+    setError(null);
+    setSuccessMessage(null);
+  }, []);
+
   // Restore state from sessionStorage on mount
   useEffect(() => {
+    // ── BUG 2 FIX: ?reset=1 query parameter ─────────────────────────────────
+    // The "Reserve Session" navbar button navigates to /book?reset=1.
+    // When detected here, we immediately wipe sessionStorage and start fresh,
+    // ignoring any previously saved wizard state. This guarantees the wizard
+    // always opens at Step 1 regardless of the user's previous session.
+    if (searchParams.get('reset') === '1') {
+      sessionStorage.removeItem('wizard_state');
+      isInitialMount.current = false;
+      // Replace the URL to remove ?reset=1 without adding a new history entry.
+      // This prevents the browser Back button from re-triggering the reset.
+      router.replace('/book', { scroll: false });
+      return;
+    }
+
     const saved = sessionStorage.getItem('wizard_state');
     if (saved) {
       try {
@@ -339,6 +375,7 @@ export function BookingWizard() {
     }
     // Set flag to allow saving state on subsequent renders
     isInitialMount.current = false;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save state to sessionStorage whenever it changes.
@@ -497,10 +534,14 @@ export function BookingWizard() {
         setPaymentPhase('verifying-payment');
       },
       onError: (err) => {
+        // ALWAYS ensure phase/loading are cleared so the overlay is removed.
+        setPaymentPhase('idle');
+        setLoading(false);
+        // Only update paymentStatus and show the error for real (non-empty) messages.
+        // The hook calls onError('') on initialization to clear the previous error
+        // display — that empty-string call must NOT set paymentStatus to FAILED.
         if (err) {
           setPaymentStatus('FAILED');
-          setPaymentPhase('idle');
-          setLoading(false);
           setError(err);
         }
       },
@@ -512,12 +553,19 @@ export function BookingWizard() {
         setSuccessMessage(msg);
       },
       onDismiss: () => {
+        // ── BUG 1 FIX ────────────────────────────────────────────────────────
+        // This callback is now called from the `finally` block in the hook,
+        // guaranteeing it fires even when markPaymentFailedAction throws.
+        // ─────────────────────────────────────────────────────────────────────
         setPaymentStatus('FAILED');
         setPaymentPhase('idle');
         setLoading(false);
-        setError('Payment cancelled. Your booking slot is held. You can retry payment below.');
+        setError('Payment was not completed. Your booking slot is still reserved. You can retry or return to booking.');
       },
       onPaymentFailed: (err) => {
+        // ── BUG 1 FIX ────────────────────────────────────────────────────────
+        // Also called from `finally` — guaranteed to fire even on backend errors.
+        // ─────────────────────────────────────────────────────────────────────
         setPaymentStatus('FAILED');
         setPaymentPhase('idle');
         setLoading(false);
@@ -1288,10 +1336,16 @@ export function BookingWizard() {
                     <span>Retry Payment</span>
                   </button>
                   <button
-                    onClick={() => { setStep(5); setPaymentStatus('IDLE'); setPaymentPhase('idle'); }}
+                    onClick={() => { setStep(5); setPaymentStatus('IDLE'); setPaymentPhase('idle'); setError(null); }}
                     className="border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider transition"
                   >
-                    Return to Booking
+                    Back to Booking
+                  </button>
+                  <button
+                    onClick={resetWizard}
+                    className="border border-rose-200 text-rose-500 hover:bg-rose-50 font-semibold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider transition"
+                  >
+                    Cancel Booking
                   </button>
                 </div>
               </div>

@@ -44,7 +44,7 @@ export function useRazorpayCheckout() {
     // ─────────────────────────────────────────────────────────────────────────
     // INITIALIZATION — show loading spinner and clear previous errors only.
     //
-    // ROOT CAUSE OF BUG (now fixed):
+    // ROOT CAUSE OF PREVIOUS BUG (now fixed):
     //   The previous version called `callbacks?.onSuccess?.('')` here as part
     //   of "resetting UI state". This immediately fired setPaymentStatus('PAID')
     //   in the wizard, rendering the "Payment Successful!" screen before any
@@ -77,6 +77,38 @@ export function useRazorpayCheckout() {
     // ─────────────────────────────────────────────────────────────────────────
     let handlerFired = false;
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // SAFETY-NET TIMEOUT (30 seconds)
+    //
+    // If the Razorpay SDK hangs, the popup is blocked by the browser, or none
+    // of the SDK callbacks (handler / ondismiss / payment.failed) fire within
+    // 30 seconds of the modal opening, we fire onDismiss as a fallback.
+    //
+    // This prevents the UI from being stuck on "Complete Payment" forever when
+    // the SDK silently fails to initialise or the popup window is blocked.
+    //
+    // The timer is cleared the moment ANY callback fires (success, dismiss, or
+    // payment.failed), so it only activates in genuine "stuck" scenarios.
+    // ─────────────────────────────────────────────────────────────────────────
+    let safetyTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const clearSafetyTimer = () => {
+      if (safetyTimer !== null) {
+        clearTimeout(safetyTimer);
+        safetyTimer = null;
+      }
+    };
+
+    const fireSafetyFallback = () => {
+      if (handlerFired) return; // success handler already ran — no-op
+      console.warn(
+        '[Razorpay] Safety-net timeout fired — no SDK callback received within 30 s. ' +
+        'Possible causes: popup blocked, ad-blocker, slow network, SDK hang.'
+      );
+      handlerFired = true; // prevent any late-firing ondismiss from double-calling
+      callbacks?.onDismiss?.();
+    };
+
     // Guard against Razorpay script being blocked (ad-blockers, slow CDN load).
     if (typeof window === 'undefined' || !(window as any).Razorpay) {
       callbacks?.onError?.(
@@ -107,19 +139,23 @@ export function useRazorpayCheckout() {
       //
       // Production flow enforced here:
       //  1. handlerFired = true  → blocks any spurious ondismiss from overriding.
-      //  2. onVerifying()        → wizard shows "Verifying Payment…" spinner.
+      //  2. clearSafetyTimer()   → cancel the 30 s safety-net — not needed now.
+      //  3. onVerifying()        → wizard shows "Verifying Payment…" spinner.
       //                           The user sees a waiting screen, NOT success.
-      //  3. Backend HMAC SHA256 signature verification (cryptographic check).
-      //  4. Backend updates booking: status → CONFIRMED, paymentStatus → PAID.
-      //  5. ONLY if backend returns { success: true } → onSuccess() is called.
-      //  6. Wizard transitions to PAID → "Payment Successful!" appears.
-      //  7. 2-second delay → navigate to /booking/[id]/confirmation.
+      //  4. Backend HMAC SHA256 signature verification (cryptographic check).
+      //  5. Backend updates booking: status → CONFIRMED, paymentStatus → PAID.
+      //  6. ONLY if backend returns { success: true } → onSuccess() is called.
+      //  7. Wizard transitions to PAID → "Payment Successful!" appears.
+      //  8. 2-second delay → navigate to /booking/[id]/confirmation.
       //
-      // "Payment Successful!" can ONLY appear after steps 3 & 4 succeed.
+      // "Payment Successful!" can ONLY appear after steps 4 & 5 succeed.
       // ───────────────────────────────────────────────────────────────────────
       handler: async function (response: any) {
         // Block any spurious ondismiss race immediately.
         handlerFired = true;
+
+        // Disable the safety-net — the SDK has responded.
+        clearSafetyTimer();
 
         // Show VERIFYING state — the user sees a spinner while we check with
         // the backend. They do NOT see success yet.
@@ -153,8 +189,18 @@ export function useRazorpayCheckout() {
       modal: {
         // ───────────────────────────────────────────────────────────────────
         // DISMISS HANDLER
-        // Only mark as FAILED when the user genuinely closed without paying.
-        // If handlerFired is true, the success handler already ran — ignore.
+        //
+        // ROOT CAUSE FIX for Bug 1:
+        //   Previously this was async with no try/catch. If markPaymentFailedAction
+        //   threw (network error, auth expiry, server 500), the entire async function
+        //   rejected, and callbacks?.onDismiss?.() was NEVER called. The wizard
+        //   received no signal and stayed on "Complete Payment" forever.
+        //
+        // Fix: wrap in try/catch/finally. The finally block guarantees
+        // callbacks?.onDismiss?.() fires even when the backend call fails.
+        // The backend failure is non-blocking from the user's perspective —
+        // the UI transitions to the failed state regardless, and the backend
+        // will reconcile via Razorpay webhook if the dismiss wasn't recorded.
         // ───────────────────────────────────────────────────────────────────
         ondismiss: async function () {
           if (handlerFired) {
@@ -163,12 +209,32 @@ export function useRazorpayCheckout() {
             );
             return;
           }
+
+          // Disable the safety-net — the SDK has responded via ondismiss.
+          clearSafetyTimer();
+          handlerFired = true; // prevent safety timer double-fire
+
           console.warn('[Razorpay] Modal dismissed by user without completing payment.');
-          await markPaymentFailedAction(
-            bookingId,
-            'User closed the Razorpay checkout modal without completing payment.'
-          );
-          callbacks?.onDismiss?.();
+
+          try {
+            await markPaymentFailedAction(
+              bookingId,
+              'User closed the Razorpay checkout modal without completing payment.'
+            );
+          } catch (err) {
+            // Non-blocking: log the failure but do NOT let it prevent the UI
+            // from transitioning. The booking remains in PENDING state in the DB
+            // and will be reconciled by the Razorpay payment.failed webhook.
+            console.error(
+              '[Razorpay] markPaymentFailedAction threw during ondismiss — ' +
+              'UI will still transition to FAILED state. DB reconciliation via webhook.',
+              err
+            );
+          } finally {
+            // ✅ GUARANTEED: this always runs, even if the try block throws.
+            // The wizard receives the dismiss signal and transitions to FAILED.
+            callbacks?.onDismiss?.();
+          }
         },
       },
     };
@@ -177,21 +243,64 @@ export function useRazorpayCheckout() {
 
     // ─────────────────────────────────────────────────────────────────────────
     // PAYMENT FAILED EVENT
-    // Fires when a payment attempt is rejected by the bank before the modal
-    // closes. handlerFired remains false — this is not a success.
+    //
+    // ROOT CAUSE FIX for Bug 1 (secondary path):
+    //   Same pattern as ondismiss — the previous version awaited
+    //   markPaymentFailedAction with no try/catch, so a backend failure would
+    //   prevent callbacks?.onPaymentFailed?.() from firing.
+    //
+    // Fix: try/catch/finally with onPaymentFailed in the finally block.
     // ─────────────────────────────────────────────────────────────────────────
     rzp.on('payment.failed', async function (response: any) {
+      // Disable the safety-net — the SDK has responded.
+      clearSafetyTimer();
+      handlerFired = true; // prevent safety timer double-fire
+
+      const errorDescription =
+        response.error?.description || 'Payment declined by bank.';
+
       console.error('[Razorpay] payment.failed event:', response.error);
-      await markPaymentFailedAction(
-        bookingId,
-        response.error?.description || 'Payment declined by bank.'
-      );
-      callbacks?.onPaymentFailed?.(
-        response.error?.description || 'Transaction declined by your bank. Please try another card.'
-      );
+
+      try {
+        await markPaymentFailedAction(bookingId, errorDescription);
+      } catch (err) {
+        // Non-blocking: log but do not block UI transition.
+        console.error(
+          '[Razorpay] markPaymentFailedAction threw during payment.failed — ' +
+          'UI will still transition to FAILED state. DB reconciliation via webhook.',
+          err
+        );
+      } finally {
+        // ✅ GUARANTEED: fires even when backend call throws.
+        callbacks?.onPaymentFailed?.(
+          response.error?.description ||
+            'Transaction declined by your bank. Please try another card.'
+        );
+      }
     });
 
-    rzp.open();
+    // ─────────────────────────────────────────────────────────────────────────
+    // OPEN RAZORPAY MODAL
+    //
+    // Wrapped in try/catch to detect popup-blocked scenarios. If rzp.open()
+    // throws synchronously (rare but possible with some browser security
+    // policies), we fall back to onError immediately instead of relying on the
+    // safety-net timer.
+    //
+    // The safety-net timer is armed HERE — after the modal is opened — so it
+    // only starts counting if the modal actually launched but no callback fired.
+    // ─────────────────────────────────────────────────────────────────────────
+    try {
+      rzp.open();
+
+      // Arm safety-net AFTER open() succeeds (30 seconds).
+      safetyTimer = setTimeout(fireSafetyFallback, 30_000);
+    } catch (openErr) {
+      console.error('[Razorpay] rzp.open() threw — popup may be blocked:', openErr);
+      callbacks?.onError?.(
+        'The payment popup was blocked by your browser. Please allow popups for this site and try again.'
+      );
+    }
   };
 
   return { launchRazorpayCheckout };
