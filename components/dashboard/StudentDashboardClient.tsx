@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Calendar,
   Clock,
@@ -42,6 +43,24 @@ export function StudentDashboardClient({
   const [activeTab, setActiveTab] = useState<'bookings' | 'sessions' | 'payments' | 'documents' | 'skills'>('bookings');
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
+  const router = useRouter();
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FAILURE POINT 2 & 3 FIX: handleBookNewSession
+  //
+  // Every navigation to /book from the Dashboard must:
+  //  1. Remove 'wizard_state' from sessionStorage — prevents the mount effect
+  //     in BookingWizard from restoring a completed or abandoned booking.
+  //  2. Navigate to /book?reset=1 — the BookingWizard mount effect detects
+  //     this param and skips sessionStorage restoration unconditionally.
+  //
+  // Previously these links were plain <Link href="/book"> which skipped both
+  // steps, causing the wizard to restore step:6 / PENDING from a prior session.
+  // ─────────────────────────────────────────────────────────────────────────
+  const handleBookNewSession = () => {
+    sessionStorage.removeItem('wizard_state');
+    router.push('/book?reset=1');
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     const file = e.target.files?.[0];
@@ -76,7 +95,12 @@ export function StudentDashboardClient({
     const res = await retryPaymentAction(bookingId);
     setRetryingId(null);
     if (res.success) {
-      window.location.href = `/book`;
+      // FAILURE POINT 3 FIX: was window.location.href = '/book' — hard navigation
+      // without clearing sessionStorage, causing the wizard to restore the old
+      // PENDING booking. The wizard has its own retry flow on Step 6, so we
+      // navigate to a fresh wizard instead. The student will re-select their
+      // package; duplicate booking prevention in the backend guards idempotency.
+      handleBookNewSession();
     } else {
       alert(res.error || 'Failed to initialize payment retry.');
     }
@@ -114,13 +138,15 @@ export function StudentDashboardClient({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-4">
-          <Link
-            href="/book"
+          {/* FAILURE POINT 2 FIX: was <Link href="/book"> — replaced with */}
+          {/* handleBookNewSession() which clears sessionStorage + ?reset=1.  */}
+          <button
+            onClick={handleBookNewSession}
             className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-blue-600/10 transition hover:scale-[1.02]"
           >
             <span>Reserve Session</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
+          </button>
 
           <form action={logoutAction}>
             <button
@@ -196,12 +222,14 @@ export function StudentDashboardClient({
                 <p className="text-xs text-slate-400 font-light max-w-sm mx-auto">
                   Select a driving package and reserve your preferred instructor.
                 </p>
-                <Link
-                  href="/book"
+                {/* FAILURE POINT 2 FIX: was <Link href="/book"> — replaced with */}
+                {/* handleBookNewSession() which clears sessionStorage + ?reset=1.  */}
+                <button
+                  onClick={handleBookNewSession}
                   className="inline-block bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold px-6 py-3 rounded-full text-xs uppercase tracking-widest"
                 >
                   Reserve Package
-                </Link>
+                </button>
               </div>
             ) : (
               <div className="bg-white border border-slate-200/80 rounded-2xl divide-y divide-slate-800/60 overflow-hidden">

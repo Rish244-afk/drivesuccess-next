@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
 import { CheckCircle2, Download, Calendar, User, Car, ArrowRight, ShieldCheck, CreditCard } from 'lucide-react';
 import Link from 'next/link';
+import { ConfirmationCleanup } from '@/components/booking/ConfirmationCleanup';
 
 export default async function BookingConfirmationPage({ params }: { params: { bookingId: string } }) {
   const session = await getServerSession();
@@ -41,6 +42,12 @@ export default async function BookingConfirmationPage({ params }: { params: { bo
 
   return (
     <div className="min-h-screen bg-[#02040A] py-20 px-4 flex items-center justify-center">
+      {/*
+        ConfirmationCleanup: client component that wipes wizard_state from
+        sessionStorage on mount. Belt-and-suspenders safety net alongside the
+        synchronous wipe in BookingWizard's onSuccess callback (Bug 3 fix).
+      */}
+      <ConfirmationCleanup />
       <div className="max-w-3xl w-full bg-[#070B19] border border-slate-800/80 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-8">
         
         {/* Success Header */}
