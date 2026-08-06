@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
+import { jwtVerify, SignJWT } from 'jose';
 import { apiRateLimiter } from '@/lib/rateLimit';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -96,9 +96,28 @@ export async function middleware(req: NextRequest) {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
 
+    let activeToken = token;
+    
+    // Rolling session: If token was issued more than 7 days ago, issue a fresh 30-day token
+    const iat = payload.iat as number;
+    const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    
+    if (iat && (nowInSeconds - iat > sevenDaysInSeconds)) {
+      const newPayload = { ...payload };
+      delete newPayload.exp;
+      delete newPayload.iat;
+      delete newPayload.nbf;
+      
+      activeToken = await new SignJWT(newPayload)
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('30d')
+        .sign(JWT_SECRET);
+    }
+
     const response = NextResponse.next();
-    // Rolling 30-day session extension
-    response.cookies.set(COOKIE_NAME, token, {
+    response.cookies.set(COOKIE_NAME, activeToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

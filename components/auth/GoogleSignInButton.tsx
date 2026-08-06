@@ -166,7 +166,7 @@ export function GoogleSignInButton({
   //    FIX: Store the resolved destination in sessionStorage before navigating away.
   //    The login page callback reads and clears this key after a successful auth.
   //    sessionStorage persists within the same browser tab across same-origin redirects.
-  const handleGoogleClick = () => {
+  const handleGoogleClick = async () => {
     setLoading(true);
     const clientId =
       process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
@@ -199,6 +199,17 @@ export function GoogleSignInButton({
     const stateObj = { nonce, returnTo: destination };
     const stateStr = encodeURIComponent(JSON.stringify(stateObj));
     const redirectUri = encodeURIComponent(`${appUrl}/auth/login`);
+
+    // Set HttpOnly state cookie to prevent CSRF
+    try {
+      await fetch('/api/auth/oauth-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: stateStr }),
+      });
+    } catch (err) {
+      console.warn('Failed to set oauth state cookie', err);
+    }
 
     // Use authorization code flow — code arrives in the query string, not fragment.
     const googleAuthUrl = [

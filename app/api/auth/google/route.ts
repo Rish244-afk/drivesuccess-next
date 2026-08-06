@@ -361,11 +361,20 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get('code');
   const idToken = searchParams.get('id_token');
+  const state = searchParams.get('state');
+  const storedStateCookie = req.cookies.get('oauth_state')?.value;
 
   console.log('📥 [OAuth Audit] GET /api/auth/google received callback:', {
     codeReceived: !!code,
     idTokenReceived: !!idToken,
+    stateReceived: !!state,
   });
+
+  // CSRF Protection: Validate state parameter
+  if (state && storedStateCookie && state !== storedStateCookie) {
+    console.error('🚨 [OAuth Audit] CSRF State mismatch detected!');
+    return NextResponse.redirect(new URL('/auth/login?error=csrf', req.url));
+  }
 
   if (code || idToken) {
     try {
@@ -377,12 +386,17 @@ export async function GET(req: NextRequest) {
       const res = await POST(postReq);
       const data = await res.json();
       if (data.success) {
-        return NextResponse.redirect(new URL('/dashboard', req.url));
+        const redirectRes = NextResponse.redirect(new URL('/dashboard', req.url));
+        // Clear the state cookie after successful use
+        redirectRes.cookies.delete('oauth_state');
+        return redirectRes;
       }
     } catch (err) {
       console.error('Error handling GET OAuth callback:', err);
     }
   }
 
-  return NextResponse.redirect(new URL('/auth/login', req.url));
+  const errRes = NextResponse.redirect(new URL('/auth/login', req.url));
+  errRes.cookies.delete('oauth_state');
+  return errRes;
 }
