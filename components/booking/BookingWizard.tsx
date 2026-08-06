@@ -90,20 +90,7 @@ export function BookingWizard() {
     }
   }, [step]);
 
-  // Force scroll to top and lock viewport on mobile during full-screen overlay phases
-  useEffect(() => {
-    if (paymentPhase !== 'idle') {
-      document.body.style.overflow = 'hidden';
-      if (paymentPhase === 'verifying-payment') {
-        window.scrollTo({ top: 0, behavior: 'instant' });
-      }
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [paymentPhase]);
+
 
   // Loaded database records
   const [packages, setPackages] = useState<WizardPackage[]>([]);
@@ -296,6 +283,21 @@ export function BookingWizard() {
   const [paymentPhase, setPaymentPhase] = useState<
     'idle' | 'creating-booking' | 'initializing-razorpay' | 'verifying-payment'
   >('idle');
+
+  // Force scroll to top and lock viewport on mobile during full-screen overlay phases
+  useEffect(() => {
+    if (paymentPhase !== 'idle') {
+      document.body.style.overflow = 'hidden';
+      if (paymentPhase === 'verifying-payment') {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [paymentPhase]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // sessionStorage: resume a PARTIALLY completed booking after a page refresh.
