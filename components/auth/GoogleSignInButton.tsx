@@ -206,7 +206,7 @@ export function GoogleSignInButton({
       `?client_id=${clientId}`,
       `&redirect_uri=${redirectUri}`,
       `&response_type=code`,
-      `&scope=email%20profile`,
+      `&scope=openid%20email%20profile`,
       `&state=${stateStr}`,
       `&access_type=offline`,
       `&prompt=select_account`,
