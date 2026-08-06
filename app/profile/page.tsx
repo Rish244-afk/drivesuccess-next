@@ -5,12 +5,12 @@ export default async function ProfilePage() {
   const session = await getServerSession();
 
   if (!session) {
-    redirect('/auth/login?from=/dashboard');
+    redirect('/auth/login?from=/settings');
   }
 
   if (session.role === 'ADMIN') {
     redirect('/admin');
   }
 
-  redirect('/dashboard');
+  redirect('/settings');
 }
