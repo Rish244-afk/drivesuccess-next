@@ -340,6 +340,13 @@ model Session {
   @@index([vehicleId])
   @@index([scheduledAt])
   @@index([status])
+
+  // ── Slot exclusivity (P-10 double-booking prevention) ──────────────────
+  // Partial unique indexes (WHERE status != 'CANCELLED') are applied via a
+  // raw SQL migration: prisma/migrations/manual_slot_uniqueness.sql
+  // Prisma @@unique does not support WHERE predicates, so these are managed
+  // outside the schema file to avoid incorrectly blocking cancelled sessions.
+
   @@map("sessions")
 }
 
