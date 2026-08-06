@@ -433,6 +433,23 @@ export function BookingWizard() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Automatically clear stale validation errors whenever the user changes steps
+  useEffect(() => {
+    setError(null);
+  }, [step]);
+
+  // Automatically clear stale validation errors and reset created booking ID
+  // whenever any key booking selection changes (date, slot, instructor, vehicle, package).
+  // This guarantees that picking a new slot starts with a clean slate and creates
+  // a fresh booking transaction rather than reusing a stale or conflicting booking record.
+  useEffect(() => {
+    setError(null);
+    setCreatedBookingId((prevId) => (paymentStatus === 'PAID' ? prevId : null));
+    if (paymentStatus !== 'PAID') {
+      setPaymentStatus('IDLE');
+    }
+  }, [selectedPackage, selectedInstructor, selectedVehicle, selectedDate, selectedTimeSlot]);
+
   // Check current session
   useEffect(() => {
     refreshSessionData();
@@ -1275,7 +1292,12 @@ export function BookingWizard() {
 
           <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
             <button
-              onClick={() => setStep(4)}
+              onClick={() => {
+                setError(null);
+                setCreatedBookingId(null);
+                setPaymentStatus('IDLE');
+                setStep(4);
+              }}
               className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
             >
               Back
