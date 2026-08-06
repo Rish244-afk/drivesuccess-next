@@ -82,33 +82,52 @@ export async function POST(req: NextRequest) {
         const tokenData = await tokenRes.json();
         console.log('🔄 [OAuth Audit] Step 3. Token exchange response status:', tokenRes.status);
 
-        if (tokenData.access_token) {
-          const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${tokenData.access_token}` },
-          });
-          const profile = await userRes.json();
-          if (profile && profile.email) {
-            console.log('✅ [OAuth Audit] Step 3. Google Profile fetched successfully:', profile.email);
-            googleUser = {
-              sub: profile.sub || `g_${Date.now()}`,
-              email: profile.email,
-              name: profile.name || profile.email.split('@')[0],
-              picture: profile.picture || '',
-              emailVerified: profile.email_verified ?? true,
-            };
+        // Priority A: Decode the id_token if available (contains reliable, cryptographically-signed identity)
+        if (tokenData.id_token) {
+          try {
+            const parts = tokenData.id_token.split('.');
+            if (parts.length === 3) {
+              const decoded = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
+              if (decoded.email) {
+                console.log('✅ [OAuth Audit] Step 3. Parsed Google user from ID Token:', decoded.email);
+                googleUser = {
+                  sub: decoded.sub || `g_${Date.now()}`,
+                  email: decoded.email,
+                  name: decoded.name || decoded.email?.split('@')[0],
+                  picture: decoded.picture || '',
+                  emailVerified: decoded.email_verified ?? true,
+                };
+              }
+            }
+          } catch (e) {
+            console.warn('⚠️ Failed to parse Google ID Token:', e);
           }
-        } else if (tokenData.id_token) {
-          const parts = tokenData.id_token.split('.');
-          const decoded = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-          googleUser = {
-            sub: decoded.sub || `g_${Date.now()}`,
-            email: decoded.email,
-            name: decoded.name || decoded.email?.split('@')[0],
-            picture: decoded.picture || '',
-            emailVerified: true,
-          };
-        } else {
-          console.warn('⚠️ Google Token Exchange returned no tokens:', tokenData);
+        }
+
+        // Priority B: Fallback to UserInfo API if id_token was missing or failed to decode
+        if (!googleUser.email && tokenData.access_token) {
+          try {
+            const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${tokenData.access_token}` },
+            });
+            const profile = await userRes.json();
+            if (profile && profile.email) {
+              console.log('✅ [OAuth Audit] Step 3. Google Profile fetched successfully from UserInfo API:', profile.email);
+              googleUser = {
+                sub: profile.sub || `g_${Date.now()}`,
+                email: profile.email,
+                name: profile.name || profile.email.split('@')[0],
+                picture: profile.picture || '',
+                emailVerified: profile.email_verified ?? true,
+              };
+            }
+          } catch (apiErr) {
+            console.warn('⚠️ Failed to fetch from Google UserInfo API:', apiErr);
+          }
+        }
+
+        if (!googleUser.email) {
+          console.warn('⚠️ Google Token Exchange returned no recognizable email:', tokenData);
         }
       } catch (codeErr) {
         console.error('🚨 Error exchanging Google Code:', codeErr);
