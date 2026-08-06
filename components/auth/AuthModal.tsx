@@ -120,8 +120,11 @@ export function AuthModal({
           }
           return;
         }
-      } catch (err) {
-        console.warn('Firebase verification failed, trying server verification...');
+      } catch (err: any) {
+        console.warn('Firebase verification failed:', err);
+        setLoading(false);
+        setError(err?.message || 'Invalid verification code. Please check the 6-digit code and try again.');
+        return;
       }
     }
 

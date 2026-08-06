@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { generateOtp, sendSmsOtp } from '@/lib/sms';
 import { signSessionToken, setAuthCookie, removeAuthCookie, getServerSession } from '@/lib/auth';
+import { logger } from '@/lib/logger';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
@@ -109,10 +110,19 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
       role: student.role,
       name: student.name,
       email: student.email || '',
+      ver: student.authVersion,
     };
 
     const token = await signSessionToken(jwtPayload);
     await setAuthCookie(token);
+
+    logger.auth({
+      event: 'SESSION_ISSUED',
+      outcome: 'SUCCESS',
+      actorId: student.id,
+      phone: student.phone || undefined,
+      email: student.email || undefined,
+    });
 
     revalidatePath('/dashboard');
 
@@ -181,6 +191,13 @@ export async function sendOtpAction(phoneInput: string) {
     const maskedPhone = phone.replace(/(\+\d{2}\d{4})\d{4}(\d{2})/, '$1****$2');
     console.log(`🔒 Secure OTP generated for ${maskedPhone}. Expiration: 5m.`);
 
+    logger.auth({
+      event: 'OTP_DISPATCHED',
+      outcome: 'SUCCESS',
+      phone,
+      details: { smsDelivered: smsResult },
+    });
+
     return {
       success: true,
       message: `Verification code sent to ${maskedPhone}. Valid for 5 minutes.`,
@@ -212,18 +229,36 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
     });
 
     if (!otpRecord) {
+      logger.auth({
+        event: 'OTP_VERIFICATION_FAILED',
+        outcome: 'FAILURE',
+        phone,
+        reason: 'OTP record missing or expired',
+      });
       return { success: false, error: 'Verification code expired or not requested. Please request a new code.' };
     }
 
     // Check Expiry (5 Minutes)
     if (new Date() > otpRecord.expiresAt) {
       await prisma.otpVerification.delete({ where: { phone } });
+      logger.auth({
+        event: 'OTP_VERIFICATION_FAILED',
+        outcome: 'FAILURE',
+        phone,
+        reason: 'OTP expired',
+      });
       return { success: false, error: 'Verification code has expired. Please request a new code.' };
     }
 
     // 2. Lockout Check: Max 5 Failed Attempts
     if (otpRecord.attempts >= 5) {
       await prisma.otpVerification.delete({ where: { phone } });
+      logger.auth({
+        event: 'OTP_VERIFICATION_FAILED',
+        outcome: 'FAILURE',
+        phone,
+        reason: 'Max attempts exceeded',
+      });
       return { success: false, error: 'Maximum verification attempts exceeded. Please request a new code.' };
     }
 
@@ -234,25 +269,33 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
       const updatedAttempts = otpRecord.attempts + 1;
       if (updatedAttempts >= 5) {
         await prisma.otpVerification.delete({ where: { phone } });
-        return {
-          success: false,
-          error: 'Maximum verification attempts exceeded. Please request a new code.',
-        };
       } else {
         await prisma.otpVerification.update({
           where: { phone },
           data: { attempts: updatedAttempts },
         });
-        const remainingAttempts = 5 - updatedAttempts;
-        return {
-          success: false,
-          error: `Invalid verification code. ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.`,
-        };
       }
+      logger.auth({
+        event: 'OTP_VERIFICATION_FAILED',
+        outcome: 'FAILURE',
+        phone,
+        reason: 'Invalid OTP code',
+      });
+      const remainingAttempts = Math.max(0, 5 - updatedAttempts);
+      return {
+        success: false,
+        error: `Invalid verification code. ${remainingAttempts} attempt${remainingAttempts === 1 ? '' : 's'} remaining.`,
+      };
     }
 
     // 4. Invalidate & Delete OTP Record Immediately (Prevents Replay Attacks)
     await prisma.otpVerification.delete({ where: { phone } });
+
+    logger.auth({
+      event: 'OTP_VERIFICATION_SUCCESS',
+      outcome: 'SUCCESS',
+      phone,
+    });
 
     // 5. Issue Logged-In Session
     return await loginWithVerifiedPhoneAction(phone);
@@ -269,12 +312,21 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
  * 4. Logout Action
  */
 export async function logoutAction(): Promise<void> {
+  const session = await getServerSession();
+  if (session?.sub) {
+    logger.auth({
+      event: 'SESSION_REVOKED',
+      outcome: 'SUCCESS',
+      actorId: session.sub,
+      reason: 'User explicit logout',
+    });
+  }
   await removeAuthCookie();
   revalidatePath('/');
 }
 
 /**
- * 5. Get Current User Session (Database Validated)
+ * 5. Get Current User Session (Database Validated & Token Version Enforced)
  */
 export async function getCurrentUserAction() {
   const session = await getServerSession();
@@ -285,10 +337,28 @@ export async function getCurrentUserAction() {
   // Verify student record actually exists in Prisma DB
   const student = await prisma.student.findUnique({
     where: { id: session.sub },
-    select: { id: true, role: true, phone: true, email: true, name: true },
+    select: { id: true, role: true, phone: true, email: true, name: true, authVersion: true },
   });
 
   if (!student) {
+    logger.auth({
+      event: 'SESSION_REVOKED',
+      outcome: 'FAILURE',
+      actorId: session.sub,
+      reason: 'Student account missing or deleted in database',
+    });
+    await removeAuthCookie();
+    return { success: false, user: null };
+  }
+
+  // Token Versioning Revocation Check
+  if (session.ver !== undefined && session.ver !== student.authVersion) {
+    logger.auth({
+      event: 'SESSION_REVOKED',
+      outcome: 'FAILURE',
+      actorId: student.id,
+      reason: `Token version mismatch: session ver (${session.ver}) != DB authVersion (${student.authVersion})`,
+    });
     await removeAuthCookie();
     return { success: false, user: null };
   }

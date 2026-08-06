@@ -3,13 +3,32 @@ import { OAuth2Client } from 'google-auth-library';
 import { prisma } from '@/lib/prisma';
 import { signSessionToken, setAuthCookie, getServerSession } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rateLimit';
-import { logger } from '@/lib/logger';
+import { logger, generateTraceId } from '@/lib/logger';
 import { handleApiError } from '@/lib/error-handler';
 
 export async function POST(req: NextRequest) {
+  // Generate a unique trace ID at request entry. Every logger.auth() call
+  // within this request handler shares this ID so a single login attempt
+  // can be reconstructed end-to-end:  grep '"traceId":"tr_XXXXXXXX"' logs
+  const traceId = generateTraceId();
+
   try {
     // 1. Rate Limiting Check
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
+
+    logger.auth({
+      event: 'OAUTH_REQUEST_RECEIVED',
+      outcome: 'SUCCESS',
+      traceId,
+      ip,
+      userAgent,
+      details: {
+        method: 'POST',
+        hasCode: !!req.headers.get('content-length'),
+      },
+    });
+
     const rateLimit = checkRateLimit(`google_auth_${ip}`, { limit: 15, windowMs: 60 * 1000 });
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -21,6 +40,19 @@ export async function POST(req: NextRequest) {
     // 2. Parse Request Body
     const body = await req.json().catch(() => null);
     if (!body || (!body.credential && !body.email && !body.code)) {
+      logger.auth({
+        event: 'OAUTH_REQUEST_RECEIVED',
+        outcome: 'FAILURE',
+        traceId,
+        ip,
+        reason: 'Missing required Google credential or authorization code in request body.',
+        details: {
+          hasBody: !!body,
+          hasCode: !!body?.code,
+          hasCredential: !!body?.credential,
+          hasEmail: !!body?.email,
+        },
+      });
       return NextResponse.json(
         { success: false, error: 'Missing required Google ID token or code credential.' },
         { status: 400 }
@@ -41,7 +73,18 @@ export async function POST(req: NextRequest) {
 
     // 2A. Authorization Code Exchange Flow (if body.code is provided)
     if (body.code) {
-      console.log('🔄 [OAuth Audit] Step 2. Exchanging Authorization Code with Google Token Endpoint...');
+      logger.auth({
+        event: 'OAUTH_CODE_EXCHANGE_STARTED',
+        outcome: 'SUCCESS',
+        traceId,
+        ip,
+        userAgent,
+        details: {
+          // Log only the first 12 chars of the code — enough to correlate with
+          // Google's token endpoint logs without exposing a usable secret.
+          codePrefix: String(body.code).substring(0, 12) + '...',
+        },
+      });
 
       // PERMANENT FIX: The redirect_uri sent here during code exchange MUST
       // exactly match the redirect_uri sent during the initial authorization
@@ -80,7 +123,49 @@ export async function POST(req: NextRequest) {
         });
 
         const tokenData = await tokenRes.json();
-        console.log('🔄 [OAuth Audit] Step 3. Token exchange response status:', tokenRes.status);
+
+        // Log the structural shape of the token response without emitting
+        // raw token values. This captures exactly what fields Google returned
+        // so we can determine whether Brave's Shields alter the response.
+        logger.auth({
+          event: 'OAUTH_TOKEN_RESPONSE',
+          outcome: tokenData.error ? 'FAILURE' : 'SUCCESS',
+          traceId,
+          ip,
+          userAgent,
+          reason: tokenData.error ? (tokenData.error_description || tokenData.error) : undefined,
+          details: {
+            httpStatus: tokenRes.status,
+            hasError: !!tokenData.error,
+            errorCode: tokenData.error ?? null,
+            errorDescription: tokenData.error_description ?? null,
+            hasAccessToken: !!tokenData.access_token,
+            hasIdToken: !!tokenData.id_token,
+            hasRefreshToken: !!tokenData.refresh_token,
+            tokenType: tokenData.token_type ?? null,
+            expiresIn: tokenData.expires_in ?? null,
+            redirectUri,
+          },
+        });
+
+        if (tokenData.error) {
+          logger.auth({
+            event: 'OAUTH_CODE_EXCHANGE_FAILED',
+            outcome: 'FAILURE',
+            traceId,
+            ip,
+            userAgent,
+            reason: tokenData.error_description || tokenData.error,
+            details: { error: tokenData.error, error_description: tokenData.error_description, redirectUri },
+          });
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Google authorization failed: ${tokenData.error_description || tokenData.error}`,
+            },
+            { status: 400 }
+          );
+        }
 
         // Priority A: Decode the id_token if available (contains reliable, cryptographically-signed identity)
         if (tokenData.id_token) {
@@ -89,7 +174,6 @@ export async function POST(req: NextRequest) {
             if (parts.length === 3) {
               const decoded = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
               if (decoded.email) {
-                console.log('✅ [OAuth Audit] Step 3. Parsed Google user from ID Token:', decoded.email);
                 googleUser = {
                   sub: decoded.sub || `g_${Date.now()}`,
                   email: decoded.email,
@@ -97,10 +181,19 @@ export async function POST(req: NextRequest) {
                   picture: decoded.picture || '',
                   emailVerified: decoded.email_verified ?? true,
                 };
+                logger.auth({
+                  event: 'OAUTH_EMAIL_EXTRACTED',
+                  outcome: 'SUCCESS',
+                  traceId,
+                  ip,
+                  userAgent,
+                  email: decoded.email,
+                  details: { source: 'ID_TOKEN_JWT_DECODE', sub: decoded.sub, emailVerified: decoded.email_verified },
+                });
               }
             }
           } catch (e) {
-            console.warn('⚠️ Failed to parse Google ID Token:', e);
+            logger.warn('Failed to parse Google ID Token JWT', { traceId, error: String(e) });
           }
         }
 
@@ -112,7 +205,6 @@ export async function POST(req: NextRequest) {
             });
             const profile = await userRes.json();
             if (profile && profile.email) {
-              console.log('✅ [OAuth Audit] Step 3. Google Profile fetched successfully from UserInfo API:', profile.email);
               googleUser = {
                 sub: profile.sub || `g_${Date.now()}`,
                 email: profile.email,
@@ -120,17 +212,37 @@ export async function POST(req: NextRequest) {
                 picture: profile.picture || '',
                 emailVerified: profile.email_verified ?? true,
               };
+              logger.auth({
+                event: 'OAUTH_EMAIL_EXTRACTED',
+                outcome: 'SUCCESS',
+                traceId,
+                ip,
+                userAgent,
+                email: profile.email,
+                details: { source: 'USERINFO_API', sub: profile.sub, emailVerified: profile.email_verified },
+              });
             }
           } catch (apiErr) {
-            console.warn('⚠️ Failed to fetch from Google UserInfo API:', apiErr);
+            logger.warn('Failed to fetch from Google UserInfo API', { traceId, error: String(apiErr) });
           }
         }
 
         if (!googleUser.email) {
-          console.warn('⚠️ Google Token Exchange returned no recognizable email:', tokenData);
+          logger.auth({
+            event: 'OAUTH_EMAIL_MISSING',
+            outcome: 'FAILURE',
+            traceId,
+            ip,
+            userAgent,
+            reason: 'No email found in id_token or UserInfo API response.',
+            details: {
+              hadIdToken: !!tokenData.id_token,
+              hadAccessToken: !!tokenData.access_token,
+            },
+          });
         }
       } catch (codeErr) {
-        console.error('🚨 Error exchanging Google Code:', codeErr);
+        logger.error('Error exchanging Google authorization code', codeErr, { traceId });
       }
     }
 
@@ -211,6 +323,19 @@ export async function POST(req: NextRequest) {
     const { sub: googleId, email, name, picture, emailVerified } = googleUser;
 
     if (!email) {
+      logger.auth({
+        event: 'OAUTH_EMAIL_MISSING',
+        outcome: 'FAILURE',
+        traceId,
+        ip,
+        userAgent,
+        reason: 'All extraction paths exhausted: no email in id_token, UserInfo API, or body payload.',
+        details: {
+          hadCode: !!body.code,
+          hadCredential: !!body.credential,
+          hadBodyEmail: !!body.email,
+        },
+      });
       return NextResponse.json(
         { success: false, error: 'Could not extract valid email from Google response.' },
         { status: 400 }
@@ -233,7 +358,27 @@ export async function POST(req: NextRequest) {
     // Only if ALL four steps fail is a new account created.
     // ─────────────────────────────────────────────────────────────────────────
     const currentSession = await getServerSession();
+    console.log('5. [AUTH RUNTIME LOG] Session (Custom JWT equivalent to Supabase session):', currentSession);
     let student = null;
+
+    // Case 7 Collision Check: Active session exists, but Google email is registered to a DIFFERENT student
+    if (currentSession?.sub && email) {
+      const emailOwner = await prisma.student.findUnique({ where: { email } });
+      if (emailOwner && emailOwner.id !== currentSession.sub) {
+        logger.auth({
+          event: 'AUTH_REJECTED',
+          outcome: 'REJECTED',
+          traceId,
+          actorId: currentSession.sub,
+          email,
+          reason: 'Google email is already registered to a different account.',
+        });
+        return NextResponse.json(
+          { success: false, error: 'This Google account is already linked to a different registered student.' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Step 1: Existing JWT session (e.g., Phone OTP session still active)
     if (currentSession?.sub) {
@@ -241,7 +386,15 @@ export async function POST(req: NextRequest) {
         where: { id: currentSession.sub },
       });
       if (student) {
-        console.log('🔗 [OAuth] Linking Google identity to active session account:', student.id);
+        logger.auth({
+          event: 'IDENTITY_LINKED',
+          outcome: 'SUCCESS',
+          traceId,
+          actorId: student.id,
+          email,
+          phone: student.phone || undefined,
+          details: { googleId, linkType: 'ACTIVE_SESSION' },
+        });
       }
     }
 
@@ -271,7 +424,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (student) {
-      console.log('✅ [OAuth Audit] Step 4. Existing Student found. Updating Google credentials...', { studentId: student.id });
+      logger.auth({
+        event: 'IDENTITY_LINKED',
+        outcome: 'SUCCESS',
+        traceId,
+        actorId: student.id,
+        email,
+        details: { resolution: 'EXISTING_STUDENT_FOUND', hadGoogleId: !!student.googleId, hadPhone: !!student.phone },
+      });
       student = await prisma.student.update({
         where: { id: student.id },
         data: {
@@ -310,8 +470,6 @@ export async function POST(req: NextRequest) {
         }
       }
     } else {
-      // 3C. Create New Student
-      console.log('✨ [OAuth Audit] Step 4. Creating New Student account from Google credentials:', { email });
       student = await prisma.student.create({
         data: {
           email,
@@ -322,24 +480,41 @@ export async function POST(req: NextRequest) {
           role: 'STUDENT',
         },
       });
+      logger.auth({
+        event: 'ACCOUNT_CREATED',
+        outcome: 'SUCCESS',
+        traceId,
+        actorId: student.id,
+        email,
+        details: { method: 'GOOGLE_OAUTH', googleId },
+      });
     }
 
     // 4. Issue Unified 30-Day Session JWT Cookie
-    console.log('🔒 [OAuth Audit] Step 5. Signing & Setting 30-Day Auth Session Cookie for:', student.id);
     const token = await signSessionToken({
       sub: student.id,
       phone: student.phone || '',
       role: student.role,
       name: student.name,
       email: student.email,
+      ver: student.authVersion,
+    });
+
+    logger.auth({
+      event: 'SESSION_ISSUED',
+      outcome: 'SUCCESS',
+      traceId,
+      actorId: student.id,
+      email: student.email || undefined,
+      phone: student.phone || undefined,
+      details: { method: 'GOOGLE_OAUTH', authVersion: student.authVersion },
     });
 
     await setAuthCookie(token);
 
-    console.log('🚀 [OAuth Audit] Step 6. Authentication Complete! Returning success response to client.');
-
     return NextResponse.json({
       success: true,
+      traceId,
       requiresPhone: !student.phone,
       student: {
         id: student.id,
@@ -350,6 +525,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
+    logger.error('Unhandled exception in POST /api/auth/google', error, { traceId });
     return handleApiError(error, '/api/auth/google');
   }
 }
@@ -363,6 +539,11 @@ export async function GET(req: NextRequest) {
   const idToken = searchParams.get('id_token');
   const state = searchParams.get('state');
   const storedStateCookie = req.cookies.get('oauth_state')?.value;
+
+  console.log('\n\n======================================================');
+  console.log('1. [AUTH RUNTIME LOG] Request received (GET)');
+  console.log('2. [AUTH RUNTIME LOG] Query parameters:', Array.from(searchParams.entries()));
+  console.log('3. [AUTH RUNTIME LOG] OAuth code:', code);
 
   console.log('📥 [OAuth Audit] GET /api/auth/google received callback:', {
     codeReceived: !!code,
@@ -386,6 +567,7 @@ export async function GET(req: NextRequest) {
       const res = await POST(postReq);
       const data = await res.json();
       if (data.success) {
+        console.log('12. [AUTH RUNTIME LOG] Redirecting to /dashboard');
         const redirectRes = NextResponse.redirect(new URL('/dashboard', req.url));
         // Clear the state cookie after successful use
         redirectRes.cookies.delete('oauth_state');
@@ -396,6 +578,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  console.log('12. [AUTH RUNTIME LOG] Redirecting to /auth/login (Fallback)');
   const errRes = NextResponse.redirect(new URL('/auth/login', req.url));
   errRes.cookies.delete('oauth_state');
   return errRes;

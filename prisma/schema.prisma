@@ -141,6 +141,7 @@ model Student {
   zipCode       String?
   licenseNo     String?
   role          Role           @default(STUDENT)
+  authVersion   Int            @default(1)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 

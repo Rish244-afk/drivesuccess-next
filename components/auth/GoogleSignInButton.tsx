@@ -30,6 +30,13 @@ export function GoogleSignInButton({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const promptAttempted = useRef(false);
+  /**
+   * Ref for the 3.5s GSI fallback timeout.
+   * Hoisted here so the useEffect cleanup function can clear it when the
+   * component unmounts during the redirect to Google — preventing the timer
+   * from firing on the OAuth callback page and injecting a stale error.
+   */
+  const fallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 1. Process Google credential after user finishes account selection (One Tap / FedCM)
   const processGoogleCredential = React.useCallback(async (payload: {
@@ -84,6 +91,16 @@ export function GoogleSignInButton({
     if (typeof window === 'undefined') return;
     if (promptAttempted.current) return;
 
+    // ── Callback Page Guard ────────────────────────────────────────────────
+    // If the URL contains ?code= or ?id_token=, this component is mounted
+    // inside an active OAuth authorization code callback.  Initializing
+    // One Tap here would arm the 3.5s fallback timer for no reason: the
+    // user is already mid-flow.  The timer would fire 3.5s later and inject
+    // a "Having trouble?" error banner on top of the valid loading state.
+    // Skip One Tap initialization entirely on callback pages.
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code') || urlParams.has('id_token')) return;
+
     const clientId =
       process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
       '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
@@ -104,8 +121,11 @@ export function GoogleSignInButton({
             cancel_on_tap_outside: false,
           });
 
-          // Fallback timeout: If no callback from Google within 3.5s, assume blocked
-          const fallbackTimeout = setTimeout(() => {
+          // Fallback timeout: If no callback from Google within 3.5s, assume
+          // One Tap was blocked (common in Brave/Firefox strict mode).
+          // Stored in a ref so the useEffect cleanup can cancel it when the
+          // component unmounts during the full-page redirect to Google.
+          fallbackTimeoutRef.current = setTimeout(() => {
             setError(
               "Having trouble with Google Sign-In? This can happen with privacy browsers like Brave or strict cookie settings. Please use Mobile OTP instead, or try clicking the button below."
             );
@@ -113,9 +133,12 @@ export function GoogleSignInButton({
 
           // Prompt One Tap
           window.google.accounts.id.prompt((notification: any) => {
-            // If we received any notification, clear the timeout
-            clearTimeout(fallbackTimeout);
-            
+            // Notification received — cancel the fallback timeout.
+            if (fallbackTimeoutRef.current !== null) {
+              clearTimeout(fallbackTimeoutRef.current);
+              fallbackTimeoutRef.current = null;
+            }
+
             if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
               console.warn('Google One Tap blocked or skipped:', notification.getNotDisplayedReason() || notification.getSkippedReason());
               setError(
@@ -146,6 +169,18 @@ export function GoogleSignInButton({
     } else {
       initGsi();
     }
+
+    // Cleanup: cancel the fallback timeout when the component unmounts.
+    // This happens during the full-page redirect to Google — without this,
+    // the timer would persist in the JS heap and fire 3.5s later on the
+    // callback page, injecting a stale error into the freshly mounted
+    // component.
+    return () => {
+      if (fallbackTimeoutRef.current !== null) {
+        clearTimeout(fallbackTimeoutRef.current);
+        fallbackTimeoutRef.current = null;
+      }
+    };
   }, [processGoogleCredential]);
 
   // 3. OAuth Authorization Code Flow on button click

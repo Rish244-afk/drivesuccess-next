@@ -14,6 +14,7 @@ export interface JWTPayload {
   phone: string;
   role: string;
   name?: string;
+  ver?: number;
   // email may be null for phone-only students who have not yet linked a Google account.
   email?: string | null;
 }
