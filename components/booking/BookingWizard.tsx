@@ -568,12 +568,21 @@ export function BookingWizard() {
   // This guarantees that picking a new slot starts with a clean slate and creates
   // a fresh booking transaction rather than reusing a stale or conflicting booking record.
   useEffect(() => {
+    // ── BUG FIX: P-05 Recovery Loop ─────────────────────────────────────
+    // During a page refresh on Step 6, sessionStorage restores the wizard state
+    // (including selections). This triggers this cleanup effect which previously
+    // wiped the `createdBookingId` immediately before the recovery effect could
+    // use it, resulting in an infinite spinner loop.
+    // By ignoring cleanup when step === 6, we preserve the restored ID for recovery.
+    // ──────────────────────────────────────────────────────────────────────
+    if (step === 6) return;
+
     setError(null);
     setCreatedBookingId((prevId) => (paymentStatus === 'PAID' ? prevId : null));
     if (paymentStatus !== 'PAID') {
       setPaymentStatus('IDLE');
     }
-  }, [selectedPackage, selectedInstructor, selectedVehicle, selectedDate, selectedTimeSlot]);
+  }, [selectedPackage, selectedInstructor, selectedVehicle, selectedDate, selectedTimeSlot, step]);
 
   // Check current session
   useEffect(() => {
