@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { ShieldCheck, X, Send, Sparkles, CheckCircle2, CreditCard, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { processAIChatAction, AIMessage, AIOption, AIPackageCard } from '@/actions/aiAssistant';
@@ -15,6 +16,8 @@ export function AIChatWidget() {
   const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null);
   const [checkoutBookingId, setCheckoutBookingId] = useState<string | null>(null);
   const { launchRazorpayCheckout } = useRazorpayCheckout();
+  const pathname = usePathname();
+  const isBookingPage = pathname?.startsWith('/book');
 
   const [messages, setMessages] = useState<AIMessage[]>([
     {
@@ -143,7 +146,7 @@ export function AIChatWidget() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 rounded-full shadow-2xl shadow-blue-600/30 hover:scale-105 transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
+        className={`fixed ${isBookingPage ? 'bottom-28 sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-50 bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 rounded-full shadow-2xl shadow-blue-600/30 hover:scale-105 transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer`}
         aria-label="Toggle DriveAI Assistant chat"
       >
         <Sparkles className="w-5 h-5 text-white animate-pulse" />
@@ -168,7 +171,7 @@ export function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[560px] max-h-[80vh] bg-white border border-slate-200 rounded-3xl shadow-hover flex flex-col overflow-hidden overscroll-contain"
+            className={`fixed ${isBookingPage ? 'bottom-[120px] sm:bottom-24' : 'bottom-24'} right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[560px] max-h-[80vh] bg-white border border-slate-200 rounded-3xl shadow-hover flex flex-col overflow-hidden overscroll-contain`}
           >
             {/* Header */}
             <div className="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between shrink-0 select-none">
