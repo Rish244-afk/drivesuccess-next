@@ -75,6 +75,27 @@ export interface AuthAuditLog {
   details?: Record<string, unknown>;
 }
 
+export interface PaymentAuditLog {
+  timestamp?: string;
+  traceId?: string;
+  event:
+    | 'PAYMENT_ORDER_CREATED'
+    | 'PAYMENT_VERIFY_STARTED'
+    | 'PAYMENT_VERIFY_SUCCESS'
+    | 'PAYMENT_VERIFY_FAILED'
+    | 'PAYMENT_WEBHOOK_RECEIVED'
+    | 'PAYMENT_EXPIRED_CLEANUP'
+    | 'PAYMENT_RECONCILED';
+  bookingId?: string;
+  studentId?: string;
+  razorpayOrderId?: string;
+  razorpayPaymentId?: string;
+  amount?: number;
+  outcome: 'SUCCESS' | 'FAILURE' | 'SKIPPED';
+  reason?: string;
+  details?: Record<string, unknown>;
+}
+
 export const logger = {
   info: (message: string, context?: Record<string, any>) => {
     console.log(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', message, context: sanitize(context) }));
@@ -104,6 +125,19 @@ export const logger = {
       console.error(JSON.stringify(payload));
     } else if (auditLog.outcome === 'REJECTED') {
       console.warn(JSON.stringify(payload));
+    } else {
+      console.log(JSON.stringify(payload));
+    }
+  },
+  payment: (auditLog: PaymentAuditLog) => {
+    const payload = {
+      timestamp: new Date().toISOString(),
+      type: 'PAYMENT_AUDIT',
+      ...auditLog,
+      details: sanitize(auditLog.details),
+    };
+    if (auditLog.outcome === 'FAILURE') {
+      console.error(JSON.stringify(payload));
     } else {
       console.log(JSON.stringify(payload));
     }

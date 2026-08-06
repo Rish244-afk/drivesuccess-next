@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyWebhookSignature } from '@/lib/razorpay';
 import { BookingStatus, PaymentStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +16,11 @@ export async function POST(req: NextRequest) {
     // 1. Verify Webhook HMAC SHA256 Signature
     const isValid = verifyWebhookSignature({ rawBody, signature });
     if (!isValid) {
-      console.error('🚨 Razorpay Webhook Signature Verification Failed!');
+      logger.payment({
+        event: 'PAYMENT_WEBHOOK_RECEIVED',
+        outcome: 'FAILURE',
+        reason: 'Webhook HMAC SHA256 Signature verification failed',
+      });
       return NextResponse.json({ success: false, error: 'Invalid webhook signature' }, { status: 400 });
     }
 
@@ -24,13 +29,20 @@ export async function POST(req: NextRequest) {
     const paymentEntity = payload.payload?.payment?.entity;
     const orderEntity = payload.payload?.order?.entity;
 
-    console.log(`🔔 Razorpay Webhook Event Received: ${event}`);
-
     // Extract Booking ID from notes or order receipt
     const bookingId =
       paymentEntity?.notes?.bookingId ||
       orderEntity?.notes?.bookingId ||
       paymentEntity?.receipt?.replace('receipt_', '');
+
+    logger.payment({
+      event: 'PAYMENT_WEBHOOK_RECEIVED',
+      outcome: 'SUCCESS',
+      bookingId: bookingId || undefined,
+      razorpayOrderId: paymentEntity?.order_id || orderEntity?.id,
+      razorpayPaymentId: paymentEntity?.id,
+      details: { webhookEvent: event },
+    });
 
     if (bookingId) {
       // Fetch existing booking record to check for duplicate webhook delivery
@@ -41,23 +53,39 @@ export async function POST(req: NextRequest) {
       // 2. Handle Payment Captured / Order Paid Event
       if (event === 'payment.captured' || event === 'order.paid') {
         if (existingBooking?.paymentStatus === PaymentStatus.PAID) {
-          console.log(`ℹ️ Webhook duplicate ignored: Booking ${bookingId} is already PAID.`);
           return NextResponse.json({ success: true, status: 'already_processed' }, { status: 200 });
         }
 
         const paymentId = paymentEntity?.id || 'pay_wh_' + Date.now();
         const orderId = paymentEntity?.order_id || orderEntity?.id || 'order_wh_' + Date.now();
 
-        await prisma.booking.update({
-          where: { id: bookingId },
+        // Atomic Single-Winner Commit Pattern
+        const updateResult = await prisma.booking.updateMany({
+          where: {
+            id: bookingId,
+            paymentStatus: { not: PaymentStatus.PAID },
+          },
           data: {
             status: BookingStatus.CONFIRMED,
             paymentStatus: PaymentStatus.PAID,
             razorpayOrderId: orderId,
             razorpayPaymentId: paymentId,
+            paidAt: new Date(),
           },
         });
-        console.log(`✅ Webhook updated Booking ${bookingId} to PAID & CONFIRMED.`);
+
+        if (updateResult.count === 0) {
+          return NextResponse.json({ success: true, status: 'already_processed' }, { status: 200 });
+        }
+
+        logger.payment({
+          event: 'PAYMENT_VERIFY_SUCCESS',
+          outcome: 'SUCCESS',
+          bookingId,
+          razorpayOrderId: orderId,
+          razorpayPaymentId: paymentId,
+          reason: 'Confirmed via Razorpay Webhook',
+        });
       }
 
       // 3. Handle Payment Failed Event
@@ -69,7 +97,6 @@ export async function POST(req: NextRequest) {
             notes: `Payment Failed via Webhook: ${paymentEntity?.error_description || 'Transaction declined'}`,
           },
         });
-        console.log(`❌ Webhook updated Booking ${bookingId} to FAILED.`);
       }
 
       // 4. Handle Refund Processed Event
@@ -85,13 +112,12 @@ export async function POST(req: NextRequest) {
             refundedAt: new Date(),
           },
         });
-        console.log(`↩️ Webhook updated Booking ${bookingId} to REFUNDED.`);
       }
     }
 
     return NextResponse.json({ success: true, status: 'processed' }, { status: 200 });
   } catch (error) {
-    console.error('Razorpay Webhook Handler Error:', error);
+    logger.error('Razorpay Webhook Handler Exception', error);
     return NextResponse.json({ success: false, error: 'Internal webhook error' }, { status: 500 });
   }
 }
