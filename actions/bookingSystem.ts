@@ -342,12 +342,29 @@ export async function createBookingTransactionAction(inputData: unknown) {
 
     // Prisma unique constraint (P2002): field-level conflict inside the transaction.
     if (error?.code === 'P2002') {
-      const field = error?.meta?.target as string[] | undefined;
-      if (field?.includes('razorpayOrderId')) {
+      const field = error?.meta?.target as string[] | string | undefined;
+      const targets = Array.isArray(field) ? field : typeof field === 'string' ? [field] : [];
+
+      // ── Slot exclusivity constraints (P-10 defence layer 2) ────────────────
+      // Fires when a concurrent INSERT violates @@unique([instructorId, scheduledAt])
+      // or @@unique([vehicleId, scheduledAt]) — i.e., a race bypassed findFirst.
+      if (
+        targets.includes('unique_instructor_slot') ||
+        targets.includes('unique_vehicle_slot') ||
+        targets.some((t) => t.includes('instructor') || t.includes('vehicle'))
+      ) {
+        return {
+          success: false,
+          error: 'Slot conflict: The selected slot was just reserved by another student. Please choose a different time.',
+        };
+      }
+
+      if (targets.includes('razorpayOrderId')) {
         return { success: false, error: 'A payment order already exists for this booking. Please refresh and try again.' };
       }
-      return { success: false, error: `A record with this information already exists (${field?.join(', ') ?? 'unknown field'}). Please contact support if this persists.` };
+      return { success: false, error: `A record with this information already exists (${targets.join(', ') || 'unknown field'}). Please contact support if this persists.` };
     }
+
 
     // Prisma foreign key violation (P2003): referenced record does not exist.
     if (error?.code === 'P2003') {
