@@ -80,6 +80,8 @@ export async function getAvailableSlotsAction({
     const endOfDay = new Date(selectedDate);
     endOfDay.setHours(23, 59, 59, 999);
 
+    const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
+
     // Find any session where instructor OR vehicle is already booked
     const existingSessions = await prisma.session.findMany({
       where: {
@@ -93,12 +95,31 @@ export async function getAvailableSlotsAction({
           ...(vehicleId ? [{ vehicleId }] : []),
         ],
       },
+      include: {
+        booking: {
+          select: {
+            status: true,
+            paymentStatus: true,
+            createdAt: true,
+          },
+        },
+      },
     });
 
     // 3. Map slots and check for conflicts
     const slotsResult = TIME_SLOTS.map((slotTime) => {
-      // Check if existing session overlaps with this slot time
+      // Check if existing session overlaps with this slot time and is still active
       const isBooked = existingSessions.some((session) => {
+        // Exclude expired PENDING bookings (created > 15m ago without payment)
+        if (
+          session.booking &&
+          session.booking.status === BookingStatus.PENDING &&
+          session.booking.paymentStatus === PaymentStatus.PENDING &&
+          session.booking.createdAt < fifteenMinsAgo
+        ) {
+          return false; // Reservation expired — slot available!
+        }
+
         const sessionTime = session.scheduledAt.toLocaleTimeString('en-US', {
           hour: '2-digit',
           minute: '2-digit',

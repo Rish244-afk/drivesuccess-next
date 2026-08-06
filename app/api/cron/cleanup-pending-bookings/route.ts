@@ -1,0 +1,76 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { BookingStatus, PaymentStatus, SessionStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * Background Cron Job: Auto-expire PENDING bookings older than 15 minutes.
+ * Can be invoked by Vercel Cron or external monitoring tool.
+ * Header check: Authorization: Bearer <CRON_SECRET> (optional guard).
+ */
+export async function GET(req: NextRequest) {
+  try {
+    const authHeader = req.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ success: false, error: 'Unauthorized cron request.' }, { status: 401 });
+    }
+
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+    // Find all PENDING bookings older than 15 minutes
+    const expiredBookings = await prisma.booking.findMany({
+      where: {
+        status: BookingStatus.PENDING,
+        paymentStatus: PaymentStatus.PENDING,
+        createdAt: { lt: fifteenMinutesAgo },
+      },
+      select: { id: true, studentId: true },
+    });
+
+    if (expiredBookings.length === 0) {
+      return NextResponse.json({ success: true, count: 0, message: 'No expired bookings to clean up.' });
+    }
+
+    const expiredBookingIds = expiredBookings.map((b) => b.id);
+
+    // Atomic transaction: Mark bookings as CANCELLED and sessions as CANCELLED
+    await prisma.$transaction([
+      prisma.booking.updateMany({
+        where: { id: { in: expiredBookingIds } },
+        data: {
+          status: BookingStatus.CANCELLED,
+          notes: 'Auto-expired: 15-minute checkout window elapsed without payment.',
+        },
+      }),
+      prisma.session.updateMany({
+        where: { bookingId: { in: expiredBookingIds } },
+        data: {
+          status: SessionStatus.CANCELLED,
+          notes: 'Session released due to expired pending booking.',
+        },
+      }),
+    ]);
+
+    logger.payment({
+      event: 'PAYMENT_EXPIRED_CLEANUP',
+      outcome: 'SUCCESS',
+      details: {
+        expiredCount: expiredBookings.length,
+        bookingIds: expiredBookingIds,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      count: expiredBookings.length,
+      message: `Successfully cleaned up ${expiredBookings.length} expired pending bookings.`,
+    });
+  } catch (error) {
+    logger.error('Error in cleanup-pending-bookings cron job', error);
+    return NextResponse.json({ success: false, error: 'Internal cleanup error.' }, { status: 500 });
+  }
+}

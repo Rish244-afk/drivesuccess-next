@@ -151,6 +151,7 @@ export function useRazorpayCheckout() {
       // "Payment Successful!" can ONLY appear after steps 4 & 5 succeed.
       // ───────────────────────────────────────────────────────────────────────
       handler: async function (response: any) {
+        console.log(`[${new Date().toISOString()}] Razorpay callback received`);
         // Block any spurious ondismiss race immediately.
         handlerFired = true;
 
@@ -159,11 +160,15 @@ export function useRazorpayCheckout() {
 
         // Show VERIFYING state — the user sees a spinner while we check with
         // the backend. They do NOT see success yet.
+        console.log(`[${new Date().toISOString()}] onVerifying callback triggered`);
         callbacks?.onVerifying?.();
 
+        console.log(`[${new Date().toISOString()}] Delaying backend verification by 800ms`);
         // Delay the backend call by 800ms to allow the Razorpay modal's close animation
         // to finish completely on mobile before the DOM is heavily updated by verification results.
         await new Promise((resolve) => setTimeout(resolve, 800));
+
+        console.log(`[${new Date().toISOString()}] Starting backend verifyPaymentSignatureAction`);
 
         const verifyRes = await verifyPaymentSignatureAction({
           bookingId,
@@ -173,6 +178,7 @@ export function useRazorpayCheckout() {
         });
 
         if (!verifyRes.success) {
+          console.log(`[${new Date().toISOString()}] Verification failed`);
           callbacks?.onError?.(
             verifyRes.error ||
               'Payment signature verification failed. Your card has NOT been charged. Please contact support.'
@@ -180,12 +186,17 @@ export function useRazorpayCheckout() {
           return;
         }
 
+        console.log(`[${new Date().toISOString()}] Backend verification SUCCESS`);
+
         // ✅ Backend has cryptographically verified the payment and confirmed
         // the booking. ONLY NOW is it safe to show "Payment Successful".
+        console.log(`[${new Date().toISOString()}] Triggering onSuccess callback`);
         callbacks?.onSuccess?.('Payment verified & Booking status set to CONFIRMED!');
 
         // 2-second window for the user to see the success screen, then navigate.
+        console.log(`[${new Date().toISOString()}] Starting 2-second timeout before router.push`);
         setTimeout(() => {
+          console.log(`[${new Date().toISOString()}] Executing router.push to confirmation page`);
           router.push(`/booking/${bookingId}/confirmation`);
         }, 2000);
       },

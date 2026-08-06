@@ -605,6 +605,10 @@ export function BookingWizard() {
     });
   };
 
+  useEffect(() => {
+    console.log(`[${new Date().toISOString()}] BookingWizard state changed - step: ${step}, paymentStatus: ${paymentStatus}, paymentPhase: ${paymentPhase}`);
+  }, [step, paymentStatus, paymentPhase]);
+
   return (
     <div ref={containerRef} className="max-w-4xl mx-auto relative">
 
@@ -1305,40 +1309,12 @@ export function BookingWizard() {
 
             {/* ── VERIFYING: Backend signature check in progress ─────── */}
             {paymentStatus === 'VERIFYING' && (
-              <div className="space-y-5">
-                <div className="w-20 h-20 bg-blue-50 border-2 border-blue-200 rounded-full flex items-center justify-center mx-auto">
-                  <ShieldCheck className="w-10 h-10 text-blue-600 animate-pulse" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-serif text-2xl text-slate-900">Verifying Payment…</h3>
-                  <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
-                    Your payment is being cryptographically verified via HMAC SHA256 signature.
-                  </p>
-                  <p className="text-[11px] font-semibold text-slate-600">
-                    Please do not close or refresh this page.
-                  </p>
-                </div>
-              </div>
+              <VerifyingPaymentLogger />
             )}
 
             {/* ── PAID: Backend confirmed ──────────────────────────────── */}
             {paymentStatus === 'PAID' && (
-              <div className="space-y-5">
-                <div className="w-20 h-20 bg-emerald-50 border-2 border-emerald-300 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-10 h-10 text-emerald-500" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-serif text-2xl text-slate-900">Payment Successful!</h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    ✓ Your payment has been verified securely.
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Booking status updated to{' '}
-                    <strong className="text-emerald-600">CONFIRMED</strong>.
-                  </p>
-                  <p className="text-[11px] text-slate-400 animate-pulse">Redirecting to your Booking Confirmed page…</p>
-                </div>
-              </div>
+              <PaidPaymentLogger />
             )}
 
             {/* ── FAILED / CANCELLED: Show retry options ───────────────── */}
@@ -1401,6 +1377,57 @@ export function BookingWizard() {
       )}
 
     </div>
+    </div>
+  );
+}
+
+// Subcomponents to log lifecycle precisely
+function VerifyingPaymentLogger() {
+  useEffect(() => {
+    console.log(`[${new Date().toISOString()}] VERIFYING component mounted and rendered in DOM`);
+    return () => console.log(`[${new Date().toISOString()}] VERIFYING component unmounted`);
+  }, []);
+
+  return (
+    <div className="space-y-5">
+      <div className="w-20 h-20 bg-blue-50 border-2 border-blue-200 rounded-full flex items-center justify-center mx-auto">
+        <ShieldCheck className="w-10 h-10 text-blue-600 animate-pulse" />
+      </div>
+      <div className="space-y-2">
+        <h3 className="font-serif text-2xl text-slate-900">Verifying Payment…</h3>
+        <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+          Your payment is being cryptographically verified via HMAC SHA256 signature.
+        </p>
+        <p className="text-[11px] font-semibold text-slate-600">
+          Please do not close or refresh this page.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function PaidPaymentLogger() {
+  useEffect(() => {
+    console.log(`[${new Date().toISOString()}] PAID component mounted and rendered in DOM`);
+    return () => console.log(`[${new Date().toISOString()}] PAID component unmounted`);
+  }, []);
+
+  return (
+    <div className="space-y-5">
+      <div className="w-20 h-20 bg-emerald-50 border-2 border-emerald-300 rounded-full flex items-center justify-center mx-auto">
+        <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+      </div>
+      <div className="space-y-2">
+        <h3 className="font-serif text-2xl text-slate-900">Payment Successful!</h3>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          ✓ Your payment has been verified securely.
+        </p>
+        <p className="text-xs text-slate-500">
+          Booking status updated to{' '}
+          <strong className="text-emerald-600">CONFIRMED</strong>.
+        </p>
+        <p className="text-[11px] text-slate-400 animate-pulse">Redirecting to your Booking Confirmed page…</p>
+      </div>
     </div>
   );
 }

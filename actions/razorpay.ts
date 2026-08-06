@@ -6,6 +6,7 @@ import { getServerSession } from '@/lib/auth';
 import { getAdminSession } from '@/actions/admin';
 import { BookingStatus, PaymentStatus, Role } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { logger } from '@/lib/logger';
 
 /**
  * 1. Create Razorpay Order for Pending Booking with Idempotency Key
@@ -163,7 +164,15 @@ export async function verifyPaymentSignatureAction({
       }) || razorpayPaymentId.startsWith('pay_test_') || razorpayOrderId.startsWith('test_order_');
 
     if (!isValidSignature) {
-      console.error(`🚨 Cryptographic Signature Mismatch for Booking ${bookingId}!`);
+      logger.payment({
+        event: 'PAYMENT_VERIFY_FAILED',
+        outcome: 'FAILURE',
+        bookingId,
+        studentId: existingBooking.studentId,
+        razorpayOrderId,
+        razorpayPaymentId,
+        reason: 'HMAC SHA256 Signature mismatch',
+      });
       
       // Update PaymentStatus to FAILED in database
       await prisma.booking.update({
@@ -179,9 +188,12 @@ export async function verifyPaymentSignatureAction({
       };
     }
 
-    // 2. Update Database Record to PAID and CONFIRMED with paidAt timestamp
-    const updatedBooking = await prisma.booking.update({
-      where: { id: bookingId },
+    // 2. Atomic Single-Winner Commit Pattern: Only update if paymentStatus is NOT already PAID
+    const updateResult = await prisma.booking.updateMany({
+      where: {
+        id: bookingId,
+        paymentStatus: { not: PaymentStatus.PAID },
+      },
       data: {
         status: BookingStatus.CONFIRMED,
         paymentStatus: PaymentStatus.PAID,
@@ -190,10 +202,46 @@ export async function verifyPaymentSignatureAction({
         razorpaySignature: razorpaySignature,
         paidAt: new Date(),
       },
+    });
+
+    const updatedBooking = await prisma.booking.findUnique({
+      where: { id: bookingId },
       include: {
         student: true,
         package: true,
       },
+    });
+
+    if (!updatedBooking) {
+      return { success: false, error: 'Booking record not found after update.' };
+    }
+
+    // If updateResult.count === 0, another path (webhook or concurrent tab) already confirmed this payment.
+    if (updateResult.count === 0) {
+      logger.payment({
+        event: 'PAYMENT_VERIFY_SUCCESS',
+        outcome: 'SKIPPED',
+        bookingId,
+        studentId: updatedBooking.studentId,
+        razorpayOrderId,
+        razorpayPaymentId,
+        reason: 'Already confirmed by concurrent path (single-winner commit)',
+      });
+      return {
+        success: true,
+        message: 'Payment already verified and booking confirmed.',
+        booking: updatedBooking,
+      };
+    }
+
+    logger.payment({
+      event: 'PAYMENT_VERIFY_SUCCESS',
+      outcome: 'SUCCESS',
+      bookingId,
+      studentId: updatedBooking.studentId,
+      razorpayOrderId,
+      razorpayPaymentId,
+      amount: updatedBooking.totalAmount,
     });
 
     // 3. TRIGGER NOTIFICATIONS (In-App Dashboard, Resend Email, WhatsApp)
