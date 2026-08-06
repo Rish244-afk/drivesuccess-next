@@ -546,6 +546,20 @@ export function BookingWizard() {
         }
       },
       onSuccess: (msg) => {
+        // ── FAILURE POINT 1 FIX ─────────────────────────────────────────────
+        // Wipe sessionStorage SYNCHRONOUSLY before any React state setter.
+        //
+        // Without this, the save-state useEffect can fire in the same render
+        // batch as setPaymentStatus('PAID') but with a stale closure where
+        // paymentStatus is still 'PENDING', writing step:6 + PENDING back
+        // to storage right before the wipe. The 2-second navigation timer
+        // then moves the user away before the wipe effect has committed.
+        //
+        // Doing it here — synchronously, in the callback — is guaranteed to
+        // run BEFORE React schedules any re-renders or effects.
+        // ────────────────────────────────────────────────────────────────────
+        sessionStorage.removeItem('wizard_state');
+
         // Backend has verified. Only NOW set PAID — shows "Payment Successful".
         setPaymentStatus('PAID');
         setPaymentPhase('idle');
