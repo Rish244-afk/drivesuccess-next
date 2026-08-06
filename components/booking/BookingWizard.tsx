@@ -709,13 +709,8 @@ export function BookingWizard() {
         </div>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <div className="p-4 bg-rose-50 border border-rose-300 text-rose-400 rounded-xl text-xs flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
+      {/* Error Alert – moved to above the payment button for in-viewport visibility */}
+
 
       {/* Success Alert */}
       {successMessage && (
@@ -1290,7 +1285,15 @@ export function BookingWizard() {
             </div>
           </div>
 
-          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex flex-col gap-3 sm:pt-4">
+            {/* Validation error — rendered directly above the payment button so it stays in viewport */}
+            {error && (
+              <div role="alert" aria-live="assertive" className="p-3 bg-rose-50 border border-rose-300 text-rose-600 rounded-xl text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between gap-3">
             <button
               onClick={() => {
                 setError(null);
@@ -1320,6 +1323,7 @@ export function BookingWizard() {
                 </>
               )}
             </button>
+            </div>
           </div>
         </div>
       )}
