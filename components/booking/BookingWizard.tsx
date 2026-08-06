@@ -90,6 +90,21 @@ export function BookingWizard() {
     }
   }, [step]);
 
+  // Force scroll to top and lock viewport on mobile during full-screen overlay phases
+  useEffect(() => {
+    if (paymentPhase !== 'idle') {
+      document.body.style.overflow = 'hidden';
+      if (paymentPhase === 'verifying-payment') {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [paymentPhase]);
+
   // Loaded database records
   const [packages, setPackages] = useState<WizardPackage[]>([]);
   const [instructors, setInstructors] = useState<WizardInstructor[]>([]);
@@ -596,7 +611,7 @@ export function BookingWizard() {
           Blocks all background UI so no intermediate state can flash through.
           ─────────────────────────────────────────────────────────────────── */}
       {paymentPhase !== 'idle' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
+        <div className="fixed top-0 left-0 h-[100dvh] w-screen z-[9999] flex items-center justify-center bg-white/95">
           <div className="flex flex-col items-center gap-6 text-center max-w-sm px-6">
             {/* Animated ring spinner */}
             <div className="relative w-20 h-20">
@@ -623,7 +638,7 @@ export function BookingWizard() {
                 {paymentPhase === 'initializing-razorpay' &&
                   'Preparing your secure payment session. The Razorpay checkout will open shortly.'}
                 {paymentPhase === 'verifying-payment' &&
-                  'Confirming your payment with our server using HMAC SHA256 cryptographic verification.'}
+                  'Confirming your payment with your bank and generating your booking receipt. This usually takes 2-3 seconds.'}
               </p>
               {paymentPhase === 'verifying-payment' && (
                 <p className="text-[11px] font-semibold text-slate-600 mt-2">

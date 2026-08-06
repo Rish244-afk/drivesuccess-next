@@ -202,41 +202,52 @@ export async function verifyPaymentSignatureAction({
       const { sendBookingConfirmationEmail } = await import('@/lib/email');
       const { sendWhatsAppNotification } = await import('@/lib/whatsapp');
 
+      const notificationPromises = [];
+
       // A. Create In-App Notification in DB
-      await createNotificationAction({
-        studentId: updatedBooking.studentId,
-        title: 'Booking Confirmed!',
-        message: `Your payment of ₹${updatedBooking.totalAmount.toLocaleString()} for ${updatedBooking.package.name} was received successfully.`,
-        metadata: {
-          bookingId: updatedBooking.id,
-          packageName: updatedBooking.package.name,
-          amount: updatedBooking.totalAmount,
-          razorpayPaymentId,
-        },
-      });
+      notificationPromises.push(
+        createNotificationAction({
+          studentId: updatedBooking.studentId,
+          title: 'Booking Confirmed!',
+          message: `Your payment of ₹${updatedBooking.totalAmount.toLocaleString()} for ${updatedBooking.package.name} was received successfully.`,
+          metadata: {
+            bookingId: updatedBooking.id,
+            packageName: updatedBooking.package.name,
+            amount: updatedBooking.totalAmount,
+            razorpayPaymentId,
+          },
+        })
+      );
 
       // B. Dispatch Resend Email
       if (updatedBooking.student?.email) {
-        await sendBookingConfirmationEmail({
-          studentEmail: updatedBooking.student.email,
-          studentName: updatedBooking.student.name,
-          bookingId: updatedBooking.id,
-          packageName: updatedBooking.package.name,
-          totalAmount: updatedBooking.totalAmount,
-          razorpayPaymentId,
-        });
+        notificationPromises.push(
+          sendBookingConfirmationEmail({
+            studentEmail: updatedBooking.student.email,
+            studentName: updatedBooking.student.name,
+            bookingId: updatedBooking.id,
+            packageName: updatedBooking.package.name,
+            totalAmount: updatedBooking.totalAmount,
+            razorpayPaymentId,
+          })
+        );
       }
 
       // C. Dispatch Optional WhatsApp Notification
       if (updatedBooking.student?.phone) {
-        await sendWhatsAppNotification({
-          phone: updatedBooking.student.phone,
-          studentName: updatedBooking.student.name,
-          packageName: updatedBooking.package.name,
-          bookingId: updatedBooking.id,
-          totalAmount: updatedBooking.totalAmount,
-        });
+        notificationPromises.push(
+          sendWhatsAppNotification({
+            phone: updatedBooking.student.phone,
+            studentName: updatedBooking.student.name,
+            packageName: updatedBooking.package.name,
+            bookingId: updatedBooking.id,
+            totalAmount: updatedBooking.totalAmount,
+          })
+        );
       }
+
+      // Execute all notifications concurrently to reduce blocking time
+      await Promise.allSettled(notificationPromises);
     } catch (notifErr) {
       console.warn('Non-blocking notification dispatch error:', notifErr);
     }

@@ -161,6 +161,10 @@ export function useRazorpayCheckout() {
         // the backend. They do NOT see success yet.
         callbacks?.onVerifying?.();
 
+        // Delay the backend call by 800ms to allow the Razorpay modal's close animation
+        // to finish completely on mobile before the DOM is heavily updated by verification results.
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
         const verifyRes = await verifyPaymentSignatureAction({
           bookingId,
           razorpayOrderId:   response.razorpay_order_id,
