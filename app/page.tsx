@@ -186,7 +186,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           1. CINEMATIC SPATIAL HERO
           ═══════════════════════════════════════════ */}
-      <section className="hero-section relative pt-24 pb-32 lg:pt-40 lg:pb-48 overflow-hidden flex items-center min-h-[92vh]">
+      <section className="hero-section relative pt-16 pb-20 lg:pt-40 lg:pb-48 overflow-hidden flex items-center min-h-[92vh]">
 
         {/* ── Multi-layer atmospheric background video ── */}
         <div aria-hidden="true" className="hero-bg-layer absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
@@ -278,16 +278,16 @@ export default function HomePage() {
             </h1>
 
             {/* Subtitle */}
-            <p className="hero-subtitle opacity-0 text-lg sm:text-xl text-slate-500 font-light leading-relaxed max-w-2xl mx-auto">
+            <p className="hero-subtitle opacity-0 text-base sm:text-xl text-slate-500 font-light leading-relaxed max-w-2xl mx-auto px-2">
               Safe, structured instruction for first-time drivers. Our pedagogical methodology builds lasting competence, road safety, and stress-free license certification.
             </p>
 
             {/* CTA */}
-            <div className="hero-ctas opacity-0 flex flex-col sm:flex-row items-center justify-center gap-5 pt-2">
+            <div className="hero-ctas opacity-0 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 pt-2">
               <Magnetic range={25} strength={0.2}>
                 <Link
                   href="/courses"
-                  className="group relative overflow-hidden border text-slate-700 font-semibold text-xs uppercase tracking-widest px-9 py-4 rounded-full flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="group relative overflow-hidden border text-slate-700 font-semibold text-xs uppercase tracking-widest w-full sm:w-auto px-9 py-4 rounded-full flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95"
                   style={{
                     background: 'rgba(255,255,255,0.80)',
                     backdropFilter: 'blur(20px)',
@@ -366,10 +366,10 @@ export default function HomePage() {
             style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%)', filter: 'blur(50px)' }} />
         </div>
 
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 relative z-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 relative z-10">
           {/* Frosted glass container */}
           <div
-            className="rounded-3xl p-10 sm:p-14"
+            className="rounded-3xl p-8 sm:p-14"
             style={{
               background: 'rgba(255,255,255,0.62)',
               backdropFilter: 'blur(32px)',

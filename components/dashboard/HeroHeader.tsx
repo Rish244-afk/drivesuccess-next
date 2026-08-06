@@ -53,7 +53,7 @@ export function HeroHeader({
     : 'Active Member';
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-2xl border border-slate-700/50">
+    <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-6 sm:p-10 shadow-2xl border border-slate-700/50">
       {/* Subtle Background Radial Glow */}
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
@@ -90,7 +90,7 @@ export function HeroHeader({
 
             {/* Title */}
             <div>
-              <h1 className="font-serif text-3xl sm:text-4xl font-normal tracking-tight text-white">
+              <h1 className="font-serif text-2xl sm:text-4xl font-normal tracking-tight text-white">
                 Welcome back, <span className="italic font-normal text-blue-400">{student.name}</span>
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 font-light mt-1 max-w-xl">
@@ -125,28 +125,28 @@ export function HeroHeader({
         </div>
 
         {/* Right: Primary CTAs & Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:flex-col lg:items-end">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:flex-col lg:items-end w-full lg:w-auto">
           <button
             onClick={handleBookNewSession}
-            className="group relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-widest px-7 py-3.5 rounded-2xl shadow-xl shadow-blue-600/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            className="group relative w-full lg:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs uppercase tracking-widest px-7 py-4 sm:py-3.5 rounded-2xl shadow-xl shadow-blue-600/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
             <span>Reserve Session</span>
             <ArrowUpRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
             <Link
               href="/settings"
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/80 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition hover:text-white cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/80 px-4 py-3 sm:py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition hover:text-white cursor-pointer"
             >
               <Settings className="w-3.5 h-3.5 text-slate-400" />
               <span>Settings</span>
             </Link>
 
-            <form action={logoutAction} className="flex-1 sm:flex-initial">
+            <form action={logoutAction} className="flex-1">
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-1.5 bg-slate-800/40 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer"
+                className="w-full flex items-center justify-center gap-1.5 bg-slate-800/40 hover:bg-red-500/10 text-slate-400 hover:text-red-400 border border-slate-700/50 px-4 py-3 sm:py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out</span>

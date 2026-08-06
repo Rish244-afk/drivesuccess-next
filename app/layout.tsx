@@ -9,6 +9,7 @@ import { JsonLdSchemas } from '@/components/seo/JsonLdSchemas';
 import { PageTransitionProvider } from '@/components/providers/PageTransitionProvider';
 import { PremiumCursor } from '@/components/ui/PremiumCursor';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { BottomNav } from '@/components/ui/BottomNav';
 
 const AIChatWidget = dynamic(() => import('@/components/ai/AIChatWidget').then((mod) => mod.AIChatWidget), { ssr: false });
 const CookieConsentBanner = dynamic(() => import('@/components/privacy/CookieConsentBanner').then((mod) => mod.CookieConsentBanner), { ssr: false });
@@ -95,6 +96,7 @@ export default function RootLayout({
           </main>
 
           <Footer />
+          <BottomNav />
           <AIChatWidget />
           <CookieConsentBanner />
           <BackToTop />
