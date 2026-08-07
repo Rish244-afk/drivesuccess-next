@@ -59,12 +59,13 @@ export function verifyWebhookSignature({
   signature: string;
 }): boolean {
   try {
-    if (!RAZORPAY_WEBHOOK_SECRET || !rawBody || !signature) {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret || !rawBody || !signature) {
       return false;
     }
 
     const expectedSignature = crypto
-      .createHmac('sha256', RAZORPAY_WEBHOOK_SECRET)
+      .createHmac('sha256', webhookSecret)
       .update(rawBody)
       .digest('hex');
 
