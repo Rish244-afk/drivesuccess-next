@@ -21,6 +21,7 @@ export default function ContactPage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [inquiry, setInquiry] = useState('');
+  const [website, setWebsite] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +33,7 @@ export default function ContactPage() {
       phone,
       email,
       inquiry,
+      website,
     });
 
     setLoading(false);
@@ -210,6 +212,18 @@ export default function ContactPage() {
                     value={inquiry}
                     onChange={(e) => setInquiry(e.target.value)}
                     className="w-full bg-slate-50/50 border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:scale-[1.005] text-slate-900 px-4 py-3 rounded-xl outline-none text-xs transition-all duration-200 resize-none"
+                  />
+                </div>
+
+                {/* Invisible Honeypot Field (Bot Trap) */}
+                <div style={{ display: 'none' }} aria-hidden="true">
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
                   />
                 </div>
 
