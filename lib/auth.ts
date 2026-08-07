@@ -2,12 +2,32 @@ import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'drivesuccess_super_secret_jwt_key_2026_production'
-);
+/**
+ * Returns the JWT signing secret as a Uint8Array.
+ *
+ * SECURITY: JWT_SECRET MUST be set in all environments. There is no default
+ * fallback. If the variable is missing at runtime the function throws, causing
+ * all auth operations to fail closed rather than silently accepting tokens
+ * signed with a publicly-known default key.
+ *
+ * We use a runtime getter (not a module-level constant) so Next.js static
+ * build steps—which may run before environment variables are injected—do not
+ * throw at compile time.
+ */
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error(
+      '[auth] JWT_SECRET environment variable is not set. ' +
+        'All authentication operations are disabled until this is configured.'
+    );
+  }
+  return new TextEncoder().encode(secret);
+}
 
 const COOKIE_NAME = 'auth_token';
 const THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60; // 30 days in seconds
+
 
 export interface JWTPayload {
   sub: string;
@@ -28,7 +48,7 @@ export async function signSessionToken(payload: JWTPayload): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('30d')
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 }
 
 /**
@@ -36,7 +56,7 @@ export async function signSessionToken(payload: JWTPayload): Promise<string> {
  */
 export async function verifySessionToken(token: string): Promise<JWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecret());
     return payload as unknown as JWTPayload;
   } catch {
     return null;

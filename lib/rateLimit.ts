@@ -77,12 +77,41 @@ export const apiRateLimiter = new RateLimiter(60, 60 * 1000);      // 60 request
 
 /**
  * Universal Rate Check Helper
+ *
+ * Accepts { limit, windowMs } and applies them to an isolated RateLimiter instance
+ * unique to that configuration. Endpoints with different limits/windows get genuinely
+ * separate, independently-bounded buckets and cannot interfere with each other.
+ *
+ * ARCHITECTURAL CAVEAT — in-process / serverless state:
+ * All counters live in Node.js process memory. On serverless platforms (Vercel etc.)
+ * each function instance is an isolated process; a cold-start silently resets all
+ * counters. For distributed/production-grade rate limiting, replace with a Redis-
+ * backed limiter (e.g. @upstash/ratelimit). This fix is the safest in-architecture
+ * improvement without adding new dependencies.
+ *
+ * @param identifier  - Unique per-caller key, e.g. `send_otp_<ip>`
+ * @param options.limit    - Max requests allowed per window (required)
+ * @param options.windowMs - Window duration in ms (required)
  */
-export function checkRateLimit(identifier: string, options?: { limit?: number; windowMs?: number }) {
-  const result = authRateLimiter.check(identifier);
+const _limiterRegistry = new Map<string, RateLimiter>();
+
+export function checkRateLimit(
+  identifier: string,
+  options?: { limit?: number; windowMs?: number },
+) {
+  const limit = options?.limit ?? 5;
+  const windowMs = options?.windowMs ?? 60_000;
+  const registryKey = `${limit}:${windowMs}`;
+
+  if (!_limiterRegistry.has(registryKey)) {
+    _limiterRegistry.set(registryKey, new RateLimiter(limit, windowMs));
+  }
+
+  const result = _limiterRegistry.get(registryKey)!.check(identifier);
+
   return {
     allowed: result.success,
     remaining: result.remaining,
-    resetMs: result.reset - Date.now(),
+    resetMs: Math.max(0, result.reset - Date.now()),
   };
 }
