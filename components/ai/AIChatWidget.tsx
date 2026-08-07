@@ -1,22 +1,34 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-import { ShieldCheck, X, Send, Sparkles, CheckCircle2, CreditCard, ArrowRight } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ShieldCheck, X, Send, Sparkles, ArrowRight, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { processAIChatAction, AIMessage, AIOption, AIPackageCard } from '@/actions/aiAssistant';
-import { AuthModal } from '@/components/auth/AuthModal';
-import { useRazorpayCheckout } from '@/hooks/useRazorpayCheckout';
+
+// ─── ARCHITECTURAL BOUNDARY ────────────────────────────────────────────────────
+// AIChatWidget is a CONCIERGE / DISCOVERY layer only.
+//
+// It must NEVER:
+//   • Import or call useRazorpayCheckout
+//   • Import or call createBookingTransactionAction / createRazorpayOrderAction
+//   • Render payment form UI (card number, UPI, OTP fields)
+//   • Directly lock a slot or create a booking record
+//   • Render a "Pay Now" button that processes money
+//
+// When the user is ready to book:
+//   DriveAI returns a BOOKING_HANDOFF cardData → widget navigates to /book?package=<id>
+//   The existing BookingWizard handles everything from there.
+// ───────────────────────────────────────────────────────────────────────────────
 
 export function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null);
-  const [checkoutBookingId, setCheckoutBookingId] = useState<string | null>(null);
-  const { launchRazorpayCheckout } = useRazorpayCheckout();
+  // Duplicate-click protection for the booking navigation handoff (spec §26)
+  const [navigatingToBook, setNavigatingToBook] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const isBookingPage = pathname?.startsWith('/book');
 
   const [messages, setMessages] = useState<AIMessage[]>([
@@ -37,13 +49,9 @@ export function AIChatWidget() {
   // Escape key close listener
   useEffect(() => {
     if (!isOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-      }
+      if (e.key === 'Escape') setIsOpen(false);
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
@@ -55,6 +63,26 @@ export function AIChatWidget() {
     }
     prevMessagesLengthRef.current = messages.length;
   }, [messages.length, loading]);
+
+  // ─── BOOKING HANDOFF AUTO-NAVIGATION ──────────────────────────────────────
+  // When the server returns a BOOKING_HANDOFF card, the user has confirmed
+  // their package choice. We allow the user to click "Continue to Booking"
+  // immediately, OR auto-navigate after a 2-second delay so they can read
+  // the message.
+  // ──────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.role === 'assistant' && lastMsg?.cardData?.type === 'BOOKING_HANDOFF') {
+      const pkgId = lastMsg.cardData.packageId as string | undefined;
+      if (pkgId && !navigatingToBook) {
+        const timer = setTimeout(() => {
+          handleNavigateToBooking(pkgId);
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || input;
@@ -88,56 +116,36 @@ export function AIChatWidget() {
     }
   };
 
-  // Intercept Proceed to Checkout to check authentication first
-  const handleProceedToCheckout = async (e: React.MouseEvent, paymentUrl: string, bookingId: string) => {
-    e.preventDefault();
+  // Navigate to /book with the AI-selected package context.
+  // Idempotent: duplicate taps are blocked by navigatingToBook state (spec §26).
+  const handleNavigateToBooking = (packageId: string) => {
+    if (navigatingToBook) return;
+
+    if (!packageId || packageId === 'undefined' || packageId === 'null' || !packageId.trim()) {
+      console.error('[DriveAI] Missing/invalid package ID:', packageId);
+      return;
+    }
+
+    setNavigatingToBook(true);
+
+    const destination = `/book?package=${encodeURIComponent(packageId)}`;
+
+    console.log('[DriveAI] booking handoff packageId:', packageId);
+    console.log('[DriveAI] navigating to:', destination);
+
+    // Close the chat widget drawer so it doesn't block the screen
+    setIsOpen(false);
 
     try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.success && data.user) {
-        // Already authenticated! Launch Razorpay directly over chat widget
-        await launchRazorpayCheckout(bookingId, {
-          onLoading: setLoading,
-          onSuccess: (msg) => {
-            setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
-          },
-          onError: (err) => {
-            setMessages((prev) => [...prev, { role: 'assistant', content: `Payment issue: ${err}` }]);
-          },
-        });
-      } else {
-        // Unauthenticated! Prompt Auth Modal first
-        setPendingPaymentUrl(paymentUrl);
-        setCheckoutBookingId(bookingId);
-        setIsAuthModalOpen(true);
-      }
-    } catch {
-      setPendingPaymentUrl(paymentUrl);
-      setCheckoutBookingId(bookingId);
-      setIsAuthModalOpen(true);
+      router.push(destination);
+    } catch (err) {
+      console.error('[DriveAI] Navigation error:', err);
     }
-  };
 
-  const handleAuthSuccess = () => {
-    // If they were trying to checkout a previously created booking
-    if (checkoutBookingId) {
-      launchRazorpayCheckout(checkoutBookingId, {
-        onLoading: setLoading,
-        onSuccess: (msg) => {
-          setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
-        },
-        onError: (err) => {
-          setMessages((prev) => [...prev, { role: 'assistant', content: `Payment issue: ${err}` }]);
-        },
-      });
-      setCheckoutBookingId(null);
-      setPendingPaymentUrl(null);
-    } else {
-      // Just logged in mid-flow (e.g. AUTH_REQUIRED prompt)
-      // Auto-trigger "Yes proceed" to resume the booking
-      handleSendMessage('Yes proceed');
-    }
+    // Safety timeout: reset navigatingToBook state after 4s so UI is never stuck
+    setTimeout(() => {
+      setNavigatingToBook(false);
+    }, 4000);
   };
 
   return (
@@ -154,14 +162,6 @@ export function AIChatWidget() {
           DriveAI Assistant
         </span>
       </button>
-
-      {/* Auth Modal for Login Handoff */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onSuccess={handleAuthSuccess}
-        redirectToDashboard={false}
-      />
 
       {/* Chat Window Drawer */}
       <AnimatePresence>
@@ -291,7 +291,13 @@ export function AIChatWidget() {
                     </div>
                   )}
 
-                  {/* Interactive Slots Card */}
+                  {/* ── Slots Reference Card ────────────────────────────────────────────
+                      IMPORTANT (spec §9 / §17): This card is for DISCOVERY ONLY.
+                      Individual slots are displayed as non-clickable reference labels.
+                      Clicking a slot does NOT create a booking inside the chat.
+                      The "View Live Availability" button navigates to /book where the
+                      authoritative slot availability check is performed.
+                  ─────────────────────────────────────────────────────────────────── */}
                   {m.cardData && m.cardData.type === 'SLOTS_AVAILABLE' && (
                     <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-card">
                       <div className="flex justify-between items-center text-xs">
@@ -303,56 +309,97 @@ export function AIChatWidget() {
                         Instructor: <strong className="text-slate-700">{m.cardData.instructorName}</strong> • Vehicle: <strong className="text-slate-700">{m.cardData.vehicleName}</strong>
                       </p>
 
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        {m.cardData.availableSlots.map((slot: string, sIdx: number) => (
-                          <button
-                            key={sIdx}
-                            onClick={() => handleSendMessage(`Book ${m.cardData.packageName} for ${m.cardData.date} at ${slot}`)}
-                            className="bg-white hover:bg-blue-600 hover:text-white text-slate-700 border border-slate-200 text-xs py-2 px-3 rounded-xl font-semibold transition flex items-center justify-between cursor-pointer"
-                          >
-                            <span>{slot}</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                      {/* Reference-only slot display — not clickable booking buttons */}
+                      {m.cardData.availableSlots && m.cardData.availableSlots.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          {m.cardData.availableSlots.map((slot: string, sIdx: number) => (
+                            <div
+                              key={sIdx}
+                              className="bg-slate-50 border border-slate-200 text-slate-600 text-xs py-2 px-3 rounded-xl font-semibold flex items-center justify-center select-none"
+                              aria-label={`Reference slot time: ${slot}`}
+                            >
+                              {slot}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-slate-500 italic">No open slots found for this date. Try another date in the booking wizard.</p>
+                      )}
 
-                  {/* Interactive Booking Confirmation Card */}
-                  {m.cardData && m.cardData.type === 'AUTH_REQUIRED' && (
-                    <div className="w-full bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-card">
+                      {/* Disclaimer — spec §9: must not claim slot availability without live check */}
+                      <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2 leading-relaxed">
+                        ⚠️ Slot times shown for planning reference only. Live availability is confirmed in the booking wizard.
+                      </p>
+
+                      {/* Navigate to /book for authoritative slot selection */}
                       <button
                         type="button"
-                        onClick={() => setIsAuthModalOpen(true)}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition cursor-pointer"
+                        disabled={idx < messages.length - 1 || loading}
+                        onClick={() => router.push('/book')}
+                        className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow ${
+                          idx < messages.length - 1
+                            ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                            : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/15 cursor-pointer'
+                        }`}
+                        aria-label="Open booking page to see live slot availability"
                       >
-                        <span>Sign In to Continue →</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>View Live Availability →</span>
                       </button>
                     </div>
                   )}
 
-                  {/* Interactive Booking Confirmation Card */}
-                  {m.cardData && m.cardData.type === 'BOOKING_CREATED' && (
-                    <div className="w-full bg-white border border-blue-300 rounded-2xl p-4 space-y-3 shadow-card">
-                      <div className="flex items-center gap-2 text-blue-600 text-xs font-bold">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span>Session Reservation Created</span>
+                  {/* ── Booking Handoff Card ────────────────────────────────────────────
+                      Shown when the user confirms a package selection.
+                      This card does NOT create a booking or payment.
+                      Clicking "Continue to Booking" navigates to /book?package=<id>.
+                      The existing BookingWizard handles all booking/payment from there.
+                  ─────────────────────────────────────────────────────────────────── */}
+                  {m.cardData && m.cardData.type === 'BOOKING_HANDOFF' && (
+                    <div className="w-full bg-gradient-to-br from-blue-50 to-white border border-blue-300 rounded-2xl p-4 space-y-3 shadow-card">
+                      {/* Package summary */}
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] font-semibold text-blue-500 uppercase tracking-wider">Selected Package</p>
+                        <h4 className="font-heading font-bold text-sm text-slate-900">{m.cardData.packageName}</h4>
+                        {m.cardData.price && (
+                          <p className="text-xs text-slate-600 font-mono font-bold">₹{(m.cardData.price as number).toLocaleString()}</p>
+                        )}
                       </div>
 
-                      <div className="space-y-1 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200 font-sans">
-                        <p><strong className="text-slate-500">Booking ID:</strong> <span className="font-mono text-blue-600">{m.cardData.bookingId.slice(-8)}</span></p>
-                        <p><strong className="text-slate-500">Program:</strong> {m.cardData.packageName}</p>
-                        <p><strong className="text-slate-500">Fee:</strong> <span className="text-blue-600 font-bold">₹{m.cardData.amount}</span></p>
-                        <p><strong className="text-slate-500">Schedule:</strong> {m.cardData.date} at {m.cardData.timeSlot}</p>
-                      </div>
+                      {/* Loading/redirect indicator */}
+                      {navigatingToBook && (
+                        <div className="flex items-center gap-2 text-[11px] text-blue-600 font-medium bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                          <span className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
+                          <span>Opening your booking options…</span>
+                        </div>
+                      )}
 
+                      {/* Primary CTA — navigate to booking wizard */}
                       <button
                         type="button"
-                        onClick={(e) => handleProceedToCheckout(e, m.cardData.paymentUrl, m.cardData.bookingId)}
-                        className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition cursor-pointer"
+                        id={`booking-handoff-btn-${idx}`}
+                        disabled={navigatingToBook}
+                        onClick={() => handleNavigateToBooking(m.cardData.packageId as string)}
+                        className={`w-full py-3 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg ${
+                          navigatingToBook
+                            ? 'bg-slate-200 text-slate-400 border border-slate-200 cursor-not-allowed'
+                            : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20 active:scale-98 cursor-pointer'
+                        }`}
+                        aria-label="Continue to booking wizard"
                       >
-                        <CreditCard className="w-4 h-4" />
-                        <span>Proceed to Secure Checkout →</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>{navigatingToBook ? 'Redirecting…' : '✓ Continue to Booking'}</span>
+                      </button>
+
+                      {/* Secondary CTA — go back to package list */}
+                      <button
+                        type="button"
+                        disabled={navigatingToBook || idx < messages.length - 1 || loading}
+                        onClick={() => handleSendMessage('Show packages')}
+                        className="w-full py-2 px-3 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition border border-slate-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label="Choose a different package"
+                      >
+                        × Choose Another Package
                       </button>
                     </div>
                   )}

@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/prisma';
-import { getAvailableSlotsAction, createBookingTransactionAction } from '@/actions/bookingSystem';
-import { createRazorpayOrderAction } from '@/actions/razorpay';
+import { getAvailableSlotsAction } from '@/actions/bookingSystem';
 import { getServerSession } from '@/lib/auth';
-import { PackageType, BookingStatus, PaymentStatus, SessionStatus } from '@prisma/client';
+import { PackageType } from '@prisma/client';
 
 // Expanded Knowledge Base for FAQ & General Information
 const FAQ_KNOWLEDGE_BASE = [
@@ -44,18 +43,12 @@ const FAQ_KNOWLEDGE_BASE = [
 ];
 
 /**
- * Helper: Get next Saturday date string in YYYY-MM-DD format
- */
-function getNextSaturdayDate(): string {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = (6 - day + 7) % 7 || 7;
-  d.setDate(d.getDate() + diff);
-  return d.toISOString().split('T')[0];
-}
-
-/**
  * 1. Tool Implementation: checkAvailability()
+ *
+ * Queries live slot availability from the authoritative booking engine.
+ * Results are shown to the user for PLANNING PURPOSES ONLY — the booking
+ * wizard performs the authoritative availability check before any slot is
+ * reserved. DriveAI never claims a slot is definitively available.
  */
 export async function checkAvailabilityTool(params: { date?: string; packageType?: string }) {
   try {
@@ -84,13 +77,15 @@ export async function checkAvailabilityTool(params: { date?: string; packageType
       .filter((s: any) => s.available)
       .map((s: any) => s.time);
 
+    // No hardcoded fallback — an empty array means genuinely no open slots.
+    // Per spec §9: DriveAI must not claim slot availability without live data.
     return {
       success: true,
       date: targetDate,
       package: { id: pkg.id, name: pkg.name, price: pkg.price, type: pkg.type },
       instructor: { id: instructor.id, name: instructor.name, rating: instructor.rating },
       vehicle: { id: vehicle.id, name: vehicle.name, transmission: vehicle.transmission },
-      availableSlots: availableSlotTimes.length > 0 ? availableSlotTimes : ['09:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'],
+      availableSlots: availableSlotTimes,
     };
   } catch (error) {
     console.error('checkAvailabilityTool Error:', error);
@@ -99,109 +94,10 @@ export async function checkAvailabilityTool(params: { date?: string; packageType
 }
 
 /**
- * 2. Tool Implementation: createBooking()
+ * 2. Tool Implementation: getUserBookingStatus()
  *
- * P-17 HARDENED ARCHITECTURE:
- * 1. Strict Authentication Check (getServerSession -> session.sub required).
- * 2. NO synthetic Student creation (purged student_${Date.now()}@drivesuccess.edu & +91 98765 00000).
- * 3. NO untrusted AI identity override — identity is bound strictly to session.sub.
- * 4. Delegates booking creation directly to createBookingTransactionAction for P-10 atomic transaction lock,
- *    30-minute window double-booking soft-checks, and PostgreSQL partial unique index enforcement.
- */
-export async function createBookingTool(params: {
-  packageId?: string;
-  instructorId?: string;
-  vehicleId?: string;
-  date?: string;
-  timeSlot?: string;
-}) {
-  try {
-    // 1. Strict Authentication Enforcement (P-15 / P-17)
-    const session = await getServerSession();
-    if (!session || !session.sub) {
-      return {
-        success: false,
-        error: 'AUTHENTICATION_REQUIRED',
-        message: 'Please log into your Student Portal to reserve a driving session.',
-      };
-    }
-
-    // 2. Resolve Student account from verified session
-    const student = await prisma.student.findUnique({
-      where: { id: session.sub },
-      select: { id: true, name: true, phone: true, email: true },
-    });
-
-    if (!student) {
-      return {
-        success: false,
-        error: 'Student account not found.',
-      };
-    }
-
-    // 3. Resolve Resources (Package, Instructor, Vehicle)
-    const pkg = params.packageId
-      ? await prisma.package.findUnique({ where: { id: params.packageId } })
-      : await prisma.package.findFirst();
-
-    const instructor = params.instructorId
-      ? await prisma.instructor.findUnique({ where: { id: params.instructorId } })
-      : await prisma.instructor.findFirst();
-
-    const vehicle = params.vehicleId
-      ? await prisma.vehicle.findUnique({ where: { id: params.vehicleId } })
-      : await prisma.vehicle.findFirst({ where: { status: 'AVAILABLE' } });
-
-    if (!pkg || !instructor || !vehicle) {
-      return { success: false, error: 'Selected package, instructor, or vehicle is unavailable.' };
-    }
-
-    const dateStr = params.date || getNextSaturdayDate();
-    const timeSlot = params.timeSlot || '10:00 AM';
-
-    // 4. Delegate to Production-Verified P-10 Concurrency-Safe Action
-    const bookingRes = await createBookingTransactionAction({
-      packageId: pkg.id,
-      instructorId: instructor.id,
-      vehicleId: vehicle.id,
-      dateStr: dateStr,
-      timeSlot: timeSlot,
-      notes: `DriveAI Assistant booking for ${pkg.name}`,
-    });
-
-    if (!bookingRes.success || !bookingRes.booking) {
-      return {
-        success: false,
-        error: bookingRes.error || 'Failed to create booking reservation.',
-      };
-    }
-
-    // 5. Initialize Razorpay Order with Idempotency Key
-    const orderRes = await createRazorpayOrderAction(bookingRes.booking.id);
-    const checkoutUrl = `/book?bookingId=${bookingRes.booking.id}&orderId=${orderRes.orderId || ''}`;
-
-    return {
-      success: true,
-      bookingId: bookingRes.booking.id,
-      status: 'PENDING_PAYMENT',
-      studentName: student.name,
-      packageName: pkg.name,
-      amount: pkg.price,
-      date: dateStr,
-      timeSlot: timeSlot,
-      instructorName: instructor.name,
-      vehicleName: vehicle.name,
-      razorpayOrderId: orderRes.orderId || null,
-      paymentUrl: checkoutUrl,
-    };
-  } catch (error) {
-    console.error('createBookingTool Error:', error);
-    return { success: false, error: 'Booking creation failed.' };
-  }
-}
-
-/**
- * 3. Tool Implementation: getUserBookingStatus()
+ * Read-only: returns the authenticated user's most recent booking status.
+ * Never modifies booking state.
  */
 export async function getUserBookingStatusTool() {
   try {
@@ -246,7 +142,7 @@ export async function getUserBookingStatusTool() {
 }
 
 /**
- * 4. Tool Implementation: getFAQAnswer()
+ * 3. Tool Implementation: getFAQAnswer()
  */
 export async function getFAQAnswerTool(params: { query: string }) {
   const queryLower = params.query.toLowerCase().trim();
