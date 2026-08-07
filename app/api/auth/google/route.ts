@@ -543,8 +543,31 @@ export async function GET(req: NextRequest) {
       const res = await POST(postReq);
       const data = await res.json();
       if (data.success) {
-        console.log('12. [AUTH RUNTIME LOG] Redirecting to /dashboard');
-        const redirectRes = NextResponse.redirect(new URL('/dashboard', req.url));
+        let returnTarget = '/dashboard';
+        if (state) {
+          try {
+            const decodedState = decodeURIComponent(state);
+            const parsedState = JSON.parse(decodedState);
+            if (parsedState?.returnTo && typeof parsedState.returnTo === 'string') {
+              returnTarget = parsedState.returnTo;
+            }
+          } catch (e) {
+            try {
+              const parsedState = JSON.parse(state);
+              if (parsedState?.returnTo && typeof parsedState.returnTo === 'string') {
+                returnTarget = parsedState.returnTo;
+              }
+            } catch (e2) {}
+          }
+        }
+
+        // Security: Enforce safe relative internal route starting with '/' and not '//' (open redirect defense)
+        const targetPath = (returnTarget.startsWith('/') && !returnTarget.startsWith('//'))
+          ? returnTarget
+          : '/dashboard';
+
+        console.log(`12. [AUTH RUNTIME LOG] Redirecting to ${targetPath}`);
+        const redirectRes = NextResponse.redirect(new URL(targetPath, req.url));
         // Clear the state cookie after successful use
         redirectRes.cookies.delete('oauth_state');
         return redirectRes;
