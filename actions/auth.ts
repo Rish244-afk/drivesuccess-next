@@ -32,14 +32,22 @@ const otpSchema = z.string().length(6, 'OTP must be exactly 6 digits');
  *         email (student_XXXX@drivesuccess.edu) meant Google login could
  *         never find the phone-only account by email and created a duplicate.
  */
-export async function loginWithVerifiedPhoneAction(phoneInput: string) {
+import { jwtVerify, createRemoteJWKSet } from 'jose';
+
+const FIREBASE_JWKS = createRemoteJWKSet(
+  new URL('https://www.googleapis.com/service_accounts/v1/jwks/securetoken@system.gserviceaccount.com')
+);
+
+/**
+ * 1. Internal Private Session Creation Helper for Verified Phone Numbers
+ * NOT exported as a public Server Action to prevent direct unauthenticated invocation.
+ */
+async function createVerifiedPhoneSession(phoneInput: string) {
   try {
     const phone = phoneInput.trim().replace(/[^\d+]/g, '');
     phoneSchema.parse(phone);
 
     // ─── STEP 1: Check if user is already logged in via another method ───────
-    // If a valid session exists (e.g. Google), link the verified phone to that
-    // existing account instead of creating or finding a separate one.
     const currentSession = await getServerSession();
     let student = null;
 
@@ -49,18 +57,16 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
       });
 
       if (existing) {
-        // Check if this phone already belongs to a DIFFERENT student.
-        const phoneOwner = phone ? await prisma.student.findUnique({
-          where: { phone },
-          select: { id: true },
-        }) : null;
+        const phoneOwner = phone
+          ? await prisma.student.findUnique({
+              where: { phone },
+              select: { id: true },
+            })
+          : null;
 
         if (phoneOwner && phoneOwner.id !== existing.id) {
-          // Phone is registered to a different account — do not link; treat as
-          // a separate login and return the phone-owner's account instead.
           student = await prisma.student.findUnique({ where: { phone } });
         } else {
-          // Safe to link: phone is free or already belongs to this student.
           student = await prisma.student.update({
             where: { id: existing.id },
             data: { phone, phoneVerified: true },
@@ -78,9 +84,6 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
     }
 
     // ─── STEP 3: Create new phone-only account ────────────────────────────────
-    // email is intentionally NOT set here. Student.email is nullable.
-    // A synthetic email would prevent Google login from finding this account
-    // later via email lookup, causing duplicate account creation.
     if (!student) {
       const cleanPhoneDigits = phone.replace(/[^\d]/g, '');
       const phoneSuffix = cleanPhoneDigits.slice(-4) || '0000';
@@ -88,9 +91,6 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
         data: {
           phone,
           name: `Student-${phoneSuffix}`,
-          // email is intentionally null — phone-only account.
-          // When the user later signs in with Google, the Google handler will
-          // find this account by phone number and link the email + googleId.
           phoneVerified: true,
           role: Role.STUDENT,
         },
@@ -128,11 +128,50 @@ export async function loginWithVerifiedPhoneAction(phoneInput: string) {
 
     return { success: true, student };
   } catch (error) {
-    console.error('loginWithVerifiedPhoneAction Error:', error);
+    console.error('createVerifiedPhoneSession Error:', error);
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors[0].message };
     }
-    return { success: false, error: 'Phone login failed' };
+    return { success: false, error: 'Phone session creation failed' };
+  }
+}
+
+/**
+ * Public Server Action: Verify Firebase ID Token Cryptographically
+ * Validates RS256 signature, issuer, audience, expiration, and extracts phone_number claim.
+ * Never trusts client-supplied phone parameters.
+ */
+export async function verifyFirebaseIdTokenAction(idToken: string) {
+  try {
+    if (!idToken || typeof idToken !== 'string') {
+      return { success: false, error: 'Firebase ID Token is required.' };
+    }
+
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'drivesuccess-academy';
+    const expectedIssuer = `https://securetoken.google.com/${projectId}`;
+
+    // Cryptographic RS256 Verification against Google JWKS
+    const { payload } = await jwtVerify(idToken, FIREBASE_JWKS, {
+      issuer: expectedIssuer,
+      audience: projectId,
+    });
+
+    const verifiedPhone = payload.phone_number as string | undefined;
+
+    if (!verifiedPhone) {
+      return {
+        success: false,
+        error: 'Firebase authentication token does not contain a verified phone number.',
+      };
+    }
+
+    return await createVerifiedPhoneSession(verifiedPhone);
+  } catch (error: any) {
+    console.error('verifyFirebaseIdTokenAction Error:', error?.message || error);
+    return {
+      success: false,
+      error: 'Cryptographic verification of Firebase token failed. Please try again.',
+    };
   }
 }
 
@@ -298,7 +337,7 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
     });
 
     // 5. Issue Logged-In Session
-    return await loginWithVerifiedPhoneAction(phone);
+    return await createVerifiedPhoneSession(phone);
   } catch (error) {
     console.error('verifyOtpAction Error:', error);
     if (error instanceof z.ZodError) {

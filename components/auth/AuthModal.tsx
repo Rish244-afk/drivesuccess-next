@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
-import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/actions/auth';
+import { sendOtpAction, verifyOtpAction, verifyFirebaseIdTokenAction } from '@/actions/auth';
 import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
 import { ShieldCheck, Phone, KeyRound, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -107,8 +107,9 @@ export function AuthModal({
 
     if (confirmationResult) {
       try {
-        await confirmationResult.confirm(otp);
-        const loginRes = await loginWithVerifiedPhoneAction(formattedPhone);
+        const userCredential = await confirmationResult.confirm(otp);
+        const firebaseIdToken = await userCredential.user.getIdToken();
+        const loginRes = await verifyFirebaseIdTokenAction(firebaseIdToken);
         if (loginRes.success) {
           setMessage('Phone authenticated successfully!');
           setLoading(false);

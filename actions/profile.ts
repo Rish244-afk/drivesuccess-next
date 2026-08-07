@@ -168,9 +168,50 @@ export async function deleteStudentAccountAction() {
   try {
     const studentId = session.sub;
 
-    // Delete student account (Cascade deletes non-financial personal data)
-    await prisma.student.delete({
+    // Check if student exists
+    const student = await prisma.student.findUnique({
       where: { id: studentId },
+      select: { id: true, authVersion: true },
+    });
+
+    if (!student) {
+      return { success: false, error: 'Student account not found.' };
+    }
+
+    // DPDP Act 2023 & GDPR Statutory Anonymization:
+    // 1. Anonymize PII fields on Student record
+    // 2. Increment authVersion to invalidate all existing JWT cookies
+    // 3. Retain referential Booking & Session records for tax/accounting audit
+    await prisma.$transaction(async (tx) => {
+      // Purge student documents (personal PII uploads)
+      await tx.studentDocument.deleteMany({
+        where: { studentId },
+      });
+
+      // Purge student notifications
+      await tx.notification.deleteMany({
+        where: { studentId },
+      });
+
+      // Anonymize student PII while preserving student record ID for booking relations
+      await tx.student.update({
+        where: { id: studentId },
+        data: {
+          name: 'Anonymized Student',
+          email: null,
+          phone: null,
+          googleId: null,
+          avatarUrl: null,
+          address: null,
+          city: null,
+          state: null,
+          zipCode: null,
+          licenseNo: null,
+          emailVerified: false,
+          phoneVerified: false,
+          authVersion: { increment: 1 },
+        },
+      });
     });
 
     await removeAuthCookie();
@@ -178,7 +219,7 @@ export async function deleteStudentAccountAction() {
 
     return {
       success: true,
-      message: 'Account and associated personal data deleted successfully in accordance with DPDP Act & GDPR.',
+      message: 'Account and associated personal data deleted/anonymized successfully in accordance with DPDP Act & GDPR.',
     };
   } catch (error) {
     console.error('deleteStudentAccountAction Error:', error);

@@ -26,7 +26,7 @@ import { getPackagesAction } from '@/actions/package';
 // NOTE: createRazorpayOrderAction, verifyPaymentSignatureAction, and
 // markPaymentFailedAction are consumed exclusively inside useRazorpayCheckout.
 // They must NOT be imported here to prevent duplicate server-action calls.
-import { sendOtpAction, verifyOtpAction, loginWithVerifiedPhoneAction } from '@/actions/auth';
+import { sendOtpAction, verifyOtpAction, verifyFirebaseIdTokenAction } from '@/actions/auth';
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
@@ -250,8 +250,9 @@ export function BookingWizard() {
 
     if (confirmationResult) {
       try {
-        await confirmationResult.confirm(authOtp);
-        const loginRes = await loginWithVerifiedPhoneAction(formattedPhone);
+        const userCredential = await confirmationResult.confirm(authOtp);
+        const firebaseIdToken = await userCredential.user.getIdToken();
+        const loginRes = await verifyFirebaseIdTokenAction(firebaseIdToken);
         if (loginRes.success) {
           setAuthMessage('Phone authenticated successfully!');
           await refreshSessionData();
