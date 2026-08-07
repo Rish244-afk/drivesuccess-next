@@ -31,32 +31,45 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const clientIp = req.headers.get('x-forwarded-for') || req.ip || '127.0.0.1';
 
-  // 1. CSRF PROTECTION: Validate Origin & Referer on mutating HTTP methods
+  // 1. CSRF PROTECTION: Validate Origin on mutating HTTP methods
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
     const origin = req.headers.get('origin');
-    const host = req.headers.get('host');
 
-    if (origin && host && !origin.includes(host)) {
-      // /api/auth/* paths are excluded: they handle Firebase/Google redirects
-      // that legitimately originate from external domains (accounts.google.com,
-      // firebaseapp.com). Those flows are secured by their own token verification.
+    if (origin) {
       const isAuthPath = pathname.startsWith('/api/auth');
 
-      // Build the trusted-origin set from configuration.
-      // We do NOT trust arbitrary *.vercel.app, *.google.com, or *.firebaseapp.com
-      // subdomains — an attacker could deploy a malicious page on any of those.
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://drivesuccess-next.vercel.app';
+      // Build the exact trusted-origin set from configuration.
+      // SECURITY: NEVER use substring matching (includes, startsWith, endsWith) for origin decisions.
+      const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://drivesuccess-next.vercel.app').replace(/\/$/, '');
+
       const trustedOrigins = new Set([
-        appUrl.replace(/\/$/, ''),           // canonical production URL (no trailing slash)
-        'http://localhost:3000',              // local Next.js dev server
-        'http://localhost:3001',              // alternative local port
+        appUrl,                               // canonical production URL
+        'http://localhost:3000',               // local Next.js dev server
+        'http://localhost:3001',               // alternative local port
         'http://127.0.0.1:3000',
         'http://127.0.0.1:3001',
       ]);
 
-      const isTrustedOrigin = trustedOrigins.has(origin);
+      // If request has a Host header, validate exact same-origin match via URL parsing
+      const host = req.headers.get('host');
+      if (host) {
+        try {
+          const parsedOrigin = new URL(origin);
+          // Same-origin check: exact match of origin's host (hostname:port) with Host header
+          // AND scheme match (https: in production, or http: for local development)
+          if (parsedOrigin.host === host) {
+            const isLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1');
+            const expectedProtocol = isLocal ? 'http:' : 'https:';
+            if (parsedOrigin.protocol === expectedProtocol) {
+              trustedOrigins.add(origin);
+            }
+          }
+        } catch {
+          // Malformed Origin header
+        }
+      }
 
-      if (!isAuthPath && !isTrustedOrigin) {
+      if (!isAuthPath && !trustedOrigins.has(origin)) {
         return NextResponse.json({ success: false, error: 'CSRF Forbidden: Origin mismatch' }, { status: 403 });
       }
     }
