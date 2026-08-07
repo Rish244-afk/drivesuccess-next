@@ -355,6 +355,22 @@ export function BookingWizard() {
       return;
     }
 
+    // ── DriveAI handoff: ?package=<id> ──────────────────────────────────────
+    // When DriveAI navigates to /book?package=<id>, the package pre-selection
+    // is handled entirely inside loadInitialData (after DB data is loaded and
+    // the ID is validated against the authoritative packages[] list).
+    //
+    // Here we ONLY:
+    //   • Clear stale sessionStorage so the AI-selected package always wins
+    //   • Set isInitialMount.current = false to allow subsequent state saves
+    //   • Return early — do NOT remove the URL param yet; loadInitialData
+    //     must validate and apply the selection first.
+    if (searchParams.get('package')) {
+      sessionStorage.removeItem('wizard_state');
+      isInitialMount.current = false;
+      return;
+    }
+
     const saved = sessionStorage.getItem('wizard_state');
     if (saved) {
       try {
@@ -611,7 +627,9 @@ export function BookingWizard() {
     refreshSessionData();
   }, []);
 
-  // Load initial Packages, Instructors, and Vehicles from Database
+  // Load initial Packages, Instructors, and Vehicles from Database.
+  // Also handles DriveAI handoff: if ?package=<id> is present in the URL,
+  // validates the ID against the DB-loaded list and pre-selects the package.
   useEffect(() => {
     async function loadInitialData() {
       setLoading(true);
@@ -622,15 +640,86 @@ export function BookingWizard() {
         getBookingVehiclesAction(),
       ]);
 
-      if (pkgRes.success && pkgRes.data) setPackages(pkgRes.data as WizardPackage[]);
+      // Extract loaded data into local vars before setting state so we can use
+      // them for URL param validation in the same async tick.
+      const loadedPackages: WizardPackage[] =
+        pkgRes.success && pkgRes.data ? (pkgRes.data as WizardPackage[]) : [];
+      const loadedVehicles: WizardVehicle[] =
+        vehRes.success && vehRes.data ? (vehRes.data as WizardVehicle[]) : [];
+
+      if (pkgRes.success && pkgRes.data) setPackages(loadedPackages);
       if (instRes.success && instRes.data) setInstructors(instRes.data as WizardInstructor[]);
-      if (vehRes.success && vehRes.data) setVehicles(vehRes.data as WizardVehicle[]);
+      if (vehRes.success && vehRes.data) setVehicles(loadedVehicles);
+
+      // ── DriveAI Handoff: ?package=<id> pre-selection ──────────────────────
+      //
+      // SAFE SEQUENCE (per spec / user instruction):
+      //   1. Read package ID from URL
+      //   2. Load packages from DB (already done above)
+      //   3. Validate: find the ID in loadedPackages[] (never trust client blindly)
+      //   4. If found: setSelectedPackage + handleSelectPackage (auto-vehicle)
+      //   5. Advance to step 2 (instructor selection)
+      //   6. ONLY THEN remove the ?package param from the URL
+      //
+      // If the package ID is not found in the DB list (invalid/tampered/expired),
+      // we silently ignore it and the wizard opens at step 1 normally.
+      //
+      // Package context is preserved through authentication because the wizard
+      // handles auth inline at step 5 — the user never leaves /book.
+      const aiPackageId = searchParams.get('package');
+      if (aiPackageId && loadedPackages.length > 0) {
+        const matchedPackage = loadedPackages.find((p) => p.id === aiPackageId);
+        if (matchedPackage) {
+          // Apply selection using the existing smart vehicle auto-selection logic
+          handleSelectPackage(matchedPackage, loadedVehicles);
+          // Advance past package selection — user confirmed package in DriveAI
+          setStep(2);
+          // URL param removed ONLY after successful validation + state update
+          // Using replace() so Back button returns to the page the user came from,
+          // not back to /book?package=... which would re-trigger this flow.
+          router.replace('/book', { scroll: false });
+          console.log(
+            `[BookingWizard] DriveAI handoff: pre-selected package "${matchedPackage.name}" (${matchedPackage.id})`
+          );
+        } else {
+          // Unknown/tampered package ID — silently ignore, start at step 1
+          console.warn(
+            `[BookingWizard] DriveAI handoff: package ID "${aiPackageId}" not found in DB list — ignoring`
+          );
+          // Clean up the invalid param so it doesn't persist in the URL
+          router.replace('/book', { scroll: false });
+        }
+      }
+      // ──────────────────────────────────────────────────────────────────────
 
       setLoading(false);
     }
 
     loadInitialData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Watch searchParams for DriveAI package handoff (handles mid-page navigation while already on /book)
+  useEffect(() => {
+    const aiPackageId = searchParams.get('package');
+    if (aiPackageId && packages.length > 0) {
+      const matchedPackage = packages.find((p) => p.id === aiPackageId);
+      if (matchedPackage) {
+        handleSelectPackage(matchedPackage, vehicles);
+        setStep(2);
+        router.replace('/book', { scroll: false });
+        console.log(
+          `[BookingWizard] DriveAI handoff (reactive): pre-selected package "${matchedPackage.name}" (${matchedPackage.id})`
+        );
+      } else {
+        console.warn(
+          `[BookingWizard] DriveAI handoff: package ID "${aiPackageId}" not found in DB list — ignoring`
+        );
+        router.replace('/book', { scroll: false });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, packages]);
 
   // Calculate live available slots whenever Instructor, Vehicle, or Date changes
   useEffect(() => {

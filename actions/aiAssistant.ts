@@ -1,6 +1,6 @@
 'use server';
 
-import { checkAvailabilityTool, createBookingTool, getFAQAnswerTool, getUserBookingStatusTool } from '@/lib/ai';
+import { checkAvailabilityTool, getFAQAnswerTool, getUserBookingStatusTool } from '@/lib/ai';
 import { prisma } from '@/lib/prisma';
 
 export interface AIOption {
@@ -31,7 +31,22 @@ export interface AIMessage {
 }
 
 /**
- * DriveAI Assistant Production Intent Router & WhatsApp-Style Interactive State Machine
+ * DriveAI Assistant — Sales Concierge / Discovery / FAQ / Booking Guidance
+ *
+ * ARCHITECTURAL BOUNDARY (per spec §1–§4):
+ *   DriveAI is a concierge layer ONLY.
+ *   It must NEVER:
+ *     • Create bookings
+ *     • Create Razorpay orders
+ *     • Verify payment signatures
+ *     • Mark bookings as PAID / CONFIRMED
+ *     • Lock time slots
+ *     • Process refunds
+ *     • Collect payment credentials, OTPs, or card details
+ *
+ *   When the user is ready to book, DriveAI returns a BOOKING_HANDOFF card
+ *   containing the packageId. The client navigates to /book?package=<id>.
+ *   The existing BookingWizard is the single authoritative booking engine.
  */
 export async function processAIChatAction(userMessage: string, history: AIMessage[] = []) {
   try {
@@ -77,7 +92,7 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       };
     }
 
-    // 3. PACKAGE SELECTION VIA MINI CARD BUTTON OR TEXT (e.g. "Select 10 Days Training", "Select ...")
+    // 3. PACKAGE SELECTION VIA MINI CARD BUTTON OR TEXT
     if (text.startsWith('select ') || (lastBotMessage.includes('matching options') && (text.includes('training') || text.includes('license') || text.includes('creta') || text.includes('combo')))) {
       console.log(`[DriveAI Router] Route: PACKAGE_SELECTION | Query: "${userMessage}"`);
       const searchStr = text.replace(/^select\s+/i, '').trim();
@@ -90,11 +105,14 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
 
       return {
         success: true,
-        message: `Great choice! **${matchedPackage.name}** for **₹${matchedPackage.price.toLocaleString()}** (${matchedPackage.sessionsCount} sessions).\n\nShall I proceed to create your booking reservation now?`,
+        // Improved wording per spec §22: shows name, price, sessions clearly
+        message: `Great choice! 🎉\n\n${matchedPackage.name}\n₹${matchedPackage.price.toLocaleString()} • ${matchedPackage.sessionsCount} sessions\n\nReady to book this package?`,
         options: [
-          { label: '✅ Yes, Proceed to Booking', value: 'Yes proceed' },
-          { label: '❌ Choose Another Package', value: 'Show packages' },
+          // Value 'Yes proceed' triggers the BOOKING_HANDOFF route below
+          { label: '✓ Continue to Booking', value: 'Yes proceed' },
+          { label: '× Choose Another Package', value: 'Show packages' },
         ],
+        // PACKAGE_SELECTED cardData carries packageId safely — no sensitive data
         cardData: {
           type: 'PACKAGE_SELECTED',
           packageId: matchedPackage.id,
@@ -104,66 +122,57 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       };
     }
 
-    // 4. CONFIRMATION TO PROCEED TO BOOKING (e.g. "Yes proceed", "yes", "confirm")
+    // 4. SAFE BOOKING HANDOFF — replaces the old createBookingTool call
+    //
+    // WHAT THIS USED TO DO (P-17 / old architecture):
+    //   createBookingTool() → createBookingTransactionAction() → createRazorpayOrderAction()
+    //   This locked a slot, created a Razorpay order, and launched checkout inside chat.
+    //   That violated the single-booking-engine principle.
+    //
+    // WHAT THIS NOW DOES:
+    //   Reads the last PACKAGE_SELECTED cardData from conversation history.
+    //   Returns a BOOKING_HANDOFF card with packageId.
+    //   The client navigates to /book?package=<packageId>.
+    //   The BookingWizard performs authoritative slot selection, booking creation,
+    //   and payment — DriveAI has no further involvement.
     const isBookingConfirmation =
       (text === 'yes proceed' || text === 'yes' || text === 'proceed' || text.includes('sure') || text.includes('confirm') || text.includes('book it') || text.includes('go ahead')) &&
-      (lastBotMessage.includes('Shall I proceed') || lastBotMessage.includes('booking reservation'));
+      (lastBotMessage.includes('Ready to book') || lastBotMessage.includes('Shall I proceed') || lastBotMessage.includes('booking reservation'));
 
     if (isBookingConfirmation) {
-      console.log(`[DriveAI Router] Route: BOOKING_CONFIRMATION | Query: "${userMessage}"`);
+      console.log(`[DriveAI Router] Route: BOOKING_HANDOFF | Query: "${userMessage}"`);
 
-      // Authentication check before creating booking
-      const { getServerSession } = await import('@/lib/auth');
-      const session = await getServerSession();
+      // Find the most recently selected package from conversation history.
+      // We only read the packageId (a DB UUID) — no sensitive data is accessed.
+      const lastPkgCard = [...history]
+        .reverse()
+        .find((m) => m.cardData?.type === 'PACKAGE_SELECTED');
 
-      if (!session?.sub) {
+      const packageId = lastPkgCard?.cardData?.packageId as string | undefined;
+      const packageName = lastPkgCard?.cardData?.packageName as string | undefined;
+      const price = lastPkgCard?.cardData?.price as number | undefined;
+
+      if (!packageId) {
+        // Edge case: user said "yes" without having selected a package first
         return {
           success: true,
-          message: "To lock in this session, you'll need to sign in first — it takes 30 seconds with your phone number or Google account.",
-          cardData: {
-            type: 'AUTH_REQUIRED',
-          },
-        };
-      }
-
-      const dateStr = getNextSaturdayDate();
-
-      const bookingRes = await createBookingTool({
-        date: dateStr,
-        timeSlot: '10:00 AM',
-      });
-
-      if (bookingRes.success) {
-        return {
-          success: true,
-          message: `I have reserved your training session for **${bookingRes.packageName}** on **${bookingRes.date}** at **${bookingRes.timeSlot}**! You can complete your deposit below:`,
-          cardData: {
-            type: 'BOOKING_CREATED',
-            bookingId: bookingRes.bookingId,
-            packageName: bookingRes.packageName,
-            amount: bookingRes.amount,
-            date: bookingRes.date,
-            timeSlot: bookingRes.timeSlot,
-            instructorName: bookingRes.instructorName,
-            vehicleName: bookingRes.vehicleName,
-            paymentUrl: bookingRes.paymentUrl,
-          },
-        };
-      }
-
-      if (bookingRes.error === 'AUTHENTICATION_REQUIRED') {
-        return {
-          success: true,
-          message: "To lock in this session, you'll need to sign in first — it takes 30 seconds with your phone number or Google account.",
-          cardData: {
-            type: 'AUTH_REQUIRED',
-          },
+          message: "I couldn't find a selected package. Please browse and select a package first.",
+          options: [
+            { label: '📦 Browse Packages', value: 'Show packages' },
+          ],
         };
       }
 
       return {
         success: true,
-        message: bookingRes.error || 'Unable to reserve slot. Please select another time or package.',
+        message: `Perfect! 🎉\n\nI'll take you to the booking page where you can choose your instructor, vehicle, date, and an available time slot.\n\nThe booking wizard will confirm your package and guide you through secure payment.`,
+        // BOOKING_HANDOFF card is rendered by the widget and triggers navigation to /book
+        cardData: {
+          type: 'BOOKING_HANDOFF',
+          packageId,
+          packageName: packageName || 'Selected Package',
+          price,
+        },
       };
     }
 
@@ -372,7 +381,7 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       } else {
         return {
           success: true,
-          message: statusRes.message || "I couldn't find an active booking under your current session. Would you like me to check open lesson slots for you?",
+          message: statusRes.message || "I couldn't find an active booking under your current session. Would you like to browse our packages?",
           options: [
             { label: '📅 Check Open Slots', value: 'Check available slots' },
             { label: '📦 Browse Packages', value: 'Show packages' },
@@ -382,6 +391,10 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
     }
 
     // 13. CHECK AVAILABILITY INTENT
+    //
+    // IMPORTANT (spec §9): DriveAI shows live availability for REFERENCE ONLY.
+    // The booking wizard remains the authoritative availability system.
+    // We never tell the user "your slot at X:XX is confirmed" from here.
     if (text.includes('slot') || text.includes('availab') || text.includes('saturday') || text.includes('time') || text.includes('schedule')) {
       console.log(`[DriveAI Router] Route: CHECK_AVAILABILITY | Query: "${userMessage}"`);
       const dateStr = text.includes('saturday')
@@ -398,20 +411,32 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       });
 
       if (availRes.success) {
-        return {
-          success: true,
-          message: `We have open slots for **${availRes.package?.name}** on **${dateStr}** with **${availRes.instructor?.name}** (${availRes.vehicle?.name}):`,
-          cardData: {
-            type: 'SLOTS_AVAILABLE',
-            date: dateStr,
-            packageName: availRes.package?.name,
-            price: availRes.package?.price,
-            instructorName: availRes.instructor?.name,
-            rating: availRes.instructor?.rating,
-            vehicleName: availRes.vehicle?.name,
-            availableSlots: availRes.availableSlots,
-          },
-        };
+        const slots = availRes.availableSlots || [];
+        if (slots.length > 0) {
+          return {
+            success: true,
+            // Careful wording: "reference" not "confirmed available"
+            message: `Here are reference slot times for **${availRes.package?.name}** on **${dateStr}** (shown for planning purposes). The booking wizard confirms live availability:`,
+            cardData: {
+              type: 'SLOTS_AVAILABLE',
+              date: dateStr,
+              packageName: availRes.package?.name,
+              price: availRes.package?.price,
+              instructorName: availRes.instructor?.name,
+              rating: availRes.instructor?.rating,
+              vehicleName: availRes.vehicle?.name,
+              availableSlots: slots,
+            },
+          };
+        } else {
+          return {
+            success: true,
+            message: `Looks like slots for **${availRes.package?.name}** on **${dateStr}** may be fully booked. Check the booking wizard for live availability and alternative dates.`,
+            options: [
+              { label: '📦 Browse Packages', value: 'Show packages' },
+            ],
+          };
+        }
       }
     }
 

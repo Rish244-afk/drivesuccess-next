@@ -63,30 +63,29 @@ async function main() {
   const vehicle = await prisma.vehicle.findFirst({ where: { status: 'AVAILABLE' } });
   if (!pkg || !instructor || !vehicle) throw new Error('Missing test dependencies');
 
-  const { createBookingTool } = await import('../lib/ai');
-
-  // TEST 1: Unauthenticated createBookingTool execution
-  console.log('[Test 1: Unauthenticated createBookingTool Execution]');
-  const studentsBefore = await prisma.student.count();
+  // TEST 1: Verify createBookingTool has been removed from DriveAI (P-17 → P-26 upgrade)
+  //
+  // Previous architecture (P-17): createBookingTool existed and rejected unauthenticated calls.
+  // New architecture (P-26):      createBookingTool has been DELETED from lib/ai entirely.
+  //   - DriveAI is now a pure concierge/discovery layer.
+  //   - It can NEVER create bookings, Razorpay orders, or process payments.
+  //   - The strongest security guarantee is that the attack surface does not exist.
+  //
+  // This test verifies the architectural guarantee by checking that the export is gone.
+  console.log('[Test 1: createBookingTool Architectural Removal Verification (P-26)]');
+  const aiModule = await import('../lib/ai');
   const bookingsBefore = await prisma.booking.count();
 
-  const unauthRes = await createBookingTool({
-    packageId: pkg.id,
-    instructorId: instructor.id,
-    vehicleId: vehicle.id,
-    date: '2026-10-30',
-    timeSlot: '11:00 AM',
-  });
+  // Verify the function no longer exists in the AI module
+  const createBookingToolRemoved = !('createBookingTool' in aiModule);
 
-  const studentsAfter = await prisma.student.count();
   const bookingsAfter = await prisma.booking.count();
+  const noBookingsCreated = bookingsAfter === bookingsBefore;
 
-  console.log('  -> Response:', unauthRes);
-  const test1Passed =
-    unauthRes.error === 'AUTHENTICATION_REQUIRED' &&
-    studentsAfter === studentsBefore &&
-    bookingsAfter === bookingsBefore;
-  console.log(`  -> Test 1 Result: ${test1Passed ? 'PASS ✅' : 'FAIL 🔴'}\n`);
+  console.log(`  -> createBookingTool exported: ${'createBookingTool' in aiModule ? 'YES (FAIL)' : 'NO (PASS)'}`);
+  console.log(`  -> No bookings created by AI: ${noBookingsCreated ? 'PASS ✅' : 'FAIL 🔴'}`);
+  const test1Passed = createBookingToolRemoved && noBookingsCreated;
+  console.log(`  -> Test 1 Result: ${test1Passed ? 'PASS ✅ (createBookingTool removed — AI cannot create bookings)' : 'FAIL 🔴'}\n`);
 
   // TEST 2: DB audit for synthetic student_... emails or dummy phone +91 98765 00000
   console.log('[Test 2: Synthetic Email & Dummy Phone Database Audit]');
