@@ -106,12 +106,23 @@ function LoginFormContent() {
 
             const stateParam = urlParams.get('state') || stateFromHash;
             let stateData: any = null;
-            try {
-              if (stateParam) stateData = JSON.parse(stateParam);
-            } catch (e) {}
+            if (stateParam) {
+              try {
+                const decodedState = decodeURIComponent(stateParam);
+                stateData = JSON.parse(decodedState);
+              } catch (e) {
+                try {
+                  stateData = JSON.parse(stateParam);
+                } catch (e2) {}
+              }
+            }
 
             const isPopup = window.opener != null;
-            const targetPath = storedReturn || stateData?.returnTo || fromPath || '/dashboard';
+            const rawTarget = storedReturn || stateData?.returnTo || fromPath || '/dashboard';
+            // Security: Enforce safe relative internal route starting with '/' and not '//' (open redirect defense)
+            const targetPath = (typeof rawTarget === 'string' && rawTarget.startsWith('/') && !rawTarget.startsWith('//'))
+              ? rawTarget
+              : '/dashboard';
 
             if (isPopup) {
               window.opener.postMessage({ type: 'OAUTH_COMPLETE', success: true }, window.location.origin);

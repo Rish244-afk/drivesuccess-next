@@ -89,13 +89,17 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get(COOKIE_NAME)?.value;
 
   // 3. RETURNING USER AUTO-REDIRECT: Instant server redirect if already authenticated visiting /auth/login
+  // EXCEPTION: Do not redirect if this is an OAuth authorization code callback (?code=... or ?state=...)
   if (pathname === '/auth/login' && token) {
-    try {
-      await jwtVerify(token, getMiddlewareJwtSecret());
-      const fromUrl = req.nextUrl.searchParams.get('from') || '/dashboard';
-      return NextResponse.redirect(new URL(fromUrl, req.url));
-    } catch {
-      // Invalid token, allow access to login page
+    const isOauthCallback = req.nextUrl.searchParams.has('code') || req.nextUrl.searchParams.has('state');
+    if (!isOauthCallback) {
+      try {
+        await jwtVerify(token, getMiddlewareJwtSecret());
+        const fromUrl = req.nextUrl.searchParams.get('from') || '/dashboard';
+        return NextResponse.redirect(new URL(fromUrl, req.url));
+      } catch {
+        // Invalid token, allow access to login page
+      }
     }
   }
 
