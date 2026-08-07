@@ -346,11 +346,15 @@ export async function createBookingTransactionAction(inputData: unknown) {
       const targets = Array.isArray(field) ? field : typeof field === 'string' ? [field] : [];
 
       // ── Slot exclusivity constraints (P-10 defence layer 2) ────────────────
-      // Fires when a concurrent INSERT violates @@unique([instructorId, scheduledAt])
-      // or @@unique([vehicleId, scheduledAt]) — i.e., a race bypassed findFirst.
+      // Fires when a concurrent INSERT violates the partial unique indexes:
+      //   unique_active_instructor_slot  ON sessions (instructorId, scheduledAt)
+      //                                  WHERE status IN ('SCHEDULED', 'IN_PROGRESS')
+      //   unique_active_vehicle_slot     ON sessions (vehicleId, scheduledAt)
+      //                                  WHERE status IN ('SCHEDULED', 'IN_PROGRESS')
+      // i.e., a race condition bypassed the findFirst soft-check above.
       if (
-        targets.includes('unique_instructor_slot') ||
-        targets.includes('unique_vehicle_slot') ||
+        targets.includes('unique_active_instructor_slot') ||
+        targets.includes('unique_active_vehicle_slot') ||
         targets.some((t) => t.includes('instructor') || t.includes('vehicle'))
       ) {
         return {
