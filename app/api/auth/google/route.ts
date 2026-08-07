@@ -246,58 +246,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2B. Direct Email Payload / Token Verification
-    if (!googleUser.email && body.email) {
-      googleUser = {
-        sub: body.sub || `g_${Date.now()}`,
-        email: body.email,
-        name: body.name || body.email.split('@')[0],
-        picture: '',
-        emailVerified: true,
-      };
-    } else if (!googleUser.email && body.credential) {
-      // Priority A: Try JWT payload decoding (works for ID Tokens)
-      try {
-        const parts = body.credential.split('.');
-        if (parts.length === 3) {
-          const decoded = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-          if (decoded.email) {
-            console.log('✅ [OAuth Audit] Parsed Google user from ID Token JWT:', decoded.email);
-            googleUser = {
-              sub: decoded.sub || `g_${Date.now()}`,
-              email: decoded.email,
-              name: decoded.name || decoded.email.split('@')[0],
-              picture: decoded.picture || '',
-              emailVerified: decoded.email_verified ?? true,
-            };
-          }
-        }
-      } catch (e) {}
-
-      // Priority B: Try Google UserInfo API (works for Access Tokens)
-      if (!googleUser.email) {
-        try {
-          const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${body.credential}` },
-          });
-          if (userRes.ok) {
-            const profile = await userRes.json();
-            if (profile && profile.email) {
-              console.log('✅ [OAuth Audit] Fetched Google user from UserInfo API:', profile.email);
-              googleUser = {
-                sub: profile.sub || `g_${Date.now()}`,
-                email: profile.email,
-                name: profile.name || profile.email.split('@')[0],
-                picture: profile.picture || '',
-                emailVerified: profile.email_verified ?? true,
-              };
-            }
-          }
-        } catch (e) {}
-      }
-
-      // Priority C: Try google-auth-library verifyIdToken
-      if (!googleUser.email && googleClientId && googleClientId !== 'YOUR_GOOGLE_CLIENT_ID') {
+    // 2B. Google Credential Verification (ID Token or Access Token)
+    if (!googleUser.email && body.credential) {
+      // Priority A: Try google-auth-library verifyIdToken (Cryptographic verification)
+      if (googleClientId && googleClientId !== 'YOUR_GOOGLE_CLIENT_ID') {
         try {
           const client = new OAuth2Client(googleClientId);
           const ticket = await client.verifyIdToken({
@@ -315,7 +267,31 @@ export async function POST(req: NextRequest) {
             };
           }
         } catch (verifyErr) {
-          console.warn('Google verifyIdToken fallback:', verifyErr);
+          logger.warn('Google verifyIdToken check failed or credential is not an ID Token', { traceId, error: String(verifyErr) });
+        }
+      }
+
+      // Priority B: Try Google UserInfo API (Verifies Access Tokens directly with Google)
+      if (!googleUser.email) {
+        try {
+          const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: `Bearer ${body.credential}` },
+          });
+          if (userRes.ok) {
+            const profile = await userRes.json();
+            if (profile && profile.email) {
+              console.log('✅ [OAuth Audit] Verified Google user from UserInfo API:', profile.email);
+              googleUser = {
+                sub: profile.sub || `g_${Date.now()}`,
+                email: profile.email,
+                name: profile.name || profile.email.split('@')[0],
+                picture: profile.picture || '',
+                emailVerified: profile.email_verified ?? true,
+              };
+            }
+          }
+        } catch (apiErr) {
+          logger.warn('Google UserInfo API verification failed', { traceId, error: String(apiErr) });
         }
       }
     }
