@@ -2,7 +2,8 @@
 
 import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
-import { Role } from '@prisma/client';
+import { createNotificationHelper } from '@/lib/notification';
+import { Role, NotificationType } from '@prisma/client';
 
 export async function submitContactInquiryAction(formData: {
   name: string;
@@ -23,19 +24,17 @@ export async function submitContactInquiryAction(formData: {
     });
 
     if (adminUser) {
-      await prisma.notification.create({
-        data: {
-          studentId: adminUser.id,
-          title: `📩 New Contact Inquiry from ${name}`,
-          message: `Phone: ${phone} | Email: ${email}\nInquiry: ${inquiry}`,
-          type: 'SYSTEM_ALERT',
-          metadata: {
-            name,
-            phone,
-            email,
-            inquiry,
-            submittedAt: new Date().toISOString(),
-          },
+      await createNotificationHelper({
+        studentId: adminUser.id,
+        title: `📩 New Contact Inquiry from ${name}`,
+        message: `Phone: ${phone} | Email: ${email}\nInquiry: ${inquiry}`,
+        type: NotificationType.SYSTEM_ALERT,
+        metadata: {
+          name,
+          phone,
+          email,
+          inquiry,
+          submittedAt: new Date().toISOString(),
         },
       });
     }

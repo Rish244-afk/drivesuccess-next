@@ -297,7 +297,7 @@ export async function verifyPaymentSignatureAction({
 
     // 3. TRIGGER NOTIFICATIONS (In-App Dashboard, Resend Email, WhatsApp)
     try {
-      const { createNotificationAction } = await import('@/actions/notification');
+      const { createNotificationHelper } = await import('@/lib/notification');
       const { sendBookingConfirmationEmail } = await import('@/lib/email');
       const { sendWhatsAppNotification } = await import('@/lib/whatsapp');
 
@@ -305,7 +305,7 @@ export async function verifyPaymentSignatureAction({
 
       // A. Create In-App Notification in DB
       notificationPromises.push(
-        createNotificationAction({
+        createNotificationHelper({
           studentId: updatedBooking.studentId,
           title: 'Booking Confirmed!',
           message: `Your payment of ₹${updatedBooking.totalAmount.toLocaleString()} for ${updatedBooking.package.name} was received successfully.`,

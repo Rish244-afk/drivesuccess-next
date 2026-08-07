@@ -2,41 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
-import { NotificationType } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-
-/**
- * Create a new notification for a student
- */
-export async function createNotificationAction({
-  studentId,
-  title,
-  message,
-  type = NotificationType.BOOKING_CONFIRMED,
-  metadata,
-}: {
-  studentId: string;
-  title: string;
-  message: string;
-  type?: NotificationType;
-  metadata?: any;
-}) {
-  try {
-    const notification = await prisma.notification.create({
-      data: {
-        studentId,
-        title,
-        message,
-        type,
-        metadata: metadata || {},
-      },
-    });
-    return { success: true, notification };
-  } catch (error) {
-    console.error('createNotificationAction Error:', error);
-    return { success: false, error: 'Failed to create notification.' };
-  }
-}
 
 /**
  * Fetch notifications & unread count for authenticated student
