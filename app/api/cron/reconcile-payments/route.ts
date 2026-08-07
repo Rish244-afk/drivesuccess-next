@@ -13,10 +13,17 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) {
+      logger.error('CRON_SECRET environment variable is not configured.');
+      return NextResponse.json(
+        { success: false, error: 'Cron secret is not configured on server.' },
+        { status: 500 }
+      );
+    }
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    const authHeader = req.headers.get('authorization');
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ success: false, error: 'Unauthorized cron request.' }, { status: 401 });
     }
 

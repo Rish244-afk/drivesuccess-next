@@ -56,8 +56,21 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ success: true, status: 'already_processed' }, { status: 200 });
         }
 
-        const paymentId = paymentEntity?.id || 'pay_wh_' + Date.now();
-        const orderId = paymentEntity?.order_id || orderEntity?.id || 'order_wh_' + Date.now();
+        const paymentId = paymentEntity?.id;
+        const orderId = paymentEntity?.order_id || orderEntity?.id;
+
+        if (!paymentId || !orderId) {
+          logger.payment({
+            event: 'PAYMENT_WEBHOOK_RECEIVED',
+            outcome: 'FAILURE',
+            bookingId,
+            reason: 'Missing paymentId or orderId in captured payment webhook payload',
+          });
+          return NextResponse.json(
+            { success: false, error: 'Missing required Razorpay payment or order ID in webhook payload.' },
+            { status: 400 }
+          );
+        }
 
         // Atomic Single-Winner Commit Pattern
         const updateResult = await prisma.booking.updateMany({
