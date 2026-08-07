@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { razorpay, RAZORPAY_KEY_ID, verifyRazorpaySignature } from '@/lib/razorpay';
 import { getServerSession } from '@/lib/auth';
 import { getAdminSession } from '@/actions/admin';
-import { BookingStatus, PaymentStatus, Role } from '@prisma/client';
+import { BookingStatus, PaymentStatus, Role, SessionStatus } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { logger } from '@/lib/logger';
 
@@ -457,10 +457,15 @@ export async function processBookingRefundAction({
   reason?: string;
 }) {
   try {
-    // Admin Authorization Check (Prevents BOLA/IDOR on refund trigger)
+    // 1. Admin Authorization Check
     const admin = await getAdminSession();
     if (!admin) {
       return { success: false, error: 'Admin authorization required to process refunds.' };
+    }
+
+    // 2. Strict Input Validation (Amount Bounds)
+    if (amount !== undefined && (!Number.isFinite(amount) || amount <= 0)) {
+      return { success: false, error: 'Invalid refund amount. Must be a positive finite number.' };
     }
 
     const booking = await prisma.booking.findUnique({
@@ -471,52 +476,206 @@ export async function processBookingRefundAction({
       return { success: false, error: 'Booking record not found.' };
     }
 
-    if (booking.paymentStatus !== PaymentStatus.PAID || !booking.razorpayPaymentId) {
+    // Amount validation against total booking amount
+    const refundAmount = amount ?? booking.totalAmount;
+    if (!Number.isFinite(refundAmount) || refundAmount <= 0) {
+      return { success: false, error: 'Invalid refund amount. Must be a positive finite number.' };
+    }
+
+    if (refundAmount > booking.totalAmount) {
+      return {
+        success: false,
+        error: `Refund amount (₹${refundAmount}) cannot exceed total booking amount (₹${booking.totalAmount}).`,
+      };
+    }
+
+    if (booking.paymentStatus === PaymentStatus.REFUNDED && booking.status === BookingStatus.CANCELLED) {
+      return { success: false, error: 'Booking has already been refunded and cancelled.' };
+    }
+
+    if (!booking.razorpayPaymentId) {
+      return { success: false, error: 'Only paid bookings with a valid Razorpay payment ID can be refunded.' };
+    }
+
+    // 3. Crash Recovery & Gateway State Reconciliation
+    // Check if Razorpay API already processed a refund for this payment ID (e.g. server crashed before DB finalization)
+    let existingGatewayRefund: any = null;
+    try {
+      const refundsList: any = await (razorpay as any).payments.fetchAllRefunds(booking.razorpayPaymentId);
+      if (refundsList && refundsList.items && refundsList.items.length > 0) {
+        existingGatewayRefund = refundsList.items[0];
+      }
+    } catch (checkErr) {
+      // Non-fatal warning if Razorpay API idempotency query fails
+      console.warn('Idempotency query to Razorpay API warning:', checkErr);
+    }
+
+    if (existingGatewayRefund) {
+      // Gateway ALREADY refunded this payment. Finalize DB state without calling razorpay.payments.refund again.
+      const updatedBooking = await prisma.$transaction(async (tx) => {
+        const b = await tx.booking.update({
+          where: { id: bookingId },
+          data: {
+            status: BookingStatus.CANCELLED,
+            paymentStatus: PaymentStatus.REFUNDED,
+            refundId: existingGatewayRefund.id,
+            refundAmount: existingGatewayRefund.amount ? existingGatewayRefund.amount / 100 : refundAmount,
+            refundedAt: new Date(existingGatewayRefund.created_at * 1000),
+            notes: reason
+              ? `Refunded (Synchronized from Gateway): ${reason}`
+              : 'Booking refunded and cancelled (Gateway state synchronized).',
+          },
+        });
+
+        await tx.session.updateMany({
+          where: { bookingId },
+          data: {
+            status: SessionStatus.CANCELLED,
+            notes: 'Session cancelled due to booking refund.',
+          },
+        });
+
+        return b;
+      });
+
+      try {
+        revalidatePath('/dashboard');
+        revalidatePath('/admin/bookings');
+        revalidatePath('/admin');
+      } catch {}
+
+      return {
+        success: true,
+        message: `Refund of ₹${existingGatewayRefund.amount / 100} recovered and synchronized successfully.`,
+        refundId: existingGatewayRefund.id,
+        booking: updatedBooking,
+      };
+    }
+
+    if (booking.paymentStatus !== PaymentStatus.PAID) {
       return { success: false, error: 'Only paid bookings with a valid payment ID can be refunded.' };
     }
 
-    const refundAmount = amount || booking.totalAmount;
-    const refundAmountInPaise = Math.round(refundAmount * 100);
+    // 4. Atomic Single-Winner Concurrency Claim Lock
+    const refundLockTag = `[REFUND_LOCK_${Date.now()}]`;
+    let claimLock = await prisma.booking.updateMany({
+      where: {
+        id: bookingId,
+        paymentStatus: PaymentStatus.PAID,
+        OR: [
+          { notes: null },
+          { notes: { not: { contains: '[REFUND_LOCK_' } } },
+        ],
+      },
+      data: {
+        notes: booking.notes ? `${booking.notes} ${refundLockTag}` : refundLockTag,
+      },
+    });
 
-    let refundId = `ref_${booking.id.slice(-8)}_${Date.now().toString().slice(-6)}`;
+    if (claimLock.count === 0) {
+      // Check if lock is stale (placed > 2 mins ago by a crashed process)
+      const lockMatch = booking.notes?.match(/\[REFUND_LOCK_(\d+)\]/);
+      const lockTime = lockMatch ? parseInt(lockMatch[1], 10) : 0;
+      const isStale = lockTime > 0 && Date.now() - lockTime > 120000;
+
+      if (isStale && !existingGatewayRefund) {
+        const cleanedNotes = booking.notes?.replace(/\[REFUND_LOCK_\d+\]\s*/g, '').trim() || null;
+        await prisma.booking.update({
+          where: { id: bookingId },
+          data: { notes: cleanedNotes },
+        });
+
+        claimLock = await prisma.booking.updateMany({
+          where: {
+            id: bookingId,
+            paymentStatus: PaymentStatus.PAID,
+          },
+          data: {
+            notes: cleanedNotes ? `${cleanedNotes} ${refundLockTag}` : refundLockTag,
+          },
+        });
+      }
+
+      if (claimLock.count === 0) {
+        return {
+          success: false,
+          error: 'A refund operation is already in progress or completed for this booking.',
+        };
+      }
+    }
+
+    // 5. Execute Refund via Razorpay API (Strict Error Handling — NO FAKE FALLBACKS)
+    const refundAmountInPaise = Math.round(refundAmount * 100);
+    let razorpayRefund: any = null;
 
     try {
-      // Execute Refund via Razorpay API
-      const razorpayRefund = await razorpay.payments.refund(booking.razorpayPaymentId, {
+      razorpayRefund = await razorpay.payments.refund(booking.razorpayPaymentId, {
         amount: refundAmountInPaise,
         notes: {
           bookingId: booking.id,
           reason: reason || 'Customer requested cancellation',
         },
       });
-      refundId = razorpayRefund.id;
-    } catch (sdkErr) {
-      console.warn('Razorpay SDK Refund Fallback (using generated refund ID for test env):', sdkErr);
+    } catch (sdkErr: any) {
+      const errorMsg = sdkErr?.error?.description || sdkErr?.message || 'Razorpay gateway API call failed.';
+      console.error('🚨 Razorpay Gateway Refund Failed:', sdkErr);
+
+      // Rollback DB claim lock so booking remains in valid PAID state
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          notes: booking.notes || null,
+        },
+      });
+
+      return {
+        success: false,
+        error: `Razorpay Gateway Error: ${errorMsg}`,
+      };
     }
 
-    // Update Database Record to REFUNDED & CANCELLED
-    const updatedBooking = await prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: BookingStatus.CANCELLED,
-        paymentStatus: PaymentStatus.REFUNDED,
-        refundId: refundId,
-        refundAmount: refundAmount,
-        refundedAt: new Date(),
-        notes: reason ? `Refunded: ${reason}` : 'Booking refunded and cancelled.',
-      },
+    // 6. Finalize DB State & Release Session Slots Transactionally
+    const finalRefundId = razorpayRefund.id;
+
+    const updatedBooking = await prisma.$transaction(async (tx) => {
+      const b = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: BookingStatus.CANCELLED,
+          paymentStatus: PaymentStatus.REFUNDED,
+          refundId: finalRefundId,
+          refundAmount: refundAmount,
+          refundedAt: new Date(),
+          notes: reason ? `Refunded: ${reason}` : 'Booking refunded and cancelled.',
+        },
+      });
+
+      // Transactionally cancel associated scheduled/in-progress session slots
+      await tx.session.updateMany({
+        where: { bookingId },
+        data: {
+          status: SessionStatus.CANCELLED,
+          notes: 'Session cancelled due to booking refund.',
+        },
+      });
+
+      return b;
     });
 
-    revalidatePath('/dashboard');
+    try {
+      revalidatePath('/dashboard');
+      revalidatePath('/admin/bookings');
+      revalidatePath('/admin');
+    } catch {}
 
     return {
       success: true,
       message: `Refund of ₹${refundAmount} processed successfully.`,
-      refundId: refundId,
+      refundId: finalRefundId,
       booking: updatedBooking,
     };
   } catch (error) {
-    console.error('processBookingRefundAction Error:', error);
-    return { success: false, error: 'Failed to process refund.' };
+    console.error('processBookingRefundAction Unhandled Exception:', error);
+    return { success: false, error: 'Failed to process refund due to internal error.' };
   }
 }
