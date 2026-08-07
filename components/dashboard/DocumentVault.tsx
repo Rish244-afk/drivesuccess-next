@@ -13,6 +13,18 @@ import {
   FileCheck,
 } from 'lucide-react';
 
+function isSafeDocumentUrl(url?: string | null): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase().trim();
+  return (
+    lower.startsWith('data:image/jpeg;base64,') ||
+    lower.startsWith('data:image/png;base64,') ||
+    lower.startsWith('data:image/webp;base64,') ||
+    lower.startsWith('data:application/pdf;base64,') ||
+    lower.startsWith('https://')
+  );
+}
+
 interface DocumentVaultProps {
   documents: Array<{
     type: string;
@@ -172,7 +184,7 @@ export function DocumentVault({ documents, onRefresh }: DocumentVaultProps) {
 
               {/* Upload or View Controls */}
               <div className="pt-3 border-t border-slate-200/50 flex items-center justify-between">
-                {url ? (
+                {url && isSafeDocumentUrl(url) ? (
                   <a
                     href={url}
                     target="_blank"
@@ -182,6 +194,8 @@ export function DocumentVault({ documents, onRefresh }: DocumentVaultProps) {
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>Preview Document</span>
                   </a>
+                ) : url ? (
+                  <span className="text-[11px] text-red-500 font-mono">Blocked Unsafe File</span>
                 ) : (
                   <span className="text-[11px] text-slate-400 italic">No document uploaded yet</span>
                 )}
