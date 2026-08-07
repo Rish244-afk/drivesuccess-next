@@ -2,6 +2,17 @@
 
 import React, { useState } from 'react';
 import { updateDocumentStatusAction } from '@/actions/admin';
+function isSafeDocumentUrl(url?: string | null): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase().trim();
+  return (
+    lower.startsWith('data:image/jpeg;base64,') ||
+    lower.startsWith('data:image/png;base64,') ||
+    lower.startsWith('data:image/webp;base64,') ||
+    lower.startsWith('data:application/pdf;base64,') ||
+    lower.startsWith('https://')
+  );
+}
 
 export function AdminDocumentsClient({ documents }: { documents: any[] }) {
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -58,10 +69,12 @@ export function AdminDocumentsClient({ documents }: { documents: any[] }) {
                 </span>
               </td>
               <td className="p-5 text-sm">
-                {doc.fileUrl ? (
+                {doc.fileUrl && isSafeDocumentUrl(doc.fileUrl) ? (
                   <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
                     View Document
                   </a>
+                ) : doc.fileUrl ? (
+                  <span className="text-red-500 text-xs font-mono">Blocked Unsafe File</span>
                 ) : (
                   <span className="text-slate-400 text-xs">No File</span>
                 )}
