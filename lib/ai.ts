@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { getAvailableSlotsAction } from '@/actions/bookingSystem';
+import { getAvailableSlotsAction, createBookingTransactionAction } from '@/actions/bookingSystem';
 import { createRazorpayOrderAction } from '@/actions/razorpay';
 import { getServerSession } from '@/lib/auth';
 import { PackageType, BookingStatus, PaymentStatus, SessionStatus } from '@prisma/client';
@@ -42,6 +42,17 @@ const FAQ_KNOWLEDGE_BASE = [
     answer: 'Each practical driving session is 60 minutes long. Full licensing packages range from 10 to 15 one-on-one practical driving sessions plus RTO test track preparation.',
   },
 ];
+
+/**
+ * Helper: Get next Saturday date string in YYYY-MM-DD format
+ */
+function getNextSaturdayDate(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = (6 - day + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
+}
 
 /**
  * 1. Tool Implementation: checkAvailability()
@@ -89,10 +100,15 @@ export async function checkAvailabilityTool(params: { date?: string; packageType
 
 /**
  * 2. Tool Implementation: createBooking()
+ *
+ * P-17 HARDENED ARCHITECTURE:
+ * 1. Strict Authentication Check (getServerSession -> session.sub required).
+ * 2. NO synthetic Student creation (purged student_${Date.now()}@drivesuccess.edu & +91 98765 00000).
+ * 3. NO untrusted AI identity override — identity is bound strictly to session.sub.
+ * 4. Delegates booking creation directly to createBookingTransactionAction for P-10 atomic transaction lock,
+ *    30-minute window double-booking soft-checks, and PostgreSQL partial unique index enforcement.
  */
 export async function createBookingTool(params: {
-  studentName?: string;
-  studentPhone?: string;
   packageId?: string;
   instructorId?: string;
   vehicleId?: string;
@@ -100,29 +116,30 @@ export async function createBookingTool(params: {
   timeSlot?: string;
 }) {
   try {
+    // 1. Strict Authentication Enforcement (P-15 / P-17)
     const session = await getServerSession();
-    let student = null;
-
-    if (session?.sub) {
-      student = await prisma.student.findUnique({ where: { id: session.sub } });
+    if (!session || !session.sub) {
+      return {
+        success: false,
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'Please log into your Student Portal to reserve a driving session.',
+      };
     }
+
+    // 2. Resolve Student account from verified session
+    const student = await prisma.student.findUnique({
+      where: { id: session.sub },
+      select: { id: true, name: true, phone: true, email: true },
+    });
 
     if (!student) {
-      student = await prisma.student.findFirst({
-        where: params.studentPhone ? { phone: params.studentPhone } : undefined,
-      });
+      return {
+        success: false,
+        error: 'Student account not found.',
+      };
     }
 
-    if (!student) {
-      student = await prisma.student.create({
-        data: {
-          name: params.studentName || 'Academy Student',
-          phone: params.studentPhone || '+91 98765 00000',
-          email: `student_${Date.now()}@drivesuccess.edu`,
-        },
-      });
-    }
-
+    // 3. Resolve Resources (Package, Instructor, Vehicle)
     const pkg = params.packageId
       ? await prisma.package.findUnique({ where: { id: params.packageId } })
       : await prisma.package.findFirst();
@@ -136,50 +153,42 @@ export async function createBookingTool(params: {
       : await prisma.vehicle.findFirst({ where: { status: 'AVAILABLE' } });
 
     if (!pkg || !instructor || !vehicle) {
-      return { success: false, error: 'Missing package, instructor, or vehicle.' };
+      return { success: false, error: 'Selected package, instructor, or vehicle is unavailable.' };
     }
 
-    const bookingDate = params.date || new Date().toISOString().split('T')[0];
-    const slot = params.timeSlot || '10:00 AM';
+    const dateStr = params.date || getNextSaturdayDate();
+    const timeSlot = params.timeSlot || '10:00 AM';
 
-    const newBooking = await prisma.booking.create({
-      data: {
-        studentId: student.id,
-        packageId: pkg.id,
-        instructorId: instructor.id,
-        vehicleId: vehicle.id,
-        status: BookingStatus.PENDING,
-        paymentStatus: PaymentStatus.PENDING,
-        totalAmount: pkg.price,
-        notes: `DriveAI Assistant booking for ${pkg.name}`,
-      },
+    // 4. Delegate to Production-Verified P-10 Concurrency-Safe Action
+    const bookingRes = await createBookingTransactionAction({
+      packageId: pkg.id,
+      instructorId: instructor.id,
+      vehicleId: vehicle.id,
+      dateStr: dateStr,
+      timeSlot: timeSlot,
+      notes: `DriveAI Assistant booking for ${pkg.name}`,
     });
 
-    await prisma.session.create({
-      data: {
-        bookingId: newBooking.id,
-        studentId: student.id,
-        instructorId: instructor.id,
-        vehicleId: vehicle.id,
-        scheduledAt: new Date(),
-        durationMins: 60,
-        status: SessionStatus.SCHEDULED,
-        location: 'Main Training Track',
-      },
-    });
+    if (!bookingRes.success || !bookingRes.booking) {
+      return {
+        success: false,
+        error: bookingRes.error || 'Failed to create booking reservation.',
+      };
+    }
 
-    const orderRes = await createRazorpayOrderAction(newBooking.id);
-    const checkoutUrl = `/book?bookingId=${newBooking.id}&orderId=${orderRes.orderId || ''}`;
+    // 5. Initialize Razorpay Order with Idempotency Key
+    const orderRes = await createRazorpayOrderAction(bookingRes.booking.id);
+    const checkoutUrl = `/book?bookingId=${bookingRes.booking.id}&orderId=${orderRes.orderId || ''}`;
 
     return {
       success: true,
-      bookingId: newBooking.id,
+      bookingId: bookingRes.booking.id,
       status: 'PENDING_PAYMENT',
       studentName: student.name,
       packageName: pkg.name,
       amount: pkg.price,
-      date: bookingDate,
-      timeSlot: slot,
+      date: dateStr,
+      timeSlot: timeSlot,
       instructorName: instructor.name,
       vehicleName: vehicle.name,
       razorpayOrderId: orderRes.orderId || null,

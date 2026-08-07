@@ -89,10 +89,14 @@ export async function removeAuthCookie() {
  * Get Current Authenticated Session Payload from Server Context
  */
 export async function getServerSession(): Promise<JWTPayload | null> {
-  const cookieStore = cookies();
-  const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (!token) return null;
-  return await verifySessionToken(token);
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get(COOKIE_NAME)?.value;
+    if (!token) return null;
+    return await verifySessionToken(token);
+  } catch {
+    return null;
+  }
 }
 
 /**

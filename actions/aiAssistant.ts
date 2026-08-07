@@ -150,6 +150,21 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
           },
         };
       }
+
+      if (bookingRes.error === 'AUTHENTICATION_REQUIRED') {
+        return {
+          success: true,
+          message: "To lock in this session, you'll need to sign in first — it takes 30 seconds with your phone number or Google account.",
+          cardData: {
+            type: 'AUTH_REQUIRED',
+          },
+        };
+      }
+
+      return {
+        success: true,
+        message: bookingRes.error || 'Unable to reserve slot. Please select another time or package.',
+      };
     }
 
     // 5. GUIDED STEP 1: INITIAL BOOKING / PACKAGE INQUIRY
