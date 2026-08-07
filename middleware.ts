@@ -2,9 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify, SignJWT } from 'jose';
 import { apiRateLimiter } from '@/lib/rateLimit';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'drivesuccess_super_secret_jwt_key_2026_production'
-);
+/**
+ * Returns the JWT signing secret for middleware use.
+ *
+ * SECURITY: JWT_SECRET MUST be configured. There is no hardcoded fallback.
+ * If the variable is missing at runtime this function throws, causing the
+ * middleware to return 500 rather than silently accepting tokens signed with
+ * a publicly-known default key. (Build-time execution is safe because the
+ * middleware is only invoked at request time, not at compile time.)
+ */
+function getMiddlewareJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error(
+      '[middleware] JWT_SECRET environment variable is not set. '
+      + 'All protected route authentication is disabled.'
+    );
+  }
+  return new TextEncoder().encode(secret);
+}
 
 const COOKIE_NAME = 'auth_token';
 const ADMIN_COOKIE_NAME = 'admin_auth_token';
@@ -21,13 +37,24 @@ export async function middleware(req: NextRequest) {
     const host = req.headers.get('host');
 
     if (origin && host && !origin.includes(host)) {
+      // /api/auth/* paths are excluded: they handle Firebase/Google redirects
+      // that legitimately originate from external domains (accounts.google.com,
+      // firebaseapp.com). Those flows are secured by their own token verification.
       const isAuthPath = pathname.startsWith('/api/auth');
-      const isTrustedOrigin =
-        origin.includes('vercel.app') ||
-        origin.includes('localhost') ||
-        origin.includes('127.0.0.1') ||
-        origin.includes('google.com') ||
-        origin.includes('firebaseapp.com');
+
+      // Build the trusted-origin set from configuration.
+      // We do NOT trust arbitrary *.vercel.app, *.google.com, or *.firebaseapp.com
+      // subdomains — an attacker could deploy a malicious page on any of those.
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://drivesuccess-next.vercel.app';
+      const trustedOrigins = new Set([
+        appUrl.replace(/\/$/, ''),           // canonical production URL (no trailing slash)
+        'http://localhost:3000',              // local Next.js dev server
+        'http://localhost:3001',              // alternative local port
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
+      ]);
+
+      const isTrustedOrigin = trustedOrigins.has(origin);
 
       if (!isAuthPath && !isTrustedOrigin) {
         return NextResponse.json({ success: false, error: 'CSRF Forbidden: Origin mismatch' }, { status: 403 });
@@ -51,7 +78,7 @@ export async function middleware(req: NextRequest) {
   // 3. RETURNING USER AUTO-REDIRECT: Instant server redirect if already authenticated visiting /auth/login
   if (pathname === '/auth/login' && token) {
     try {
-      await jwtVerify(token, JWT_SECRET);
+      await jwtVerify(token, getMiddlewareJwtSecret());
       const fromUrl = req.nextUrl.searchParams.get('from') || '/dashboard';
       return NextResponse.redirect(new URL(fromUrl, req.url));
     } catch {
@@ -66,7 +93,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/admin/login', req.url));
     }
     try {
-      const { payload } = await jwtVerify(adminToken, JWT_SECRET);
+      const { payload } = await jwtVerify(adminToken, getMiddlewareJwtSecret());
       if (payload.role !== 'ADMIN') {
         return NextResponse.redirect(new URL('/admin/login', req.url));
       }
@@ -94,7 +121,7 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getMiddlewareJwtSecret());
 
     let activeToken = token;
     
@@ -113,7 +140,7 @@ export async function middleware(req: NextRequest) {
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
         .setExpirationTime('30d')
-        .sign(JWT_SECRET);
+        .sign(getMiddlewareJwtSecret());
     }
 
     const response = NextResponse.next();

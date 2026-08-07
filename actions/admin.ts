@@ -83,7 +83,10 @@ export async function adminLoginAction(formData: FormData) {
  */
 export async function getAdminSession() {
   try {
-    if (process.env.TEST_ADMIN_SESSION) {
+    // TEST_ADMIN_SESSION is a local-development / CI testing aid ONLY.
+    // It is unconditionally blocked in production to prevent authentication bypass.
+    // SECURITY: Never set this variable in a Vercel production environment.
+    if (process.env.NODE_ENV !== 'production' && process.env.TEST_ADMIN_SESSION) {
       try {
         return JSON.parse(process.env.TEST_ADMIN_SESSION);
       } catch {}
