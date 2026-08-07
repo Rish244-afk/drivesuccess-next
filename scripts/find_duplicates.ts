@@ -63,10 +63,10 @@ async function main() {
   // ── 4. Identify groups with duplicates ────────────────────────────────────
   const duplicateGroups: Array<{ key: string; type: 'instructor' | 'vehicle'; sessions: typeof allSessions }> = [];
 
-  for (const [key, sessions] of byInstructorSlot.entries()) {
+  for (const [key, sessions] of Array.from(byInstructorSlot.entries())) {
     if (sessions.length > 1) duplicateGroups.push({ key, type: 'instructor', sessions });
   }
-  for (const [key, sessions] of byVehicleSlot.entries()) {
+  for (const [key, sessions] of Array.from(byVehicleSlot.entries())) {
     if (sessions.length > 1) duplicateGroups.push({ key, type: 'vehicle', sessions });
   }
 
