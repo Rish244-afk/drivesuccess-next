@@ -155,13 +155,64 @@ export async function verifyPaymentSignatureAction({
       };
     }
 
-    // 1. Cryptographic HMAC SHA256 Verification on Backend
-    const isValidSignature =
-      verifyRazorpaySignature({
-        orderId: razorpayOrderId,
-        paymentId: razorpayPaymentId,
-        signature: razorpaySignature,
-      }) || razorpayPaymentId.startsWith('pay_test_') || razorpayOrderId.startsWith('test_order_');
+    // Booking Status Check: Do not permit payment verification on cancelled bookings
+    if (existingBooking.status === BookingStatus.CANCELLED) {
+      return { success: false, error: 'Cannot process payment for a cancelled booking.' };
+    }
+
+    // Razorpay Order ID Match Check: Ensure client-supplied orderId matches booking record
+    if (existingBooking.razorpayOrderId && existingBooking.razorpayOrderId !== razorpayOrderId) {
+      logger.payment({
+        event: 'PAYMENT_VERIFY_FAILED',
+        outcome: 'FAILURE',
+        bookingId,
+        studentId: existingBooking.studentId,
+        razorpayOrderId,
+        razorpayPaymentId,
+        reason: `Order ID mismatch. Recorded: ${existingBooking.razorpayOrderId}, Received: ${razorpayOrderId}`,
+      });
+      return {
+        success: false,
+        error: 'Payment order ID does not match this booking record.',
+      };
+    }
+
+    // Cross-Booking Payment ID Reuse Prevention: Ensure paymentId is not already claimed by another booking
+    const paymentIdConflict = await prisma.booking.findFirst({
+      where: {
+        razorpayPaymentId: razorpayPaymentId,
+        id: { not: bookingId },
+      },
+      select: { id: true },
+    });
+
+    if (paymentIdConflict) {
+      logger.payment({
+        event: 'PAYMENT_VERIFY_FAILED',
+        outcome: 'FAILURE',
+        bookingId,
+        studentId: existingBooking.studentId,
+        razorpayOrderId,
+        razorpayPaymentId,
+        reason: `Payment ID ${razorpayPaymentId} already claimed by booking ${paymentIdConflict.id}`,
+      });
+      return {
+        success: false,
+        error: 'This payment transaction ID has already been recorded for another booking.',
+      };
+    }
+
+    // 1. Strict Cryptographic HMAC SHA256 Verification on Backend
+    let isValidSignature = verifyRazorpaySignature({
+      orderId: razorpayOrderId,
+      paymentId: razorpayPaymentId,
+      signature: razorpaySignature,
+    });
+
+    // Development/Test mock fallback — strictly disabled in production
+    if (!isValidSignature && process.env.NODE_ENV !== 'production' && process.env.ALLOW_MOCK_PAYMENTS === 'true') {
+      isValidSignature = razorpayPaymentId.startsWith('pay_test_') || razorpayOrderId.startsWith('test_order_');
+    }
 
     if (!isValidSignature) {
       logger.payment({
