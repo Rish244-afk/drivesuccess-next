@@ -27,7 +27,7 @@ export function LoadingScreen() {
       },
     });
 
-    // Make content page visible
+    // Prevent scrolling while loading
     document.body.style.overflow = 'hidden';
 
     tl.fromTo(logoRef.current, 
@@ -47,7 +47,7 @@ export function LoadingScreen() {
     })
     .to(containerRef.current, {
       opacity: 0,
-      clipPath: 'polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)', // premium slide-wipe
+      clipPath: 'polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)',
       duration: 0.7,
       ease: 'power3.inOut',
     })
@@ -61,32 +61,37 @@ export function LoadingScreen() {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 bg-[#0A1128] z-[99999] flex flex-col items-center justify-center pointer-events-auto select-none"
+      className="fixed inset-0 bg-[#F4F0E8] z-[99999] flex flex-col items-center justify-center pointer-events-auto select-none font-sans"
       style={{
         clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
         willChange: 'clip-path, opacity',
       }}
     >
-      <div className="flex flex-col items-center gap-6 max-w-xs w-full px-4">
-        {/* Brand Logo */}
-        <div ref={logoRef} className="w-48 h-20 relative flex items-center justify-center">
+      <div className="flex flex-col items-center gap-8 max-w-xs w-full px-4 text-center">
+        {/* Vahathi Metallic Circle Logo */}
+        <div ref={logoRef} className="w-36 h-36 relative rounded-full overflow-hidden shadow-2xl border-4 border-[#384633]/20 bg-black flex items-center justify-center">
           <Image
             src="/images/logo.png"
             alt="Vahathi Motor Driving School"
-            width={160}
-            height={90}
-            className="h-16 w-auto object-contain invert brightness-200"
+            fill
+            unoptimized
+            className="object-cover scale-105"
             priority
           />
         </div>
 
-        {/* Dynamic loading track */}
-        <div className="w-40 h-[1.5px] bg-white/10 rounded-full overflow-hidden relative">
-          <div
-            ref={barRef}
-            className="absolute top-0 bottom-0 left-0 bg-blue-500 rounded-full"
-            style={{ width: '0%', willChange: 'width' }}
-          />
+        <div className="space-y-3">
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#384633]">
+            Vahathi Motor Driving School
+          </span>
+          {/* Dynamic loading track */}
+          <div className="w-48 h-1 bg-[#D6D0C6] rounded-full overflow-hidden relative mx-auto">
+            <div
+              ref={barRef}
+              className="absolute top-0 bottom-0 left-0 bg-[#384633] rounded-full"
+              style={{ width: '0%', willChange: 'width' }}
+            />
+          </div>
         </div>
       </div>
     </div>
