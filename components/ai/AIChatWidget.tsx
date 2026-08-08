@@ -154,7 +154,7 @@ export function AIChatWidget() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed ${isBookingPage ? 'bottom-28 sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-50 bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4 rounded-full shadow-2xl shadow-blue-600/30 hover:scale-105 transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer`}
+        className={`fixed ${isBookingPage ? 'bottom-28 sm:bottom-6' : 'bottom-6'} right-4 sm:right-6 z-50 bg-[#384633] text-white p-4 rounded-full shadow-2xl hover:bg-[#2B3B2B] hover:scale-105 transition-all flex items-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-[#384633]/30 cursor-pointer border border-white/20`}
         aria-label="Toggle DriveAI Assistant chat"
       >
         <Sparkles className="w-5 h-5 text-white animate-pulse" />
@@ -171,19 +171,19 @@ export function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`fixed ${isBookingPage ? 'bottom-[120px] sm:bottom-24' : 'bottom-24'} right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[560px] max-h-[80vh] bg-white border border-slate-200 rounded-3xl shadow-hover flex flex-col overflow-hidden overscroll-contain`}
+            className={`fixed ${isBookingPage ? 'bottom-[120px] sm:bottom-24' : 'bottom-24'} right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[560px] max-h-[80vh] bg-[#F4F0E8] border border-[#384633]/20 rounded-[2rem] shadow-2xl flex flex-col overflow-hidden overscroll-contain`}
           >
             {/* Header */}
-            <div className="bg-slate-50 border-b border-slate-200 p-4 flex items-center justify-between shrink-0 select-none">
+            <div className="bg-[#E7E1D6] border-b border-[#384633]/15 p-4 flex items-center justify-between shrink-0 select-none">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-50 border border-blue-300 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-white border border-[#384633]/20 text-[#384633] rounded-2xl flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-heading font-bold text-sm text-slate-900">
+                  <h3 className="font-serif font-bold text-sm text-[#384633]">
                     DriveAI Assistant
                   </h3>
-                  <p className="text-[11px] text-slate-500 font-light">
+                  <p className="text-[11px] text-[#7E8466] font-light">
                     Here to help with bookings, pricing, and questions
                   </p>
                 </div>
@@ -192,7 +192,7 @@ export function AIChatWidget() {
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition cursor-pointer"
+                className="text-[#7E8466] hover:text-[#384633] p-2 rounded-full hover:bg-white/60 transition cursor-pointer"
                 aria-label="Close chat"
               >
                 <X className="w-4 h-4" />

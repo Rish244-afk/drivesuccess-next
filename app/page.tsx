@@ -14,33 +14,33 @@ export default function HomePage() {
       ref={containerRef}
       className="overflow-hidden bg-[#F4F0E8] text-[#4A5A44] font-sans min-h-screen"
     >
-      {/* 1. ULTRA-BRIGHT 4K HERO SECTION (VERDA Reference Screenshot) */}
-      <section className="relative min-h-[92vh] flex flex-col justify-between py-12 px-6 sm:px-8 max-w-7xl mx-auto overflow-hidden">
+      {/* 1. FULL-BLEED 4K CINEMATIC HERO SECTION */}
+      <section className="relative w-full min-h-[95vh] flex flex-col justify-between overflow-hidden bg-[#F4F0E8] pt-2">
         
-        {/* Crisp 4K Sanctuary Arch Hero Image (100% Brightness & Opacity) */}
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[3rem] overflow-hidden my-2 shadow-sm">
+        {/* Full-Bleed Edge-to-Edge Hero Image Background (100% Brightness & Cover) */}
+        <div aria-hidden="true" className="absolute inset-0 w-full h-full pointer-events-none z-0">
           <Image
             src="/images/sanctuary_arch.jpg"
-            alt="DriveWhat Grows With You - Sanctuary Arch"
+            alt="DriveWhat Grows With You - Sanctuary Arch Stage"
             fill
             priority
-            className="object-cover object-center opacity-100 brightness-105 contrast-105 scale-100"
+            className="object-cover object-center w-full h-full opacity-100 brightness-105 contrast-105 scale-100"
           />
-          {/* Subtle top/left light fade to ensure title text legibility */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/90 via-[#F4F0E8]/45 to-transparent max-w-2xl" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/40 via-transparent to-[#F4F0E8]" />
+          {/* Subtle gradient overlay for razor-sharp typography legibility without dimming the image */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/90 via-[#F4F0E8]/50 to-transparent max-w-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/30 via-transparent to-[#F4F0E8]" />
         </div>
 
-        {/* Hero Content Overlay */}
-        <div className="relative z-10 max-w-2xl pt-16 sm:pt-24 space-y-6">
+        {/* Hero Content Overlay (Positioned within grid container on top of full-bleed cover) */}
+        <div className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 pt-16 sm:pt-24 space-y-6">
           {/* Tag Pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#4A5A44]/20 text-[#4A5A44] text-xs font-semibold tracking-widest uppercase bg-white/80 backdrop-blur-md shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[#4A5A44]" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-semibold tracking-widest uppercase bg-white/80 backdrop-blur-md shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#384633]" />
             <span>THE DRIVESUCCESS METHOD</span>
           </div>
 
           {/* Main Hero Headline */}
-          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-normal text-[#384633] tracking-tight leading-[1.05]">
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-normal text-[#384633] tracking-tight leading-[1.05] max-w-3xl">
             Drive What <br />
             <em className="italic font-normal text-[#7E8466]">Grows With You.</em>
           </h1>
@@ -72,8 +72,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Floating Bottom Metric Glass Bar (VERDA Reference Screenshot) */}
-        <div className="relative z-10 my-4">
+        {/* Floating Bottom Metric Glass Bar (Full-Bleed Bottom Placement) */}
+        <div className="relative z-10 w-full px-6 sm:px-8 pb-6 my-4">
           <div className="bg-[#384633]/90 backdrop-blur-xl text-white rounded-full p-4 px-8 max-w-5xl mx-auto shadow-2xl flex flex-wrap items-center justify-between gap-6 border border-white/20">
             <div className="flex items-center gap-3">
               <Leaf className="w-5 h-5 text-emerald-400" />
@@ -145,7 +145,7 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* 4. FOUR BRIGHT 4K TALL PILL CARDS GRID (VERDA Reference Screenshot) */}
+      {/* 4. FOUR BRIGHT 4K TALL PILL CARDS GRID */}
       <section className="py-12 px-6 sm:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Cookie, X, Check, Lock } from 'lucide-react';
+import { Cookie, X, Lock } from 'lucide-react';
 import Link from 'next/link';
 
 export function CookieConsentBanner() {
@@ -13,7 +13,6 @@ export function CookieConsentBanner() {
   useEffect(() => {
     const savedConsent = localStorage.getItem('drivesuccess_cookie_consent');
     if (!savedConsent) {
-      // Delay presentation slightly for UX
       const timer = setTimeout(() => setShowBanner(true), 1000);
       return () => clearTimeout(timer);
     }
@@ -35,63 +34,63 @@ export function CookieConsentBanner() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-6 md:right-auto md:max-w-md z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <div className="bg-white/90 backdrop-blur-md border border-slate-200 text-slate-900 p-5 rounded-2xl shadow-2xl shadow-slate-200/50">
+      <div className="bg-[#E7E1D6] backdrop-blur-xl border border-[#384633]/20 text-[#384633] p-5 rounded-[2rem] shadow-2xl">
         <div className="flex items-start gap-3">
-          <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-blue-600 shrink-0 mt-0.5">
+          <div className="p-2.5 bg-white border border-[#384633]/15 rounded-2xl text-[#384633] shrink-0 mt-0.5 shadow-xs">
             <Cookie className="w-5 h-5" />
           </div>
-          <div className="flex-1 text-xs leading-relaxed text-slate-600">
+          <div className="flex-1 text-xs leading-relaxed text-[#7E8466]">
             <div className="flex justify-between items-center mb-1">
-              <h4 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+              <h4 className="font-bold text-[#384633] text-sm flex items-center gap-1.5">
                 Privacy & Cookie Consent
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#384633] bg-white px-2.5 py-0.5 rounded-full border border-[#384633]/20">
                   DPDP & GDPR Compliant
                 </span>
               </h4>
               <button
                 onClick={() => saveConsentChoice(true, false, false)}
                 aria-label="Close cookie consent banner"
-                className="text-slate-400 hover:text-slate-600 p-1 transition"
+                className="text-[#7E8466] hover:text-[#384633] p-1 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <p className="mb-2 text-slate-500">
+            <p className="mb-2 text-[#7E8466]">
               We use essential cookies to maintain secure student sessions and optional cookies for analytics. Read our{' '}
-              <Link href="/privacy" className="text-blue-600 underline hover:text-blue-500">
+              <Link href="/privacy" className="text-[#384633] font-semibold underline hover:text-[#2B3B2B]">
                 Privacy Policy
               </Link>{' '}
               and{' '}
-              <Link href="/cookies" className="text-blue-600 underline hover:text-blue-500">
+              <Link href="/cookies" className="text-[#384633] font-semibold underline hover:text-[#2B3B2B]">
                 Cookie Policy
               </Link>.
             </p>
 
             {showDetails && (
-              <div className="my-3 space-y-2 pt-2 border-t border-slate-200 text-[11px]">
+              <div className="my-3 space-y-2 pt-2 border-t border-[#384633]/10 text-[11px]">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 font-medium text-slate-700">
-                    <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                  <span className="flex items-center gap-1.5 font-medium text-[#384633]">
+                    <Lock className="w-3.5 h-3.5 text-[#384633]" />
                     Essential Session Cookies
                   </span>
-                  <span className="text-emerald-400 font-semibold uppercase text-[10px]">Required</span>
+                  <span className="text-[#384633] font-semibold uppercase text-[10px]">Required</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-slate-600">Performance & Analytics</span>
+                  <span className="font-medium text-[#7E8466]">Performance & Analytics</span>
                   <input
                     type="checkbox"
                     checked={analyticsConsent}
                     onChange={(e) => setAnalyticsConsent(e.target.checked)}
-                    className="accent-blue-600 rounded cursor-pointer"
+                    className="accent-[#384633] rounded cursor-pointer"
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-slate-600">Marketing & Updates</span>
+                  <span className="font-medium text-[#7E8466]">Marketing & Updates</span>
                   <input
                     type="checkbox"
                     checked={marketingConsent}
                     onChange={(e) => setMarketingConsent(e.target.checked)}
-                    className="accent-blue-600 rounded cursor-pointer"
+                    className="accent-[#384633] rounded cursor-pointer"
                   />
                 </div>
               </div>
@@ -100,19 +99,19 @@ export function CookieConsentBanner() {
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <button
                 onClick={() => saveConsentChoice(true, true, true)}
-                className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3.5 py-2 rounded-xl text-[11px] uppercase tracking-wider transition shadow-sm"
+                className="bg-[#384633] hover:bg-[#2B3B2B] text-white font-bold text-[11px] px-4 py-2 rounded-full transition cursor-pointer shadow-sm"
               >
                 Accept All
               </button>
               <button
                 onClick={() => saveConsentChoice(true, false, false)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-xl text-[11px] uppercase tracking-wider transition"
+                className="bg-white/80 hover:bg-white text-[#384633] border border-[#384633]/20 font-bold text-[11px] px-4 py-2 rounded-full transition cursor-pointer"
               >
                 Reject Non-Essential
               </button>
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-slate-500 hover:text-slate-700 text-[11px] underline ml-auto py-1"
+                className="text-[#7E8466] hover:text-[#384633] underline text-[11px] px-1 transition cursor-pointer"
               >
                 {showDetails ? 'Hide Options' : 'Customize'}
               </button>

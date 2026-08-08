@@ -1,35 +1,35 @@
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, MapPin, Phone, Clock, ArrowUpRight } from 'lucide-react';
+import { MapPin, Phone, Clock, ArrowUpRight } from 'lucide-react';
 
 const GOOGLE_MAPS_URL =
   'https://www.google.com/maps/search/?api=1&query=Vahathi+Motor+Driving+School+Kasavanahalli+Main+Rd+near+max+Kasavanahalli+Owners+Court+Layout+Eastwood+Twp+Bengaluru+Karnataka+560035';
 
 const PHONE_URL =
-  'https://www.google.com/search?q=Vahathi+Motor+Driving+School&oq=vaha&gs_lcrp=EgZjaHJvbWUqCAgAEEUYJxg7MggIABBFGCcYOzIGCAEQRRg7MgYIAhBFGDkyDQgDEAAYgwEYsQMYgAQyDQgEEAAYgwEYsQMYgAQyBggFEEUYPTIGCAYQRRg9MgYIBxBFGD3SAQgxMzc4ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8#';
+  'https://www.google.com/search?q=Vahathi+Motor+Driving+School&ie=UTF-8';
 
 export function Footer() {
   return (
-    <footer className="text-slate-400 border-t pt-20 pb-12 font-sans" style={{ background: '#07080C', borderColor: 'rgba(255, 255, 255, 0.08)' }}>
+    <footer className="text-[#384633] border-t border-[#384633]/10 pt-20 pb-12 font-sans rounded-t-[3rem] bg-[#E7E1D6]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
         
         {/* Top Editorial Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-white/10 pb-12 gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#384633]/10 pb-12 gap-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 border border-cyan-500/40 text-cyan-400 bg-cyan-950/40 rounded-full flex items-center justify-center font-serif text-2xl italic shadow-[0_0_15px_rgba(56,189,248,0.2)] shrink-0">
+            <div className="w-12 h-12 border border-[#384633]/30 text-[#384633] bg-white/70 rounded-full flex items-center justify-center font-serif text-2xl italic shadow-xs shrink-0">
               V
             </div>
             <div>
-              <span className="font-serif text-2xl text-white block font-normal leading-tight">
-                Vahathi <span className="italic text-cyan-400">Motor</span> Driving School
+              <span className="font-serif text-2xl text-[#384633] block font-normal leading-tight">
+                Vahathi <span className="italic text-[#7E8466]">Motor</span> Driving School
               </span>
-              <span className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-medium block mt-0.5">
+              <span className="text-[10px] uppercase tracking-[0.22em] text-[#7E8466] font-medium block mt-0.5">
                 Certified Driving Institution • Call:{' '}
                 <a
                   href={PHONE_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline font-bold"
+                  className="text-[#384633] hover:underline font-bold"
                 >
                   078297 80778
                 </a>
@@ -42,7 +42,7 @@ export function Footer() {
               href={PHONE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-full transition-all duration-200 flex items-center gap-2"
+              className="border border-[#384633]/30 text-[#384633] hover:bg-white/80 font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-full transition-all duration-200 flex items-center gap-2 bg-white/60"
             >
               <Phone className="w-3.5 h-3.5" />
               <span>078297 80778</span>
@@ -50,7 +50,7 @@ export function Footer() {
             
             <Link
               href="/book"
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-widest px-7 py-3 rounded-full flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.02] shadow-[0_0_20px_rgba(56,189,248,0.3)] border border-cyan-300/30"
+              className="bg-[#384633] hover:bg-[#2B3B2B] text-white font-bold text-xs uppercase tracking-widest px-7 py-3 rounded-full flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.02] shadow-md border border-[#384633]"
             >
               <span>Reserve Session</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -63,104 +63,96 @@ export function Footer() {
           
           {/* Column 1: Navigation */}
           <div className="space-y-4">
-            <h4 className="font-serif text-base text-slate-200 font-normal italic tracking-wide">
+            <h4 className="font-serif text-base text-[#384633] font-normal italic tracking-wide">
               Navigation
             </h4>
-            <ul className="space-y-3 text-slate-400 font-medium">
+            <ul className="space-y-3 text-[#7E8466] font-medium">
               <li>
-                <Link href="/" className="hover:text-cyan-400 transition-colors">Home Overview</Link>
+                <Link href="/" className="hover:text-[#384633] transition-colors">Home Overview</Link>
               </li>
               <li>
-                <Link href="/courses" className="hover:text-cyan-400 transition-colors">Curriculum & Packages</Link>
+                <Link href="/courses" className="hover:text-[#384633] transition-colors">Curriculum & Packages</Link>
               </li>
               <li>
-                <Link href="/fleet" className="hover:text-cyan-400 transition-colors">Vehicle Fleet Standards</Link>
+                <Link href="/fleet" className="hover:text-[#384633] transition-colors">Vehicle Fleet Standards</Link>
               </li>
               <li>
-                <Link href="/book" className="hover:text-cyan-400 transition-colors">Schedule Driving Session</Link>
+                <Link href="/book" className="hover:text-[#384633] transition-colors">Schedule Driving Session</Link>
               </li>
               <li>
-                <Link href="/auth/login" className="hover:text-cyan-400 transition-colors">Student Member Portal</Link>
+                <Link href="/auth/login" className="hover:text-[#384633] transition-colors">Student Member Portal</Link>
               </li>
             </ul>
           </div>
 
           {/* Column 2: Hours & Helpline */}
           <div className="space-y-4">
-            <h4 className="font-serif text-base text-slate-200 font-normal italic tracking-wide">
+            <h4 className="font-serif text-base text-[#384633] font-normal italic tracking-wide">
               Academy Hours & Phone
             </h4>
-            <div className="space-y-3.5 leading-relaxed text-slate-400">
+            <div className="space-y-3.5 leading-relaxed text-[#7E8466]">
               <div className="flex items-start gap-3">
-                <Clock className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <Clock className="w-4 h-4 text-[#384633] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-slate-200 font-semibold">Practical Driving Track Hours</p>
+                  <p className="text-[#384633] font-semibold">Practical Driving Track Hours</p>
                   <p>Monday – Saturday: 6:00 AM – 8:00 PM IST</p>
                   <p>Sunday: 7:00 AM – 2:00 PM IST</p>
                 </div>
               </div>
+
               <div className="flex items-start gap-3 pt-1">
-                <Phone className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <Phone className="w-4 h-4 text-[#384633] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-slate-200 font-semibold">Phone Helpline</p>
-                  <p>
-                    <a
-                      href={PHONE_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-cyan-400 font-bold hover:underline"
-                    >
-                      078297 80778
-                    </a>
-                  </p>
+                  <p className="text-[#384633] font-semibold">Phone Helpline</p>
+                  <a
+                    href={PHONE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#384633] font-bold hover:underline"
+                  >
+                    078297 80778
+                  </a>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Column 3: Locate Us */}
+          {/* Column 3: Location */}
           <div className="space-y-4">
-            <h4 className="font-serif text-base text-slate-200 font-normal italic tracking-wide">
+            <h4 className="font-serif text-base text-[#384633] font-normal italic tracking-wide">
               Locate Us
             </h4>
-            <div className="space-y-3.5 text-slate-400 leading-relaxed">
-              <a
-                href={GOOGLE_MAPS_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-start gap-3 group p-2 -m-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
-              >
-                <MapPin className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+            <div className="space-y-3 text-[#7E8466]">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-4 h-4 text-[#384633] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-slate-200 font-semibold group-hover:text-cyan-400 transition-colors">
-                    Vahathi Motor Driving School
+                  <p className="text-[#384633] font-semibold">Vahathi Motor Driving School</p>
+                  <p className="leading-relaxed">
+                    Address: Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
                   </p>
-                  <p className="mt-0.5 text-slate-400">
-                    <span className="text-cyan-400 font-bold group-hover:underline">Address</span>:
-                    Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
-                  </p>
-                  <p className="text-[11px] text-cyan-400 pt-1.5 font-mono">
-                    📍 Open in Google Maps →
-                  </p>
+                  <a
+                    href={GOOGLE_MAPS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[#384633] font-bold mt-2 hover:underline"
+                  >
+                    <span>📍 Open in Google Maps</span>
+                    <ArrowUpRight className="w-3 h-3" />
+                  </a>
                 </div>
-              </a>
+              </div>
             </div>
           </div>
 
         </div>
 
-        {/* Minimal Copyright Line */}
-        <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 font-medium gap-4">
-          <p>© {new Date().getFullYear()} Vahathi Motor Driving School (DriveSuccess Platform). All rights reserved.</p>
-          <div className="flex items-center gap-5 flex-wrap">
-            <Link href="/privacy" className="hover:text-cyan-400 transition">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-cyan-400 transition">Terms & Conditions</Link>
-            <Link href="/cookies" className="hover:text-cyan-400 transition">Cookie Policy</Link>
-            <span className="text-slate-700">|</span>
-            <span className="flex items-center gap-1.5 text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Dual-Control Certified</span>
-            </span>
+        {/* Bottom Rights & Links */}
+        <div className="pt-8 border-t border-[#384633]/10 flex flex-col sm:flex-row justify-between items-center text-[11px] text-[#7E8466] gap-4">
+          <p>© 2026 Vahathi Motor Driving School (DriveSuccess Platform). All rights reserved.</p>
+          <div className="flex items-center gap-6">
+            <Link href="/privacy" className="hover:text-[#384633] transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-[#384633] transition-colors">Terms & Conditions</Link>
+            <Link href="/cookies" className="hover:text-[#384633] transition-colors">Cookie Policy</Link>
           </div>
         </div>
 

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail, CheckCircle2, MessageSquare, AlertCircle, Sparkles } from 'lucide-react';
 import { submitContactInquiryAction } from '@/actions/contact';
 import { Magnetic } from '@/components/ui/Magnetic';
@@ -10,7 +9,7 @@ const GOOGLE_MAPS_URL =
   'https://www.google.com/maps/search/?api=1&query=Vahathi+Motor+Driving+School+Kasavanahalli+Main+Rd+near+max+Kasavanahalli+Owners+Court+Layout+Eastwood+Twp+Bengaluru+Karnataka+560035';
 
 const PHONE_URL =
-  'https://www.google.com/search?q=Vahathi+Motor+Driving+School&oq=vaha&gs_lcrp=EgZjaHJvbWUqCAgAEEUYJxg7MggIABBFGCcYOzIGCAEQRRg7MgYIAhBFGDkyDQgDEAAYgwEYsQMYgAQyDQgEEAAYgwEYsQMYgAQyBggFEEUYPTIGCAYQRRg9MgYIBxBFGD3SAQgxMzc4ajBqN6gCALACAA&sourceid=chrome&source=chrome.ob&ie=UTF-8#';
+  'https://www.google.com/search?q=Vahathi+Motor+Driving+School&ie=UTF-8';
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -46,29 +45,20 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="overflow-hidden mesh-gradient-slow min-h-screen relative py-20 lg:py-28">
-      {/* Ambient lighting blobs */}
-      <div aria-hidden="true" className="absolute top-0 right-1/4 translate-x-1/2 w-[700px] h-[350px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%)', filter: 'blur(60px)' }} />
-      <div aria-hidden="true" className="absolute bottom-0 left-1/4 -translate-x-1/2 w-[600px] h-[300px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.05) 0%, transparent 70%)', filter: 'blur(55px)' }} />
+    <div className="bg-[#F4F0E8] text-[#384633] font-sans min-h-screen relative py-20 lg:py-28 overflow-hidden">
       
-      {/* Floating rings */}
-      <div aria-hidden="true" className="hidden lg:block absolute top-[15%] left-[6%] w-16 h-16 rounded-full border border-blue-200/25 float-ring" />
-      <div aria-hidden="true" className="hidden lg:block absolute bottom-[15%] right-[6%] w-12 h-12 rounded-full border border-purple-200/20 float-ring-slow" />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 relative z-10 font-sans">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-300/80 text-blue-600 text-xs font-semibold tracking-widest uppercase bg-white/70 backdrop-blur-md shadow-premium-sm">
-            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-semibold tracking-widest uppercase bg-white/80 backdrop-blur-md shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#384633]" />
             <span>Get In Touch</span>
           </div>
-          <h1 className="font-serif text-5xl sm:text-6xl font-normal text-slate-900 tracking-tight leading-tight">
+          <h1 className="font-serif text-5xl sm:text-6xl font-normal text-[#384633] tracking-tight leading-tight">
             Contact Our Driving Advisors
           </h1>
-          <p className="text-sm sm:text-base text-slate-500 leading-relaxed font-light">
+          <p className="text-sm sm:text-base text-[#7E8466] leading-relaxed font-light">
             Have questions about program eligibility, license transfers, or vehicle fleet availability? Reach out to our team today.
           </p>
         </div>
@@ -81,176 +71,151 @@ export default function ContactPage() {
               href={GOOGLE_MAPS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="block bg-white/75 backdrop-blur-md border border-slate-200/80 p-6 rounded-2xl space-y-4 shadow-premium-sm hover:shadow-premium-md hover:border-blue-400/80 hover:-translate-y-1 transition duration-300 cursor-pointer group"
+              className="block bg-[#E7E1D6] border border-[#384633]/15 p-6 rounded-[2rem] space-y-4 shadow-sm hover:shadow-xl hover:-translate-y-1 transition duration-300 cursor-pointer group"
             >
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform border border-blue-100/40">
+              <div className="w-12 h-12 bg-white text-[#384633] rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform border border-[#384633]/10">
                 <MapPin className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-serif text-lg text-slate-900 group-hover:text-blue-600 transition-colors">Vahathi Motor Driving School</h3>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed font-light">
-                  <span className="text-blue-600 font-semibold group-hover:underline">Address</span>: Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
+                <h3 className="font-serif text-lg text-[#384633] group-hover:text-[#2B3B2B] font-medium">Vahathi Motor Driving School</h3>
+                <p className="text-xs text-[#7E8466] mt-2 leading-relaxed font-light">
+                  <span className="text-[#384633] font-semibold group-hover:underline">Address</span>: Kasavanahalli Main Rd, near max, Kasavanahalli, Owners Court Layout, Eastwood Twp, Bengaluru, Karnataka 560035
                 </p>
-                <p className="text-[11px] text-blue-600 font-semibold mt-2">
+                <p className="text-[11px] text-[#384633] font-semibold mt-2">
                   📍 Open in Google Maps →
                 </p>
               </div>
             </a>
 
-            <div className="bg-white/75 backdrop-blur-md border border-slate-200/80 p-6 rounded-2xl space-y-4 shadow-premium-sm">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 border border-blue-100/40">
+            <div className="bg-[#E7E1D6] border border-[#384633]/15 p-6 rounded-[2rem] space-y-4 shadow-sm">
+              <div className="w-12 h-12 bg-white text-[#384633] rounded-2xl flex items-center justify-center shrink-0 border border-[#384633]/10">
                 <Phone className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-serif text-lg text-slate-900">Phone</h3>
-                <p className="mt-1">
-                  <a
-                    href={PHONE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 font-bold text-base hover:underline"
-                  >
-                    078297 80778
-                  </a>
-                </p>
-                <p className="text-[11px] text-slate-400 mt-1 font-semibold">Mon - Sat: 6:00 AM - 8:00 PM IST</p>
-              </div>
-            </div>
-
-            <div className="bg-white/75 backdrop-blur-md border border-slate-200/80 p-6 rounded-2xl space-y-4 shadow-premium-sm">
-              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0 border border-blue-100/40">
-                <Mail className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-serif text-lg text-slate-900">Email Inquiry</h3>
-                <p className="text-sm font-semibold text-blue-600 hover:underline cursor-pointer mt-1">
-                  support@drivesuccess.academy
-                </p>
-                <p className="text-[11px] text-slate-400 mt-1 font-semibold">Typical response within 24 hours</p>
+                <h3 className="font-serif text-lg text-[#384633] font-medium">Direct Phone Line</h3>
+                <p className="text-xs text-[#7E8466] mt-1 font-light">Available Mon – Sat (6 AM – 8 PM IST)</p>
+                <a
+                  href={PHONE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-base font-bold text-[#384633] hover:underline block mt-2"
+                >
+                  078297 80778
+                </a>
               </div>
             </div>
           </div>
 
-          {/* Right 2 Cols: Form Container */}
-          <div className="lg:col-span-2 bg-white/80 backdrop-blur-md border border-slate-200/80 p-8 sm:p-10 rounded-3xl shadow-premium-md space-y-6">
-            
+          {/* Right 2 Cols: Interactive Inquiry Form */}
+          <div className="lg:col-span-2 bg-[#E7E1D6] border border-[#384633]/15 p-8 sm:p-10 rounded-[2.5rem] shadow-xl">
             {submitted ? (
-              <div className="text-center py-12 space-y-4">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-500 border border-emerald-200 rounded-full flex items-center justify-center mx-auto shadow-premium-sm">
+              <div className="text-center py-16 space-y-4">
+                <div className="w-16 h-16 bg-white text-[#384633] rounded-full flex items-center justify-center mx-auto text-2xl shadow-sm">
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
-                <h2 className="font-serif text-3xl text-slate-900 font-normal">Inquiry Submitted!</h2>
-                <p className="text-sm text-slate-500 max-w-md mx-auto font-light leading-relaxed">
-                  Thank you for reaching out. One of our certified driving coordinators will contact you via phone or email shortly.
+                <h3 className="font-serif text-3xl text-[#384633] font-normal">Inquiry Received</h3>
+                <p className="text-xs text-[#7E8466] font-light max-w-md mx-auto leading-relaxed">
+                  Thank you for reaching out to Vahathi Motor Driving School. A senior advisor will review your message and contact you shortly via phone/WhatsApp.
                 </p>
+                <button
+                  onClick={() => setSubmitted(false)}
+                  className="bg-[#384633] text-white font-medium text-xs uppercase tracking-widest px-8 py-3 rounded-full hover:bg-[#2B3B2B] transition cursor-pointer"
+                >
+                  Send Another Message
+                </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="border-b border-slate-200/60 pb-4">
-                  <h3 className="font-serif text-2xl text-slate-900 font-normal">Send a Message</h3>
-                  <p className="text-xs text-slate-400 font-semibold mt-1">Fill out the quick form below to request callback assistance.</p>
+                <div>
+                  <h3 className="font-serif text-2xl text-[#384633] font-normal">Send a Message</h3>
+                  <p className="text-xs text-[#7E8466] font-light mt-1">Fill out the quick form below to request callback assistance.</p>
                 </div>
 
                 {error && (
-                  <div className="p-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                  <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 shrink-0 text-red-500" />
                     <span>{error}</span>
                   </div>
                 )}
 
+                {/* Honeypot Field */}
+                <input
+                  type="text"
+                  name="website"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  className="hidden"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      Student Name
-                    </label>
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-[#384633]">Student Name</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Rahul Sharma"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full bg-slate-50/50 border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:scale-[1.005] text-slate-900 px-4 py-3 rounded-xl outline-none text-xs transition-all duration-200"
+                      className="w-full bg-white border border-[#384633]/20 rounded-full px-5 py-3 text-xs text-[#384633] outline-none focus:border-[#384633] focus:ring-1 focus:ring-[#384633]"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      Contact Mobile
-                    </label>
+                    <label className="text-[10px] uppercase font-bold tracking-wider text-[#384633]">Contact Mobile</label>
                     <input
                       type="tel"
                       required
                       placeholder="e.g. 9876543210"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-slate-50/50 border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:scale-[1.005] text-slate-900 px-4 py-3 rounded-xl outline-none text-xs transition-all duration-200"
+                      className="w-full bg-white border border-[#384633]/20 rounded-full px-5 py-3 text-xs text-[#384633] outline-none focus:border-[#384633] focus:ring-1 focus:ring-[#384633]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Email Address (Optional)
-                  </label>
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-[#384633]">Email Address (Optional)</label>
                   <input
                     type="email"
                     placeholder="e.g. rahul@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:scale-[1.005] text-slate-900 px-4 py-3 rounded-xl outline-none text-xs transition-all duration-200"
+                    className="w-full bg-white border border-[#384633]/20 rounded-full px-5 py-3 text-xs text-[#384633] outline-none focus:border-[#384633] focus:ring-1 focus:ring-[#384633]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Your Inquiry / Questions
-                  </label>
+                  <label className="text-[10px] uppercase font-bold tracking-wider text-[#384633]">How Can We Help?</label>
                   <textarea
-                    required
                     rows={4}
-                    placeholder="Please specify package preferences, time constraints, or license requirements..."
+                    required
+                    placeholder="Tell us your preferred timing slot or license query..."
                     value={inquiry}
                     onChange={(e) => setInquiry(e.target.value)}
-                    className="w-full bg-slate-50/50 border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:scale-[1.005] text-slate-900 px-4 py-3 rounded-xl outline-none text-xs transition-all duration-200 resize-none"
+                    className="w-full bg-white border border-[#384633]/20 rounded-2xl p-4 text-xs text-[#384633] outline-none focus:border-[#384633] focus:ring-1 focus:ring-[#384633]"
                   />
                 </div>
 
-                {/* Invisible Honeypot Field (Bot Trap) */}
-                <div style={{ display: 'none' }} aria-hidden="true">
-                  <input
-                    type="text"
-                    name="website"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <Magnetic range={25} strength={0.35}>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest py-4.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/15 disabled:opacity-50 transition-all duration-300"
-                    >
-                      {loading ? (
-                        <span>Sending Request...</span>
-                      ) : (
-                        <>
-                          <span>Submit Inquiry</span>
-                          <MessageSquare className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  </Magnetic>
-                </div>
+                <Magnetic range={30} strength={0.3}>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-[#384633] hover:bg-[#2B3B2B] text-white font-medium text-xs uppercase tracking-widest py-4 rounded-full transition shadow-md hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>{loading ? 'Submitting Message...' : 'Submit Callback Request'}</span>
+                  </button>
+                </Magnetic>
               </form>
             )}
           </div>
 
         </div>
+
       </div>
+
     </div>
   );
 }
