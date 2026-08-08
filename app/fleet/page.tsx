@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef, Suspense } from 'react
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { ArrowRight, Sparkles, Shield, Zap, Compass, Car } from 'lucide-react';
 import { getVehiclesAction } from '@/actions/vehicle';
 import { BoneyardWrapper, VehicleCardSkeleton } from '@/components/ui/Skeleton';
@@ -42,6 +42,39 @@ function FleetContent() {
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
 
   const fleetContainerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement | null>(null);
+
+  // Smooth 3D Parallax Mouse Trackers
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 25, stiffness: 120 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  // Background Car Image 3D Rotation & Translation
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [6, -6]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-6, 6]);
+  const imgTranslateX = useTransform(smoothX, [-0.5, 0.5], [-20, 20]);
+  const imgTranslateY = useTransform(smoothY, [-0.5, 0.5], [-20, 20]);
+
+  // Foreground Content Micro-Movement (Opposite Direction for Deep 3D Depth Illusion)
+  const textTranslateX = useTransform(smoothX, [-0.5, 0.5], [10, -10]);
+  const textTranslateY = useTransform(smoothY, [-0.5, 0.5], [10, -10]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    const xRatio = (e.clientX - rect.left) / rect.width - 0.5;
+    const yRatio = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(xRatio);
+    mouseY.set(yRatio);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   const fetchDatabaseVehicles = useCallback(async () => {
     setLoading(true);
@@ -90,10 +123,26 @@ function FleetContent() {
   return (
     <div className="space-y-0 font-sans overflow-hidden bg-[#F4F0E8] text-[#384633] min-h-screen">
       
-      {/* 1. FULL-BLEED 4K HERO SECTION */}
-      <section className="relative w-full min-h-[90vh] flex flex-col justify-between overflow-hidden bg-[#F4F0E8] pt-2">
-        {/* Full-Bleed Edge-to-Edge Coastal Arches Background (100% Crisp Resolution) */}
-        <div aria-hidden="true" className="absolute inset-0 w-full h-full pointer-events-none z-0">
+      {/* 1. FULL-BLEED 4K HERO SECTION WITH 3D PARALLAX */}
+      <section
+        ref={heroRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative w-full min-h-[90vh] flex flex-col justify-between overflow-hidden bg-[#F4F0E8] pt-2 [perspective:1000px]"
+      >
+        {/* Full-Bleed Edge-to-Edge Coastal Arches Background with 3D Parallax Tilt */}
+        <motion.div
+          aria-hidden="true"
+          style={{
+            rotateX,
+            rotateY,
+            x: imgTranslateX,
+            y: imgTranslateY,
+            scale: 1.08,
+            transformStyle: 'preserve-3d',
+          }}
+          className="absolute -inset-4 w-[calc(100%+2rem)] h-[calc(100%+2rem)] pointer-events-none z-0"
+        >
           <Image
             src="/images/coastal_arches.jpg"
             alt="Vahathi Certified Training Fleet"
@@ -104,10 +153,16 @@ function FleetContent() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/90 via-[#F4F0E8]/40 to-transparent max-w-2xl" />
           <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/20 via-transparent to-[#F4F0E8]" />
-        </div>
+        </motion.div>
 
-        {/* Hero Content Overlay */}
-        <div className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 pt-16 sm:pt-24 space-y-6">
+        {/* Hero Content Overlay (Floats Layered in 3D Space) */}
+        <motion.div
+          style={{
+            x: textTranslateX,
+            y: textTranslateY,
+          }}
+          className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 pt-16 sm:pt-24 space-y-6"
+        >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-semibold tracking-widest uppercase bg-white/80 backdrop-blur-md shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-[#384633]" />
             <span>CERTIFIED DRIVING FLEET</span>
@@ -138,6 +193,34 @@ function FleetContent() {
               className="bg-[#E7E1D6] hover:bg-white text-[#384633] border border-[#384633]/20 font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-2 transition-all duration-300 shadow-xs cursor-pointer"
             >
               <span>View All Vehicles</span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Floating Bottom Metric Glass Bar */}
+        <div className="relative z-10 w-full px-6 sm:px-8 pb-6 my-4">
+          <div className="bg-[#384633]/90 backdrop-blur-xl text-white rounded-full p-4 px-8 max-w-5xl mx-auto shadow-2xl flex flex-wrap items-center justify-between gap-6 border border-white/20">
+            <div className="flex items-center gap-3">
+              <Shield className="w-5 h-5 text-emerald-400" />
+              <span className="text-xs font-medium tracking-wide">100% Dual-Control Pedals</span>
+            </div>
+            <div className="h-4 w-px bg-white/20 hidden sm:block" />
+            <div className="flex flex-col">
+              <span className="font-serif text-sm font-bold">Air Conditioned</span>
+              <span className="text-[10px] text-white/70 uppercase tracking-wider">All-Weather Comfort</span>
+            </div>
+            <div className="h-4 w-px bg-white/20 hidden sm:block" />
+            <div className="flex flex-col">
+              <span className="font-serif text-sm font-bold">Power Steering</span>
+              <span className="text-[10px] text-white/70 uppercase tracking-wider">Effortless Maneuvering</span>
+            </div>
+            <div className="h-4 w-px bg-white/20 hidden sm:block" />
+            <button
+              onClick={() => fleetContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+            >
+              <span>Explore Fleet</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
