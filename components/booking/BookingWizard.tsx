@@ -883,24 +883,24 @@ export function BookingWizard() {
           <div className="flex flex-col items-center gap-6 text-center max-w-sm px-6">
             {/* Animated ring spinner */}
             <div className="relative w-20 h-20">
-              <div className="absolute inset-0 rounded-full border-4 border-blue-100" />
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 animate-spin" />
+              <div className="absolute inset-0 rounded-full border-4 border-[#384633]/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#384633] animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
                 {paymentPhase === 'verifying-payment' ? (
-                  <ShieldCheck className="w-8 h-8 text-blue-600" />
+                  <ShieldCheck className="w-8 h-8 text-[#384633]" />
                 ) : (
-                  <CreditCard className="w-8 h-8 text-blue-600" />
+                  <CreditCard className="w-8 h-8 text-[#384633]" />
                 )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <h3 className="font-serif text-xl font-semibold text-slate-900">
+              <h3 className="font-serif text-xl font-semibold text-[#384633]">
                 {paymentPhase === 'creating-booking' && 'Creating your booking…'}
                 {paymentPhase === 'initializing-razorpay' && 'Connecting to Razorpay…'}
                 {paymentPhase === 'verifying-payment' && 'Verifying Payment…'}
               </h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs text-[#7E8466] leading-relaxed font-light">
                 {paymentPhase === 'creating-booking' &&
                   'Reserving your slot and preparing your booking record. This takes just a moment.'}
                 {paymentPhase === 'initializing-razorpay' &&
@@ -909,7 +909,7 @@ export function BookingWizard() {
                   'Confirming your payment with your bank and generating your booking receipt. This usually takes 2-3 seconds.'}
               </p>
               {paymentPhase === 'verifying-payment' && (
-                <p className="text-[11px] font-semibold text-slate-600 mt-2">
+                <p className="text-[11px] font-semibold text-[#384633] mt-2">
                   Please do not close or refresh this page.
                 </p>
               )}
@@ -920,7 +920,7 @@ export function BookingWizard() {
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+                  className="w-2 h-2 bg-[#384633] rounded-full animate-bounce"
                   style={{ animationDelay: `${i * 0.15}s` }}
                 />
               ))}
@@ -929,15 +929,15 @@ export function BookingWizard() {
         </div>
       )}
 
-    <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-hover space-y-8">
+    <div className="bg-[#E7E1D6] border border-[#384633]/20 rounded-[2.5rem] p-6 sm:p-10 shadow-2xl space-y-8 font-sans text-[#384633]">
       
       {/* Slim Elegant Progress Line */}
       <div className="space-y-4">
-        <div className="flex justify-between items-baseline text-xs uppercase tracking-widest text-slate-400 font-sans">
-          <span className="font-serif text-lg text-slate-700 normal-case font-normal whitespace-nowrap">
-            Step <em className="italic text-blue-600 font-normal">{step}</em> of 6
+        <div className="flex justify-between items-baseline text-xs uppercase tracking-widest text-[#7E8466] font-sans">
+          <span className="font-serif text-lg text-[#384633] normal-case font-normal whitespace-nowrap">
+            Step <em className="italic text-[#384633] font-normal">{step}</em> of 6
           </span>
-          <span className="hidden sm:inline text-blue-600 font-medium tracking-widest text-right">
+          <span className="hidden sm:inline text-[#384633] font-medium tracking-widest text-right">
             {step === 1 && 'Select Driving Package'}
             {step === 2 && 'Select Certified Instructor'}
             {step === 3 && 'Select Training Vehicle'}
@@ -946,21 +946,18 @@ export function BookingWizard() {
             {step === 6 && 'Complete Secure Payment'}
           </span>
         </div>
-        <div className="h-1 bg-white rounded-full overflow-hidden">
+        <div className="h-1.5 bg-[#D6D0C6] rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-500 rounded-full transition-all duration-500"
+            className="h-full bg-[#384633] rounded-full transition-all duration-500"
             style={{ width: `${(step / 6) * 100}%` }}
           />
         </div>
       </div>
 
-      {/* Error Alert – moved to above the payment button for in-viewport visibility */}
-
-
       {/* Success Alert */}
       {successMessage && (
-        <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-400 rounded-xl text-xs flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 shrink-0" />
+        <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600" />
           <span>{successMessage}</span>
         </div>
       )}
@@ -969,15 +966,15 @@ export function BookingWizard() {
       {step === 1 && (
         <div className="space-y-6 pb-24 sm:pb-0">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
-              <Package className="w-6 h-6 text-blue-600" />
+            <h2 className="font-serif font-normal text-2xl text-[#384633] flex items-center gap-3">
+              <Package className="w-6 h-6 text-[#384633]" />
               <span>Select Driving Package</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">Loaded live from database. Select your course package.</p>
+            <p className="text-xs text-[#7E8466] mt-1 font-light">Loaded live from database. Select your course package.</p>
           </div>
 
           {/* Vehicle Category Filter Tabs */}
-          <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-4">
+          <div className="flex flex-wrap gap-2 border-b border-[#384633]/15 pb-4">
             {[
               { id: 'ALL', label: 'All Packages' },
               { id: 'CRETA', label: 'Hyundai Creta SUV' },
@@ -988,10 +985,10 @@ export function BookingWizard() {
                 key={tab.id}
                 type="button"
                 onClick={() => setPackageCategoryTab(tab.id as any)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
+                className={`px-4 py-2 rounded-full text-xs font-bold transition cursor-pointer ${
                   packageCategoryTab === tab.id
-                    ? 'bg-blue-600 text-slate-950 shadow-md shadow-blue-600/15'
-                    : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-700'
+                    ? 'bg-[#384633] text-white shadow-md'
+                    : 'bg-white border border-[#384633]/20 text-[#7E8466] hover:text-[#384633]'
                 }`}
               >
                 {tab.label}
@@ -1000,8 +997,8 @@ export function BookingWizard() {
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-slate-400">
-              <RefreshCw className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
+            <div className="text-center py-12 text-[#7E8466]">
+              <RefreshCw className="w-6 h-6 animate-spin text-[#384633] mx-auto" />
             </div>
           ) : (
             <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory hide-scrollbar gap-4 pb-4 sm:pb-0">
@@ -1021,22 +1018,22 @@ export function BookingWizard() {
                     <div
                       key={pkg.id}
                       onClick={() => handleSelectPackage(pkg, vehicles)}
-                      className={`min-w-[85vw] sm:min-w-0 snap-center p-5 rounded-2xl border cursor-pointer transition-all ${
+                      className={`min-w-[85vw] sm:min-w-0 snap-center p-6 rounded-2xl border cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-blue-50 border-blue-600 shadow-lg shadow-blue-600/10'
-                          : 'bg-white border-slate-200 hover:border-slate-300'
+                          ? 'bg-white border-[#384633] shadow-lg'
+                          : 'bg-white/80 border-[#384633]/15 hover:border-[#384633]/30'
                       }`}
                     >
                       <div className="flex justify-between items-start">
-                        <h3 className="font-heading font-bold text-slate-900 text-base">{pkg.name}</h3>
-                        <span className="font-heading font-extrabold text-lg text-blue-600">
+                        <h3 className="font-serif font-semibold text-[#384633] text-base">{pkg.name}</h3>
+                        <span className="font-serif font-bold text-lg text-[#384633]">
                           ₹{pkg.price.toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-2 line-clamp-2">{pkg.description}</p>
-                      <div className="mt-4 flex items-center justify-between text-[11px] text-slate-400">
+                      <p className="text-xs text-[#7E8466] mt-2 line-clamp-2 font-light">{pkg.description}</p>
+                      <div className="mt-4 flex items-center justify-between text-[11px] text-[#7E8466]">
                         <span>{pkg.sessionsCount} Practical Sessions</span>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-blue-600" />}
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-[#384633]" />}
                       </div>
                     </div>
                   );
@@ -1044,11 +1041,11 @@ export function BookingWizard() {
             </div>
           )}
 
-          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex justify-end sm:pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-[#E7E1D6]/95 sm:bg-transparent backdrop-blur border-t border-[#384633]/15 sm:border-0 z-40 pb-safe flex justify-end sm:pt-4">
             <button
               disabled={!selectedPackage}
               onClick={() => setStep(2)}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-4 sm:py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-[#384633] hover:bg-[#2B3B2B] disabled:opacity-50 text-white font-bold px-8 py-4 sm:py-3.5 rounded-full text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md cursor-pointer"
             >
               <span>Next: Choose Instructor</span>
               <ArrowRight className="w-4 h-4" />
@@ -1061,11 +1058,11 @@ export function BookingWizard() {
       {step === 2 && (
         <div className="space-y-6 pb-24 sm:pb-0">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
-              <User className="w-6 h-6 text-blue-600" />
+            <h2 className="font-serif font-normal text-2xl text-[#384633] flex items-center gap-3">
+              <User className="w-6 h-6 text-[#384633]" />
               <span>Select Certified Instructor</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">Choose a senior pedagogical instructor.</p>
+            <p className="text-xs text-[#7E8466] mt-1 font-light">Choose a senior pedagogical instructor.</p>
           </div>
 
           <div className="flex sm:grid sm:grid-cols-2 overflow-x-auto sm:overflow-visible snap-x snap-mandatory hide-scrollbar gap-4 pb-4 sm:pb-0">
@@ -1075,24 +1072,24 @@ export function BookingWizard() {
                 <div
                   key={inst.id}
                   onClick={() => setSelectedInstructor(inst)}
-                  className={`min-w-[85vw] sm:min-w-0 snap-center p-5 rounded-2xl border cursor-pointer transition-all ${
+                  className={`min-w-[85vw] sm:min-w-0 snap-center p-6 rounded-2xl border cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-blue-50 border-blue-600 shadow-lg shadow-blue-600/10'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
+                      ? 'bg-white border-[#384633] shadow-lg'
+                      : 'bg-white/80 border-[#384633]/15 hover:border-[#384633]/30'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-heading font-bold text-slate-900 text-base">{inst.name}</h3>
-                      <span className="text-[11px] text-slate-400">{inst.experienceYears} Years Exp</span>
+                      <h3 className="font-serif font-semibold text-[#384633] text-base">{inst.name}</h3>
+                      <span className="text-[11px] text-[#7E8466] font-medium">{inst.experienceYears} Years Exp</span>
                     </div>
-                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
-                      ★ {inst.rating}
+                    <span className="text-xs font-bold text-[#384633] bg-white px-3 py-1 rounded-full border border-[#384633]/20">
+                      Rating: {inst.rating} / 5
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mt-3">
                     {inst.specialties.map((spec) => (
-                      <span key={spec} className="text-[10px] bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                      <span key={spec} className="text-[10px] bg-[#F4F0E8] text-[#384633] font-semibold px-2.5 py-1 rounded-full border border-[#384633]/10">
                         {spec}
                       </span>
                     ))}
@@ -1102,17 +1099,17 @@ export function BookingWizard() {
             })}
           </div>
 
-          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-[#E7E1D6]/95 sm:bg-transparent backdrop-blur border-t border-[#384633]/15 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
             <button
               onClick={() => setStep(1)}
-              className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
+              className="px-6 py-4 sm:py-3.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-bold bg-white/80 hover:bg-white cursor-pointer"
             >
               Back
             </button>
             <button
               disabled={!selectedInstructor}
               onClick={() => setStep(3)}
-              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-4 sm:py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none bg-[#384633] hover:bg-[#2B3B2B] disabled:opacity-50 text-white font-bold px-8 py-4 sm:py-3.5 rounded-full text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md cursor-pointer"
             >
               <span>Next: Choose Vehicle</span>
               <ArrowRight className="w-4 h-4" />
@@ -1125,20 +1122,20 @@ export function BookingWizard() {
       {step === 3 && (
         <div className="space-y-6 pb-24 sm:pb-0">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
-              <Car className="w-6 h-6 text-blue-600" />
+            <h2 className="font-serif font-normal text-2xl text-[#384633] flex items-center gap-3">
+              <Car className="w-6 h-6 text-[#384633]" />
               <span>Select Training Vehicle</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">Dual-control certified fleet vehicles.</p>
+            <p className="text-xs text-[#7E8466] mt-1 font-light">Dual-control certified fleet vehicles.</p>
           </div>
 
           {/* Package Vehicle Lock Notice */}
           {selectedPackage && (
-            <div className="p-4 bg-blue-50 border border-blue-300 text-blue-500 rounded-2xl text-xs flex items-center justify-between">
+            <div className="p-4 bg-white border border-[#384633]/20 text-[#384633] rounded-2xl text-xs flex items-center justify-between shadow-xs">
               <span>
                 <strong>Selected Package:</strong> {selectedPackage.name}
               </span>
-              <span className="text-[10px] bg-blue-600 text-slate-950 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+              <span className="text-[10px] bg-[#384633] text-white font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                 {selectedPackage.targetVehicleCategory || 'Vehicle Auto-Matched'}
               </span>
             </div>
@@ -1166,29 +1163,29 @@ export function BookingWizard() {
                   onClick={() => {
                     if (isAllowed) setSelectedVehicle(veh);
                   }}
-                  className={`min-w-[85vw] sm:min-w-0 snap-center p-5 rounded-2xl border transition-all ${
+                  className={`min-w-[85vw] sm:min-w-0 snap-center p-6 rounded-2xl border transition-all ${
                     !isAllowed
-                      ? 'bg-slate-50 border-slate-200 opacity-40 cursor-not-allowed'
+                      ? 'bg-white/40 border-[#384633]/10 opacity-40 cursor-not-allowed'
                       : isSelected
-                      ? 'bg-blue-50 border-blue-600 shadow-lg shadow-blue-600/10 cursor-pointer'
-                      : 'bg-white border-slate-200 hover:border-slate-300 cursor-pointer'
+                      ? 'bg-white border-[#384633] shadow-lg cursor-pointer'
+                      : 'bg-white/80 border-[#384633]/15 hover:border-[#384633]/30 cursor-pointer'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-heading font-bold text-slate-900 text-base">{veh.name}</h3>
-                      <span className="text-[11px] text-slate-400">{veh.transmission} Transmission</span>
+                      <h3 className="font-serif font-semibold text-[#384633] text-base">{veh.name}</h3>
+                      <span className="text-[11px] text-[#7E8466]">{veh.transmission} Transmission</span>
                     </div>
-                    <span className="font-heading font-bold text-blue-600 text-sm">
+                    <span className="font-serif font-bold text-[#384633] text-sm">
                       ₹{veh.ratePerSession}/sess
                     </span>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+                  <div className="mt-3 flex items-center justify-between text-[11px] text-[#7E8466]">
                     <span>{veh.tier.replace('_', ' ')}</span>
                     {!isAllowed ? (
-                      <span className="text-[10px] text-rose-400 font-medium">Not for selected package</span>
+                      <span className="text-[10px] text-rose-600 font-medium">Not for selected package</span>
                     ) : isSelected ? (
-                      <span className="flex items-center gap-1 text-blue-600 font-bold">
+                      <span className="flex items-center gap-1 text-[#384633] font-bold">
                         <CheckCircle2 className="w-4 h-4" /> Selected
                       </span>
                     ) : null}
@@ -1198,17 +1195,17 @@ export function BookingWizard() {
             })}
           </div>
 
-          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-[#E7E1D6]/95 sm:bg-transparent backdrop-blur border-t border-[#384633]/15 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
             <button
               onClick={() => setStep(2)}
-              className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
+              className="px-6 py-4 sm:py-3.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-bold bg-white/80 hover:bg-white cursor-pointer"
             >
               Back
             </button>
             <button
               disabled={!selectedVehicle}
               onClick={() => setStep(4)}
-              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-4 sm:py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none bg-[#384633] hover:bg-[#2B3B2B] disabled:opacity-50 text-white font-bold px-8 py-4 sm:py-3.5 rounded-full text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md cursor-pointer"
             >
               <span>Next: Select Date & Slots</span>
               <ArrowRight className="w-4 h-4" />
@@ -1221,17 +1218,17 @@ export function BookingWizard() {
       {step === 4 && (
         <div className="space-y-6 pb-24 sm:pb-0">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
-              <Calendar className="w-6 h-6 text-blue-600" />
+            <h2 className="font-serif font-normal text-2xl text-[#384633] flex items-center gap-3">
+              <Calendar className="w-6 h-6 text-[#384633]" />
               <span>Select Date & Calculated Available Slots</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[#7E8466] mt-1 font-light">
               Live availability = Instructor Schedule minus Existing Bookings. Prevents double-booking automatically.
             </p>
           </div>
 
-          <div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-200">
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+          <div className="space-y-4 bg-white p-6 rounded-2xl border border-[#384633]/15 shadow-xs">
+            <label className="block text-xs font-bold text-[#384633] uppercase tracking-wider">
               Pick Date
             </label>
             <input
@@ -1242,19 +1239,19 @@ export function BookingWizard() {
                 setSelectedTimeSlot(null);
               }}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full bg-white border border-slate-200 text-slate-900 px-4 py-3 rounded-xl text-sm font-medium outline-none"
+              className="w-full bg-[#F4F0E8] border border-[#384633]/20 text-[#384633] px-4 py-3.5 rounded-2xl text-sm font-medium outline-none focus:border-[#384633]"
             />
           </div>
 
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-[#384633] uppercase tracking-wider">
               Available Time Slots for {selectedInstructor?.name}
             </label>
 
             {slotsLoading ? (
-              <div className="text-center py-8 text-slate-400">
-                <RefreshCw className="w-6 h-6 animate-spin text-blue-600 mx-auto" />
-                <p className="text-xs mt-2">Calculating available slots from database...</p>
+              <div className="text-center py-8 text-[#7E8466]">
+                <RefreshCw className="w-6 h-6 animate-spin text-[#384633] mx-auto" />
+                <p className="text-xs mt-2 font-light">Calculating available slots from database...</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1265,16 +1262,16 @@ export function BookingWizard() {
                       key={slot.time}
                       disabled={!slot.available}
                       onClick={() => setSelectedTimeSlot(slot.time)}
-                      className={`p-3.5 rounded-xl border text-xs font-bold transition-all text-center ${
+                      className={`p-3.5 rounded-2xl border text-xs font-bold transition-all text-center cursor-pointer ${
                         !slot.available
-                          ? 'bg-slate-100 border-slate-200 text-slate-600 cursor-not-allowed line-through'
+                          ? 'bg-white/50 border-[#384633]/10 text-[#7E8466] cursor-not-allowed line-through'
                           : isSelected
-                          ? 'bg-blue-600 border-blue-600 text-slate-950 shadow-lg shadow-blue-600/15'
-                          : 'bg-white border-slate-200 text-slate-700 hover:border-blue-400'
+                          ? 'bg-[#384633] border-[#384633] text-white shadow-md'
+                          : 'bg-white border-[#384633]/20 text-[#384633] hover:border-[#384633]'
                       }`}
                     >
                       <span>{slot.time}</span>
-                      {!slot.available && <span className="block text-[9px] text-rose-500/80 no-underline mt-0.5">Booked</span>}
+                      {!slot.available && <span className="block text-[9px] text-rose-600 no-underline mt-0.5">Booked</span>}
                     </button>
                   );
                 })}
@@ -1282,17 +1279,17 @@ export function BookingWizard() {
             )}
           </div>
 
-          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-[#E7E1D6]/95 sm:bg-transparent backdrop-blur border-t border-[#384633]/15 sm:border-0 z-40 pb-safe flex items-center justify-between gap-3 sm:pt-4">
             <button
               onClick={() => setStep(3)}
-              className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
+              className="px-6 py-4 sm:py-3.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-bold bg-white/80 hover:bg-white cursor-pointer"
             >
               Back
             </button>
             <button
               disabled={!selectedTimeSlot}
               onClick={() => setStep(5)}
-              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-slate-950 font-bold px-6 py-4 sm:py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none bg-[#384633] hover:bg-[#2B3B2B] disabled:opacity-50 text-white font-bold px-8 py-4 sm:py-3.5 rounded-full text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md cursor-pointer"
             >
               <span>Next: Summary</span>
               <ArrowRight className="w-4 h-4" />
@@ -1305,82 +1302,79 @@ export function BookingWizard() {
       {step === 5 && (
         <div className="space-y-6 pb-24 sm:pb-0">
           <div>
-            <h2 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-3">
-              <ShieldCheck className="w-6 h-6 text-blue-600" />
+            <h2 className="font-serif font-normal text-2xl text-[#384633] flex items-center gap-3">
+              <ShieldCheck className="w-6 h-6 text-[#384633]" />
               <span>Booking Summary</span>
             </h2>
-            <p className="text-xs text-slate-400 mt-1">Review details before creating pending booking and initializing Razorpay Checkout.</p>
+            <p className="text-xs text-[#7E8466] mt-1 font-light">Review details before creating pending booking and initializing Razorpay Checkout.</p>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-              <span className="text-xs text-slate-400 uppercase font-bold">Booking Status</span>
-              <span className="bg-blue-50 border border-blue-300 text-blue-600 text-xs font-extrabold px-3 py-1 rounded-full uppercase">
+          <div className="bg-white border border-[#384633]/15 rounded-2xl p-6 space-y-4 shadow-xs">
+            <div className="flex justify-between items-center pb-4 border-b border-[#384633]/10">
+              <span className="text-xs text-[#7E8466] uppercase font-bold">Booking Status</span>
+              <span className="bg-[#384633] text-white text-xs font-bold px-3 py-1 rounded-full uppercase">
                 PENDING
               </span>
             </div>
 
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-400">Selected Package:</span>
-                <strong className="text-slate-900">{selectedPackage?.name}</strong>
+                <span className="text-[#7E8466]">Selected Package:</span>
+                <strong className="text-[#384633]">{selectedPackage?.name}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Assigned Instructor:</span>
-                <strong className="text-slate-900">{selectedInstructor?.name}</strong>
+                <span className="text-[#7E8466]">Assigned Instructor:</span>
+                <strong className="text-[#384633]">{selectedInstructor?.name}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Selected Vehicle:</span>
-                <strong className="text-slate-900">{selectedVehicle?.name} ({selectedVehicle?.transmission})</strong>
+                <span className="text-[#7E8466]">Selected Vehicle:</span>
+                <strong className="text-[#384633]">{selectedVehicle?.name} ({selectedVehicle?.transmission})</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Scheduled Date & Slot:</span>
-                <strong className="text-blue-600">{selectedDate} at {selectedTimeSlot}</strong>
+                <span className="text-[#7E8466]">Scheduled Date & Slot:</span>
+                <strong className="text-[#384633]">{selectedDate} at {selectedTimeSlot}</strong>
               </div>
-              <div className="flex justify-between pt-2 border-t border-slate-200 text-sm">
-                <span className="text-slate-600 font-bold">Total Amount Payable:</span>
-                <strong className="text-blue-600 font-extrabold text-lg">₹{selectedPackage?.price.toLocaleString()}</strong>
+              <div className="flex justify-between pt-2 border-t border-[#384633]/10 text-sm">
+                <span className="text-[#384633] font-bold">Total Amount Payable:</span>
+                <strong className="text-[#384633] font-serif font-bold text-xl">₹{selectedPackage?.price.toLocaleString()}</strong>
               </div>
             </div>
 
             {isGuest ? (
-              <div className="pt-4 border-t border-slate-200 space-y-4">
+              <div className="pt-4 border-t border-[#384633]/10 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-extrabold uppercase text-blue-600 tracking-wider flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-blue-600" />
+                  <h4 className="text-xs font-bold uppercase text-[#384633] tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#384633]" />
                     <span>Student Authentication Required</span>
                   </h4>
-                  <span className="text-[10px] text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-300 uppercase font-extrabold">
+                  <span className="text-[10px] text-[#384633] bg-[#E7E1D6] px-2.5 py-0.5 rounded-full border border-[#384633]/20 uppercase font-bold">
                     Real OTP / Google Verification
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-[#7E8466] font-light">
                   Please log in with your Mobile Phone OTP or Google Account to verify your student identity before proceeding to payment.
                 </p>
 
-                {/* Inline Auth Errors / Messages */}
                 {authError && (
-                  <div className="auth-error-box p-3 bg-rose-50 border border-rose-300 text-rose-300 rounded-xl text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                  <div className="auth-error-box p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                     <span>{authError}</span>
                   </div>
                 )}
                 {authMessage && (
-                  <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-300 rounded-xl text-xs flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                     <span>{authMessage}</span>
                   </div>
                 )}
 
-                {/* Invisible reCAPTCHA container for bot protection */}
                 <div id="wizard-recaptcha-container"></div>
 
-                <div className="bg-white border border-slate-200 p-5 rounded-2xl space-y-4">
-                  {/* Phone OTP Section */}
+                <div className="bg-[#F4F0E8] border border-[#384633]/15 p-5 rounded-2xl space-y-4">
                   {authStep === 'PHONE' ? (
                     <div className="space-y-3">
-                      <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                      <label className="block text-xs font-semibold text-[#384633] uppercase tracking-wider">
                         Enter Mobile Phone Number
                       </label>
                       <div className="flex gap-2">
@@ -1389,13 +1383,13 @@ export function BookingWizard() {
                           placeholder="Enter 10-digit mobile number"
                           value={authPhone}
                           onChange={(e) => setAuthPhone(e.target.value)}
-                          className="flex-1 bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 focus:scale-[1.01] text-slate-900 px-4 py-2.5 rounded-xl outline-none text-xs transition-all duration-200"
+                          className="flex-1 bg-white border border-[#384633]/20 text-[#384633] px-4 py-3 rounded-2xl outline-none text-xs"
                         />
                         <button
                           type="button"
                           disabled={authLoading}
                           onClick={handleSendWizardOtp}
-                          className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0"
+                          className="bg-[#384633] hover:bg-[#2B3B2B] text-white font-bold px-5 py-3 rounded-2xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 cursor-pointer shadow-xs"
                         >
                           {authLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Send OTP</span>}
                         </button>
@@ -1404,13 +1398,13 @@ export function BookingWizard() {
                   ) : (
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                        <label className="block text-xs font-semibold text-[#384633] uppercase tracking-wider">
                           Enter 6-Digit OTP Code
                         </label>
                         <button
                           type="button"
                           onClick={() => setAuthStep('PHONE')}
-                          className="text-[11px] text-blue-600 hover:underline"
+                          className="text-[11px] text-[#384633] font-semibold underline"
                         >
                           Change Phone
                         </button>
@@ -1422,13 +1416,13 @@ export function BookingWizard() {
                           placeholder="••••••"
                           value={authOtp}
                           onChange={(e) => setAuthOtp(e.target.value.replace(/[^\d]/g, ''))}
-                          className="flex-1 bg-white border border-slate-200 focus:border-blue-500 text-slate-900 text-center tracking-widest text-base font-bold py-2.5 rounded-xl outline-none"
+                          className="flex-1 bg-white border border-[#384633]/20 text-[#384633] text-center tracking-widest text-base font-bold py-3 rounded-2xl outline-none"
                         />
                         <button
                           type="button"
                           disabled={authLoading}
                           onClick={handleVerifyWizardOtp}
-                          className="bg-blue-600 hover:bg-blue-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0"
+                          className="bg-[#384633] hover:bg-[#2B3B2B] text-white font-bold px-5 py-3 rounded-2xl text-xs uppercase tracking-wider flex items-center gap-1 shrink-0 cursor-pointer shadow-xs"
                         >
                           {authLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <span>Verify & Authenticate</span>}
                         </button>
@@ -1436,14 +1430,12 @@ export function BookingWizard() {
                     </div>
                   )}
 
-                  {/* Divider */}
                   <div className="flex items-center gap-3 my-2">
-                    <div className="h-[1px] bg-slate-100 flex-1" />
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase">OR</span>
-                    <div className="h-[1px] bg-slate-100 flex-1" />
+                    <div className="h-[1px] bg-[#384633]/15 flex-1" />
+                    <span className="text-[10px] font-bold text-[#7E8466] uppercase">OR</span>
+                    <div className="h-[1px] bg-[#384633]/15 flex-1" />
                   </div>
 
-                  {/* Google Sign In Button */}
                   <GoogleAuthProvider>
                     <GoogleSignInButton 
                       returnTo="/book"
@@ -1455,61 +1447,61 @@ export function BookingWizard() {
                 </div>
               </div>
             ) : (
-              <div className="pt-4 border-t border-slate-200 space-y-3">
+              <div className="pt-4 border-t border-[#384633]/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-extrabold uppercase text-emerald-400 tracking-wider flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <h4 className="text-xs font-bold uppercase text-[#384633] tracking-wider flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#384633]" />
                     <span>Verified Student Account (Database Record)</span>
                   </h4>
-                  <span className="text-[10px] text-emerald-400 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-300 uppercase font-extrabold">
+                  <span className="text-[10px] text-[#384633] bg-[#E7E1D6] px-2.5 py-0.5 rounded-full border border-[#384633]/20 uppercase font-bold">
                     Authenticated
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-slate-200 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#F4F0E8] p-4 rounded-2xl border border-[#384633]/10 text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Student Name *</span>
+                    <span className="text-[#7E8466] block text-[10px] uppercase font-bold mb-1">Student Name *</span>
                     {studentName ? (
-                      <strong className="text-slate-900">{studentName}</strong>
+                      <strong className="text-[#384633]">{studentName}</strong>
                     ) : (
                       <input
                         type="text"
                         placeholder="Complete Full Name"
                         value={studentName}
                         onChange={(e) => setStudentName(e.target.value)}
-                        className="w-full bg-white border border-slate-300 text-slate-900 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-blue-500"
+                        className="w-full bg-white border border-[#384633]/20 text-[#384633] px-2.5 py-1.5 rounded-xl text-xs outline-none focus:border-[#384633]"
                         required
                       />
                     )}
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Mobile Phone *</span>
+                    <span className="text-[#7E8466] block text-[10px] uppercase font-bold mb-1">Mobile Phone *</span>
                     {initialPhone ? (
-                      <strong className="text-blue-600">{studentPhone}</strong>
+                      <strong className="text-[#384633]">{studentPhone}</strong>
                     ) : (
                       <input
                         type="tel"
                         placeholder="Add a contact number to continue"
                         value={studentPhone}
                         onChange={(e) => setStudentPhone(e.target.value.replace(/[^\d+]/g, ''))}
-                        className="w-full bg-white border border-slate-300 text-slate-900 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-blue-500"
+                        className="w-full bg-white border border-[#384633]/20 text-[#384633] px-2.5 py-1.5 rounded-xl text-xs outline-none focus:border-[#384633]"
                         required
                       />
                     )}
                   </div>
 
                   <div>
-                    <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Email Address</span>
+                    <span className="text-[#7E8466] block text-[10px] uppercase font-bold mb-1">Email Address</span>
                     {studentEmail ? (
-                      <strong className="text-slate-900">{studentEmail}</strong>
+                      <strong className="text-[#384633]">{studentEmail}</strong>
                     ) : (
                       <input
                         type="email"
                         placeholder="Add Email (Optional)"
                         value={studentEmail}
                         onChange={(e) => setStudentEmail(e.target.value)}
-                        className="w-full bg-white border border-slate-300 text-slate-900 px-2.5 py-1.5 rounded-lg text-xs outline-none focus:border-blue-500"
+                        className="w-full bg-white border border-[#384633]/20 text-[#384633] px-2.5 py-1.5 rounded-xl text-xs outline-none focus:border-[#384633]"
                       />
                     )}
                   </div>
@@ -1518,7 +1510,7 @@ export function BookingWizard() {
             )}
 
             <div className="pt-2">
-              <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-[#384633] uppercase tracking-wider mb-2">
                 Additional Notes (Optional)
               </label>
               <textarea
@@ -1526,49 +1518,48 @@ export function BookingWizard() {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any special instruction or request..."
                 rows={2}
-                className="w-full bg-white border border-slate-200 text-slate-900 p-3 rounded-xl text-xs outline-none"
+                className="w-full bg-[#F4F0E8] border border-[#384633]/15 text-[#384633] p-3.5 rounded-2xl text-xs outline-none"
               />
             </div>
           </div>
 
-          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-white/95 sm:bg-transparent backdrop-blur border-t border-slate-200 sm:border-0 z-40 pb-safe flex flex-col gap-3 sm:pt-4">
-            {/* Validation error — rendered directly above the payment button so it stays in viewport */}
+          <div className="fixed sm:static bottom-0 left-0 right-0 p-4 sm:p-0 bg-[#E7E1D6]/95 sm:bg-transparent backdrop-blur border-t border-[#384633]/15 sm:border-0 z-40 pb-safe flex flex-col gap-3 sm:pt-4">
             {error && (
-              <div role="alert" aria-live="assertive" className="p-3 bg-rose-50 border border-rose-300 text-rose-600 rounded-xl text-xs flex items-start gap-2">
+              <div role="alert" aria-live="assertive" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
             <div className="flex items-center justify-between gap-3">
-            <button
-              onClick={() => {
-                setError(null);
-                setCreatedBookingId(null);
-                setPaymentStatus('IDLE');
-                setStep(4);
-              }}
-              className="px-6 py-4 sm:py-3 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold"
-            >
-              Back
-            </button>
-            <button
-              disabled={loading || isGuest}
-              onClick={handleCreatePendingBooking}
-              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-500 text-slate-950 font-extrabold px-4 sm:px-8 py-4 sm:py-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl shadow-blue-600/15 disabled:opacity-50"
-            >
-              {loading ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : isGuest ? (
-                <>
-                  <span>Please Log In / Verify Phone to Pay 🔒</span>
-                </>
-              ) : (
-                <>
-                  <span>Create Pending Booking & Pay via Razorpay</span>
-                  <CreditCard className="w-4 h-4" />
-                </>
-              )}
-            </button>
+              <button
+                onClick={() => {
+                  setError(null);
+                  setCreatedBookingId(null);
+                  setPaymentStatus('IDLE');
+                  setStep(4);
+                }}
+                className="px-6 py-4 sm:py-3.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-bold bg-white/80 hover:bg-white cursor-pointer"
+              >
+                Back
+              </button>
+              <button
+                disabled={loading || isGuest}
+                onClick={handleCreatePendingBooking}
+                className="flex-1 sm:flex-none bg-[#384633] hover:bg-[#2B3B2B] text-white font-bold px-8 py-4 sm:py-3.5 rounded-full text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md disabled:opacity-50 cursor-pointer"
+              >
+                {loading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                ) : isGuest ? (
+                  <>
+                    <span>Please Log In / Verify Phone to Pay</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Create Pending Booking & Pay via Razorpay</span>
+                    <CreditCard className="w-4 h-4" />
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -1577,49 +1568,40 @@ export function BookingWizard() {
       {/* STEP 6: RAZORPAY CHECKOUT & RETRY */}
       {step === 6 && (
         <div className="space-y-6 text-center">
-          <div className="p-10 bg-white border border-slate-100 rounded-3xl space-y-6">
+          <div className="p-10 bg-white border border-[#384633]/15 rounded-[2.5rem] space-y-6 shadow-xs">
 
-            {/* ── P-05: Recovery loading gate ───────────────────────────────
-                Shown while the post-refresh status check is in progress.
-                Prevents any stale sub-state (PENDING, FAILED, etc.) from
-                flashing before the backend has confirmed the real state.
-                ─────────────────────────────────────────────────────────── */}
             {isRecoveringState && (
               <div className="space-y-5">
-                <div className="w-20 h-20 bg-blue-50 border-2 border-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <RefreshCw className="w-10 h-10 text-blue-400 animate-spin" />
+                <div className="w-20 h-20 bg-[#F4F0E8] border-2 border-[#384633]/20 rounded-full flex items-center justify-center mx-auto">
+                  <RefreshCw className="w-10 h-10 text-[#384633] animate-spin" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-serif text-2xl text-slate-900">Checking your booking…</h3>
-                  <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                  <h3 className="font-serif text-2xl text-[#384633]">Checking your booking…</h3>
+                  <p className="text-xs text-[#7E8466] max-w-xs mx-auto leading-relaxed font-light">
                     We are confirming the status of your booking. This takes just a moment.
                   </p>
-                  <p className="text-[11px] font-semibold text-slate-400">Please do not close or refresh this page.</p>
+                  <p className="text-[11px] font-semibold text-[#7E8466]">Please do not close or refresh this page.</p>
                 </div>
               </div>
             )}
 
-            {/* ── VERIFYING: Backend signature check in progress ─────── */}
             {!isRecoveringState && paymentStatus === 'VERIFYING' && (
               <VerifyingPaymentLogger />
             )}
 
-
-            {/* ── PAID: Backend confirmed ──────────────────────────────── */}
             {!isRecoveringState && paymentStatus === 'PAID' && (
               <PaidPaymentLogger />
             )}
 
-            {/* ── FAILED / CANCELLED: Show retry options ───────────────── */}
             {!isRecoveringState && paymentStatus === 'FAILED' && (
               <div className="space-y-5">
                 <div className="w-20 h-20 bg-rose-50 border-2 border-rose-200 rounded-full flex items-center justify-center mx-auto">
-                  <AlertCircle className="w-10 h-10 text-rose-500" />
+                  <AlertCircle className="w-10 h-10 text-rose-600" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-serif text-2xl text-slate-900">Payment Failed or Cancelled</h3>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-                    Your booking slot is still reserved (status: <strong className="text-blue-600">PENDING</strong>).
+                  <h3 className="font-serif text-2xl text-[#384633]">Payment Failed or Cancelled</h3>
+                  <p className="text-xs text-[#7E8466] max-w-md mx-auto leading-relaxed font-light">
+                    Your booking slot is still reserved (status: <strong className="text-[#384633]">PENDING</strong>).
                     No duplicate booking will be created if you retry.
                   </p>
                 </div>
@@ -1630,20 +1612,20 @@ export function BookingWizard() {
                       setError(null);
                       createdBookingId && launchRazorpayCheckout(createdBookingId);
                     }}
-                    className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-600/15 transition"
+                    className="bg-[#384633] hover:bg-[#2B3B2B] disabled:opacity-50 text-white font-bold px-6 py-3.5 rounded-full text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md cursor-pointer"
                   >
                     <RotateCcw className="w-4 h-4" />
                     <span>Retry Payment</span>
                   </button>
                   <button
                     onClick={() => { setStep(5); setPaymentStatus('IDLE'); setPaymentPhase('idle'); setError(null); }}
-                    className="border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider transition"
+                    className="border border-[#384633]/20 text-[#384633] hover:bg-[#F4F0E8] font-semibold px-6 py-3.5 rounded-full text-xs uppercase tracking-wider cursor-pointer"
                   >
                     Back to Booking
                   </button>
                   <button
                     onClick={resetWizard}
-                    className="border border-rose-200 text-rose-500 hover:bg-rose-50 font-semibold px-6 py-3.5 rounded-xl text-xs uppercase tracking-wider transition"
+                    className="border border-rose-200 text-rose-600 hover:bg-rose-50 font-semibold px-6 py-3.5 rounded-full text-xs uppercase tracking-wider cursor-pointer"
                   >
                     Cancel Booking
                   </button>
@@ -1651,16 +1633,15 @@ export function BookingWizard() {
               </div>
             )}
 
-            {/* ── PENDING / IDLE: Razorpay modal is open, waiting ──────── */}
             {!isRecoveringState && (paymentStatus === 'IDLE' || paymentStatus === 'PENDING') && (
               <div className="space-y-4">
-                <div className="w-20 h-20 bg-slate-50 border-2 border-slate-200 rounded-full flex items-center justify-center mx-auto">
-                  <CreditCard className="w-10 h-10 text-slate-400 animate-pulse" />
+                <div className="w-20 h-20 bg-[#F4F0E8] border-2 border-[#384633]/20 rounded-full flex items-center justify-center mx-auto">
+                  <CreditCard className="w-10 h-10 text-[#384633] animate-pulse" />
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-serif text-2xl text-slate-900">Complete Payment</h3>
-                  <p className="text-xs text-slate-500">Please complete your payment in the Razorpay popup window.</p>
-                  <p className="text-[11px] text-slate-400">Do not close or refresh this page while the payment window is open.</p>
+                  <h3 className="font-serif text-2xl text-[#384633]">Complete Payment</h3>
+                  <p className="text-xs text-[#7E8466] font-light">Please complete your payment in the Razorpay popup window.</p>
+                  <p className="text-[11px] text-[#7E8466]">Do not close or refresh this page while the payment window is open.</p>
                 </div>
               </div>
             )}
@@ -1674,7 +1655,6 @@ export function BookingWizard() {
   );
 }
 
-// Subcomponents to log lifecycle precisely
 function VerifyingPaymentLogger() {
   useEffect(() => {
     console.log(`[${new Date().toISOString()}] VERIFYING component mounted and rendered in DOM`);
@@ -1683,15 +1663,15 @@ function VerifyingPaymentLogger() {
 
   return (
     <div className="space-y-5">
-      <div className="w-20 h-20 bg-blue-50 border-2 border-blue-200 rounded-full flex items-center justify-center mx-auto">
-        <ShieldCheck className="w-10 h-10 text-blue-600 animate-pulse" />
+      <div className="w-20 h-20 bg-[#F4F0E8] border-2 border-[#384633]/20 rounded-full flex items-center justify-center mx-auto">
+        <ShieldCheck className="w-10 h-10 text-[#384633] animate-pulse" />
       </div>
       <div className="space-y-2">
-        <h3 className="font-serif text-2xl text-slate-900">Verifying Payment…</h3>
-        <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+        <h3 className="font-serif text-2xl text-[#384633]">Verifying Payment…</h3>
+        <p className="text-xs text-[#7E8466] max-w-xs mx-auto leading-relaxed font-light">
           Your payment is being cryptographically verified via HMAC SHA256 signature.
         </p>
-        <p className="text-[11px] font-semibold text-slate-600">
+        <p className="text-[11px] font-semibold text-[#384633]">
           Please do not close or refresh this page.
         </p>
       </div>
@@ -1708,18 +1688,18 @@ function PaidPaymentLogger() {
   return (
     <div className="space-y-5">
       <div className="w-20 h-20 bg-emerald-50 border-2 border-emerald-300 rounded-full flex items-center justify-center mx-auto">
-        <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+        <CheckCircle2 className="w-10 h-10 text-emerald-600" />
       </div>
       <div className="space-y-2">
-        <h3 className="font-serif text-2xl text-slate-900">Payment Successful!</h3>
-        <p className="text-xs text-slate-500 leading-relaxed">
-          ✓ Your payment has been verified securely.
+        <h3 className="font-serif text-2xl text-[#384633]">Payment Successful!</h3>
+        <p className="text-xs text-[#7E8466] leading-relaxed font-light">
+          Your payment has been verified securely.
         </p>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#7E8466]">
           Booking status updated to{' '}
-          <strong className="text-emerald-600">CONFIRMED</strong>.
+          <strong className="text-emerald-700">CONFIRMED</strong>.
         </p>
-        <p className="text-[11px] text-slate-400 animate-pulse">Redirecting to your Booking Confirmed page…</p>
+        <p className="text-[11px] text-[#7E8466] animate-pulse">Redirecting to your Booking Confirmed page…</p>
       </div>
     </div>
   );
