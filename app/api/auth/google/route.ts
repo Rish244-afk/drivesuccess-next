@@ -350,7 +350,10 @@ export async function POST(req: NextRequest) {
           reason: 'Google email is already registered to a different account.',
         });
         return NextResponse.json(
-          { success: false, error: 'This Google account is already linked to a different registered student.' },
+          {
+            success: false,
+            error: 'This Google account is already connected to another DriveSuccess account. You are currently signed in to a different account. Please sign out first, then continue with Google.',
+          },
           { status: 400 }
         );
       }
