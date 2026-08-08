@@ -5,13 +5,20 @@
 @layer base {
   :root {
     --background: 40 25% 93%;
-    --foreground: 120 16% 20%;
-    --card: 40 20% 97%;
-    --card-foreground: 120 16% 20%;
-    --border: 40 15% 85%;
-    --accent: 120 16% 20%;
-    --accent-purple: 120 20% 30%;
+    --foreground: 110 14% 31%;
+    --card: 38 23% 87%;
+    --card-foreground: 110 14% 31%;
+    --border: 36 14% 81%;
+    --accent: 110 14% 31%;
+    --accent-purple: 76 13% 46%;
     --radius: 1.5rem;
+
+    /* Hex Design Tokens from Reference Board */
+    --color-primary: #4A5A44;
+    --color-secondary: #7E8466;
+    --color-tertiary: #E7E1D6;
+    --color-neutral: #D6D0C6;
+    --color-bg: #F4F0E8;
 
     /* Premium ambient light positions */
     --mouse-x: 50%;
@@ -28,7 +35,7 @@
 
   body {
     background-color: #F4F0E8;
-    color: #2B3B2B;
+    color: #4A5A44;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }

@@ -91,12 +91,12 @@ export function Navbar() {
   return (
     <header
       ref={headerRef}
-      className={`sticky top-3 z-50 text-[#2B3B2B] font-sans transition-all duration-300 ${isDashboardRoute ? 'hidden md:block' : ''}`}
+      className={`sticky top-3 z-50 text-[#4A5A44] font-sans transition-all duration-300 ${isDashboardRoute ? 'hidden md:block' : ''}`}
     >
       <div
-        className="max-w-7xl mx-auto px-6 sm:px-8 py-3 rounded-full flex items-center justify-between transition-all duration-300 border border-[#2B3B2B]/10 shadow-sm"
+        className="max-w-7xl mx-auto px-6 sm:px-8 py-3 rounded-full flex items-center justify-between transition-all duration-300 border border-[#4A5A44]/15 shadow-xs"
         style={{
-          background: 'rgba(244, 240, 232, 0.88)',
+          background: 'rgba(244, 240, 232, 0.92)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}
@@ -105,7 +105,7 @@ export function Navbar() {
         {/* Brand Logo */}
         <Magnetic range={25} strength={0.2}>
           <Link href="/" className="flex items-center gap-3 group cursor-pointer py-1">
-            <span className="font-serif text-2xl font-normal text-[#2B3B2B] tracking-tight group-hover:text-[#1E2B1E] transition-colors">
+            <span className="font-serif text-2xl font-normal text-[#4A5A44] tracking-tight group-hover:text-[#384633] transition-colors">
               DriveSuccess
             </span>
           </Link>
@@ -120,7 +120,7 @@ export function Navbar() {
                 key={link.name}
                 href={link.href}
                 className={`text-xs font-medium transition-colors relative py-1 ${
-                  isActive ? 'text-[#2B3B2B] font-semibold border-b-2 border-[#2B3B2B]' : 'text-[#5C6B5C] hover:text-[#2B3B2B]'
+                  isActive ? 'text-[#4A5A44] font-semibold border-b-2 border-[#4A5A44]' : 'text-[#7E8466] hover:text-[#4A5A44]'
                 }`}
               >
                 {link.name}
@@ -135,7 +135,7 @@ export function Navbar() {
 
           <button
             onClick={handleStudentPortalClick}
-            className="text-xs font-medium text-[#5C6B5C] hover:text-[#2B3B2B] px-3 py-2 transition-colors focus:outline-none cursor-pointer"
+            className="text-xs font-medium text-[#7E8466] hover:text-[#4A5A44] px-3 py-2 transition-colors focus:outline-none cursor-pointer"
           >
             <span>Student Portal</span>
           </button>
@@ -149,7 +149,7 @@ export function Navbar() {
                 router.push('/book?reset=1');
                 setMobileMenuOpen(false);
               }}
-              className="bg-[#2B3B2B] hover:bg-[#1E2B1E] text-white font-medium text-xs px-6 py-2.5 rounded-full flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-sm"
+              className="bg-[#4A5A44] hover:bg-[#384633] text-white font-medium text-xs px-6 py-2.5 rounded-full flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-xs"
             >
               <span>Book Session</span>
             </button>
@@ -159,7 +159,7 @@ export function Navbar() {
         {/* Mobile Hamburger Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-[#2B3B2B] hover:text-[#1E2B1E] p-2 rounded-full border border-[#2B3B2B]/20 bg-white/50 focus:outline-none transition"
+          className="md:hidden text-[#4A5A44] hover:text-[#384633] p-2 rounded-full border border-[#4A5A44]/20 bg-white/50 focus:outline-none transition"
           aria-label="Toggle Navigation Menu"
           aria-expanded={mobileMenuOpen}
         >
@@ -176,7 +176,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="md:hidden mt-2 max-w-7xl mx-auto bg-[#F4F0E8]/95 backdrop-blur-2xl border border-[#2B3B2B]/15 rounded-3xl px-8 py-8 space-y-6 shadow-xl"
+            className="md:hidden mt-2 max-w-7xl mx-auto bg-[#F4F0E8]/95 backdrop-blur-2xl border border-[#4A5A44]/15 rounded-3xl px-8 py-8 space-y-6 shadow-xl"
           >
             <div className="space-y-3">
               {navLinks.map((link) => (
@@ -185,7 +185,7 @@ export function Navbar() {
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block font-serif text-2xl py-2 transition-colors ${
-                    pathname === link.href ? 'text-[#2B3B2B] italic font-medium' : 'text-[#5C6B5C] hover:text-[#2B3B2B]'
+                    pathname === link.href ? 'text-[#4A5A44] italic font-medium' : 'text-[#7E8466] hover:text-[#4A5A44]'
                   }`}
                 >
                   {link.name}
@@ -193,13 +193,13 @@ export function Navbar() {
               ))}
             </div>
 
-            <div className="pt-6 border-t border-[#2B3B2B]/10 flex flex-col gap-3">
+            <div className="pt-6 border-t border-[#4A5A44]/10 flex flex-col gap-3">
               <button
                 onClick={(e) => {
                   setMobileMenuOpen(false);
                   handleStudentPortalClick(e);
                 }}
-                className="w-full text-center py-3.5 border border-[#2B3B2B]/20 text-[#2B3B2B] font-medium text-xs uppercase tracking-wider rounded-full bg-white/60 cursor-pointer"
+                className="w-full text-center py-3.5 border border-[#4A5A44]/20 text-[#4A5A44] font-medium text-xs uppercase tracking-wider rounded-full bg-white/60 cursor-pointer"
               >
                 Student Portal
               </button>
@@ -209,7 +209,7 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   handleAdminClick(e);
                 }}
-                className="w-full text-center py-3.5 border border-[#2B3B2B]/20 text-[#2B3B2B] font-medium text-xs uppercase tracking-wider rounded-full bg-[#EAE5DB] cursor-pointer"
+                className="w-full text-center py-3.5 border border-[#4A5A44]/20 text-[#4A5A44] font-medium text-xs uppercase tracking-wider rounded-full bg-[#E7E1D6] cursor-pointer"
               >
                 Admin Control Portal 🔑
               </button>
@@ -222,7 +222,7 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   router.push('/book?reset=1');
                 }}
-                className="w-full text-center py-3.5 bg-[#2B3B2B] text-white font-medium text-xs uppercase tracking-wider rounded-full shadow-md cursor-pointer"
+                className="w-full text-center py-3.5 bg-[#4A5A44] text-white font-medium text-xs uppercase tracking-wider rounded-full shadow-md cursor-pointer"
               >
                 Book Session
               </button>
