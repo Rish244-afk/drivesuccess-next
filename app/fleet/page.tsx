@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Shield, Zap, Compass, Car } from 'lucide-react';
 import { getVehiclesAction } from '@/actions/vehicle';
 import { BoneyardWrapper, VehicleCardSkeleton } from '@/components/ui/Skeleton';
 import { Pagination } from '@/components/ui/Pagination';
@@ -88,161 +88,231 @@ function FleetContent() {
   };
 
   return (
-    <div className="space-y-0 font-sans overflow-hidden bg-[#090A0F] text-slate-100 min-h-screen">
+    <div className="space-y-0 font-sans overflow-hidden bg-[#F4F0E8] text-[#2B3B2B] min-h-screen">
       
-      {/* 1. HERO SECTION */}
-      <section className="relative py-28 lg:py-36 text-center overflow-hidden">
-        <div aria-hidden="true" className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full pointer-events-none opacity-40"
-          style={{ background: 'radial-gradient(ellipse, rgba(56,189,248,0.15) 0%, transparent 70%)', filter: 'blur(80px)' }} />
+      {/* 1. HERO SECTION (Screenshot 2) */}
+      <section className="relative min-h-[85vh] flex flex-col justify-between py-16 px-6 sm:px-8 max-w-7xl mx-auto overflow-hidden">
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[3rem] overflow-hidden my-4">
+          <Image
+            src="/images/hondacity.jpg"
+            alt="Fleet Collection Environment"
+            fill
+            priority
+            className="object-cover opacity-25 filter blur-[1px] brightness-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/70 via-[#F4F0E8]/40 to-[#F4F0E8]" />
+        </div>
 
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-6 relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 text-cyan-400 text-xs font-semibold tracking-[0.2em] uppercase bg-cyan-950/40 backdrop-blur-md shadow-[0_0_20px_rgba(56,189,248,0.1)]">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Dual-Control Safety Fleet</span>
+        <div className="relative z-10 max-w-3xl pt-12 sm:pt-20 space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#2B3B2B]/20 text-[#2B3B2B] text-xs font-semibold tracking-widest uppercase bg-white/60 backdrop-blur-md shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#2B3B2B]" />
+            <span>THE COLLECTION</span>
           </div>
 
-          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-white tracking-tight leading-tight">
-            Our Learning <em className="italic text-cyan-400 font-normal">Vehicles</em>
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-normal text-[#2B3B2B] tracking-tight leading-[1.05]">
+            Natural Power, <br />
+            <em className="italic font-normal text-[#3D4E3D]">Refined Motion.</em>
           </h1>
-          <p className="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
-            Every vehicle in our academy features instructor dual-pedal overrides, climate control, and ISO-certified safety standards.
+
+          <p className="text-base sm:text-lg text-[#5C6B5C] font-light max-w-xl leading-relaxed">
+            Our fleet blends electric performance with sculptural design — delivering power that moves with absolute purpose.
           </p>
+
+          <div className="flex flex-wrap items-center gap-4 pt-4">
+            <Magnetic range={35} strength={0.4}>
+              <button
+                onClick={() => handleTierFilterChange('TIER_A_COMPACT')}
+                className="bg-[#2B3B2B] hover:bg-[#1E2B1E] text-white font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-3 transition-all duration-300 shadow-md hover:scale-105"
+              >
+                <span>Explore Tier A</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Magnetic>
+
+            <button
+              onClick={() => handleTierFilterChange('all')}
+              className="bg-white/80 hover:bg-white text-[#2B3B2B] border border-[#2B3B2B]/20 font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-2 transition-all duration-300 shadow-xs"
+            >
+              <span>View All Models</span>
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* 2. FLEET GRID SECTION */}
-      <section ref={fleetContainerRef} className="py-20 lg:py-28 scroll-mt-12 relative bg-[#0D0E15] border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16 relative z-10">
+      {/* 2. FOUR METRIC CARDS STRIP (Screenshot 2) */}
+      <section className="py-8 px-6 sm:px-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-[2rem] bg-[#EFECE6] border border-[#2B3B2B]/10 shadow-xs">
           
-          {/* Frosted Filter Tabs */}
-          <div className="flex justify-center">
-            <div className="flex flex-wrap justify-center gap-2 p-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-2xl">
-              {[
-                { id: 'all', label: 'All Fleet Vehicles' },
-                { id: 'TIER_A_COMPACT', label: 'Compacts' },
-                { id: 'TIER_B_PREMIUM', label: 'Sedans' },
-                { id: 'SUV', label: 'SUVs & Crossovers' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTierFilterChange(tab.id)}
-                  className={`px-6 py-3 rounded-full text-xs font-semibold uppercase tracking-widest transition-all cursor-pointer ${
-                    selectedTierFilter === tab.id
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-[0_0_20px_rgba(56,189,248,0.3)]'
-                      : 'text-slate-400 hover:text-white font-medium'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+          <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/60 space-y-2">
+            <div className="p-3 rounded-full bg-[#2B3B2B]/10 text-[#2B3B2B]">
+              <Compass className="w-5 h-5" />
             </div>
+            <h3 className="font-serif text-lg font-normal text-[#2B3B2B]">0 Emissions</h3>
+            <p className="text-[10px] text-[#5C6B5C] font-semibold uppercase tracking-wider">Pure Electric Drive</p>
           </div>
 
-          <BoneyardWrapper loading={loading} skeleton={<VehicleCardSkeleton count={4} />}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${selectedTierFilter}-${validPage}`}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.25 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/60 space-y-2">
+            <div className="p-3 rounded-full bg-[#2B3B2B]/10 text-[#2B3B2B]">
+              <Zap className="w-5 h-5" />
+            </div>
+            <h3 className="font-serif text-lg font-normal text-[#2B3B2B]">Instant</h3>
+            <p className="text-[10px] text-[#5C6B5C] font-semibold uppercase tracking-wider">Torque Response</p>
+          </div>
+
+          <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/60 space-y-2">
+            <div className="p-3 rounded-full bg-[#2B3B2B]/10 text-[#2B3B2B]">
+              <Shield className="w-5 h-5" />
+            </div>
+            <h3 className="font-serif text-lg font-normal text-[#2B3B2B]">ADAS L2+</h3>
+            <p className="text-[10px] text-[#5C6B5C] font-semibold uppercase tracking-wider">Intelligent Safety</p>
+          </div>
+
+          <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/60 space-y-2">
+            <div className="p-3 rounded-full bg-[#2B3B2B]/10 text-[#2B3B2B]">
+              <Car className="w-5 h-5" />
+            </div>
+            <h3 className="font-serif text-lg font-normal text-[#2B3B2B]">Premium</h3>
+            <p className="text-[10px] text-[#5C6B5C] font-semibold uppercase tracking-wider">Cabin Comfort</p>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 3. FLEET GRID SECTION */}
+      <section ref={fleetContainerRef} className="py-20 lg:py-28 scroll-mt-12 relative max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
+        
+        {/* Frosted Filter Tabs */}
+        <div className="flex justify-center">
+          <div className="flex flex-wrap justify-center gap-2 p-2 rounded-full border border-[#2B3B2B]/10 bg-[#EFECE6]/80 backdrop-blur-md">
+            {[
+              { id: 'all', label: 'All Fleet Vehicles' },
+              { id: 'TIER_A_COMPACT', label: 'Compacts' },
+              { id: 'TIER_B_PREMIUM', label: 'Sedans' },
+              { id: 'SUV', label: 'SUVs & Crossovers' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => handleTierFilterChange(tab.id)}
+                className={`px-6 py-3 rounded-full text-xs font-semibold uppercase tracking-widest transition-all cursor-pointer ${
+                  selectedTierFilter === tab.id
+                    ? 'bg-[#2B3B2B] text-white font-bold shadow-md'
+                    : 'text-[#5C6B5C] hover:text-[#2B3B2B] font-medium'
+                }`}
               >
-                {paginatedVehicles.map((car) => (
-                  <div
-                    key={car.id}
-                    className="overflow-hidden flex flex-col justify-between h-full rounded-3xl border border-white/10 bg-[#12141F] hover:border-cyan-500/40 transition-all duration-300 shadow-xl group"
-                  >
-                    <div className="h-64 relative overflow-hidden bg-slate-950">
-                      <Image
-                        src={car.imageUrl || `/images/${car.name.toLowerCase()}.jpg`}
-                        alt={car.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-700 brightness-90 contrast-110"
-                      />
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-[#090A0F]/80 backdrop-blur-md text-cyan-400 text-[10px] uppercase tracking-widest font-bold px-3.5 py-1.5 rounded-full border border-cyan-500/30">
-                          {formatTierLabel(car.tier)}
-                        </span>
-                      </div>
-                    </div>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                    <div className="p-8 space-y-6 flex-1 flex flex-col justify-between relative">
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-baseline gap-2">
-                          <div>
-                            <h3 className="font-serif text-2xl font-normal text-white leading-snug">{car.name}</h3>
-                            <span className="text-xs text-slate-400 font-semibold">Model Year: {car.modelYear}</span>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <span className="font-serif text-2xl text-cyan-400 font-normal block">
-                              ₹{car.ratePerSession.toLocaleString()}
-                            </span>
-                            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold block mt-0.5">/ session</span>
-                          </div>
-                        </div>
-
-                        <p className="text-xs text-slate-400 font-light leading-relaxed">
-                          {car.description}
-                        </p>
-                      </div>
-
-                      <div className="pt-4 border-t border-white/10 flex flex-wrap gap-2">
-                        <span className="text-[11px] font-semibold text-slate-300 bg-white/5 px-3.5 py-1.5 rounded-full border border-white/10">
-                          {car.transmission} Transmission
-                        </span>
-                        {car.hasDualControl && (
-                          <span className="text-[11px] font-semibold text-cyan-400 bg-cyan-950/40 px-3.5 py-1.5 rounded-full border border-cyan-500/30">
-                            Dual Control Pedals
-                          </span>
-                        )}
-                        {car.hasAirConditioning && (
-                          <span className="text-[11px] font-semibold text-slate-300 bg-white/5 px-3.5 py-1.5 rounded-full border border-white/10">
-                            Climate Control
-                          </span>
-                        )}
-                      </div>
+        <BoneyardWrapper loading={loading} skeleton={<VehicleCardSkeleton count={4} />}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${selectedTierFilter}-${validPage}`}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {paginatedVehicles.map((car) => (
+                <div
+                  key={car.id}
+                  className="overflow-hidden flex flex-col justify-between h-full rounded-[2.5rem] border border-[#2B3B2B]/10 bg-[#EFECE6] hover:shadow-xl transition-all duration-300 group"
+                >
+                  <div className="h-64 relative overflow-hidden bg-white/40">
+                    <Image
+                      src={car.imageUrl || `/images/${car.name.toLowerCase()}.jpg`}
+                      alt={car.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700 brightness-95"
+                    />
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-white/90 backdrop-blur-md text-[#2B3B2B] text-[10px] uppercase tracking-widest font-bold px-3.5 py-1.5 rounded-full border border-[#2B3B2B]/10">
+                        {formatTierLabel(car.tier)}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </motion.div>
-            </AnimatePresence>
-          </BoneyardWrapper>
 
-          {/* Numbered Pagination Controls */}
-          <Pagination
-            currentPage={validPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            variant="dark"
-          />
+                  <div className="p-8 space-y-6 flex-1 flex flex-col justify-between relative">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-baseline gap-2">
+                        <div>
+                          <h3 className="font-serif text-2xl font-normal text-[#2B3B2B] leading-snug">{car.name}</h3>
+                          <span className="text-xs text-[#5C6B5C] font-semibold">Model Year: {car.modelYear}</span>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="font-serif text-2xl text-[#2B3B2B] font-normal block">
+                            ₹{car.ratePerSession.toLocaleString()}
+                          </span>
+                          <span className="text-[10px] text-[#5C6B5C] uppercase tracking-widest font-semibold block mt-0.5">/ session</span>
+                        </div>
+                      </div>
 
-        </div>
+                      <p className="text-xs text-[#5C6B5C] font-light leading-relaxed">
+                        {car.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-[#2B3B2B]/10 flex flex-wrap gap-2">
+                      <span className="text-[11px] font-semibold text-[#2B3B2B] bg-white/60 px-3.5 py-1.5 rounded-full border border-[#2B3B2B]/10">
+                        {car.transmission} Transmission
+                      </span>
+                      {car.hasDualControl && (
+                        <span className="text-[11px] font-semibold text-[#2B3B2B] bg-[#D8E2D8] px-3.5 py-1.5 rounded-full border border-[#2B3B2B]/20">
+                          Dual Control Pedals
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </BoneyardWrapper>
+
+        {/* Numbered Pagination Controls */}
+        <Pagination
+          currentPage={validPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          variant="light"
+        />
+
       </section>
 
-      {/* 3. PREMIUM CTA BAND */}
-      <section className="relative py-28 text-center overflow-hidden bg-[#090A0F]">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-8 relative z-10 font-sans">
-          <div className="mx-auto max-w-3xl rounded-3xl p-10 sm:p-14 border border-white/15 bg-white/[0.03] backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
-            <h2 className="font-serif text-[clamp(2.4rem,5.5vw,3.8rem)] font-normal text-white tracking-tight leading-[1.05] mb-6">
-              Reserve Your Training <em className="italic font-normal text-cyan-400">Vehicle</em>
-            </h2>
-            <p className="text-base sm:text-lg text-slate-300 font-light max-w-xl mx-auto leading-relaxed mb-8">
-              Pick your preferred car model and instructor for your next driving lesson.
+      {/* 4. FOOTER */}
+      <footer className="mt-24 rounded-t-[3rem] bg-[#EFECE6] border-t border-[#2B3B2B]/10 py-16 px-8 lg:px-16 text-[#2B3B2B]">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="space-y-4">
+            <h3 className="font-serif text-2xl font-normal text-[#2B3B2B]">DriveSuccess</h3>
+            <p className="text-xs text-[#5C6B5C] font-light leading-relaxed max-w-sm">
+              Sculpting mindful drivers for a sustainable future. Experience the serenity of motion.
             </p>
+            <p className="text-[11px] text-[#5C6B5C]/80 font-mono pt-4">
+              © 2024 DriveSuccess. Sculpted for the future of motion.
+            </p>
+          </div>
 
-            <Magnetic range={35} strength={0.4}>
-              <Link
-                href="/book"
-                className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-widest px-12 py-5 rounded-full inline-flex items-center gap-3 transition-all duration-300 hover:scale-105 shadow-[0_0_30px_rgba(56,189,248,0.35)] border border-cyan-300/30"
-              >
-                <span>Book Driving Session</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative" />
-              </Link>
-            </Magnetic>
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-[#2B3B2B]">Journey</h4>
+            <ul className="space-y-2 text-xs text-[#5C6B5C]">
+              <li><Link href="/" className="hover:text-[#2B3B2B] transition-colors">The Method</Link></li>
+              <li><Link href="/fleet" className="hover:text-[#2B3B2B] transition-colors">Sustainable Fleet</Link></li>
+              <li><Link href="/courses" className="hover:text-[#2B3B2B] transition-colors">Safety Standards</Link></li>
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-[#2B3B2B]">Legal & Support</h4>
+            <ul className="space-y-2 text-xs text-[#5C6B5C]">
+              <li><Link href="/terms" className="hover:text-[#2B3B2B] transition-colors">Terms of Serenity</Link></li>
+              <li><Link href="/privacy" className="hover:text-[#2B3B2B] transition-colors">Privacy Sanctuary</Link></li>
+              <li><Link href="/contact" className="hover:text-[#2B3B2B] transition-colors">Contact Studio</Link></li>
+            </ul>
           </div>
         </div>
-      </section>
+      </footer>
 
     </div>
   );
@@ -250,7 +320,7 @@ function FleetContent() {
 
 export default function FleetPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#090A0F] text-slate-400 p-12 text-center text-sm">Loading Fleet Vehicles...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F4F0E8] text-[#5C6B5C] p-12 text-center text-sm">Loading Fleet Vehicles...</div>}>
       <FleetContent />
     </Suspense>
   );
