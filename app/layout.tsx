@@ -30,11 +30,11 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   title: {
-    default: 'Vahathi Motor Driving School | DriveSuccess Academy Bengaluru',
+    default: 'Vahathi Motor Driving School | Certified Driving Institution Bengaluru',
     template: '%s | Vahathi Motor Driving School',
   },
   description:
-    'Vahathi Motor Driving School (DriveSuccess Academy) - Professional driving lessons for Hyundai Creta SUV, Honda City, Swift & WagonR. 10 & 15 days packages with 2W & 4W RTO license support in Bengaluru. Call +91 7829780778.',
+    'Vahathi Motor Driving School - Professional driving lessons for Hyundai Creta SUV, Honda City, Swift & WagonR. 10 & 15 days packages with 2W & 4W RTO license support in Bengaluru. Call +91 7829780778.',
   keywords: [
     'Driving School Bengaluru',
     'Vahathi Motor Driving School',
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Vahathi Motor Driving School' }],
   openGraph: {
-    title: 'Vahathi Motor Driving School | DriveSuccess Academy',
+    title: 'Vahathi Motor Driving School',
     description:
       'Master the road with confidence. Hyundai Creta SUV & Honda City dual-control fleet, certified instructors, flexible schedules, and RTO licensing support.',
     url: 'https://drivesuccess-next.vercel.app',
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Vahathi Motor Driving School | DriveSuccess Academy',
+    title: 'Vahathi Motor Driving School',
     description: 'Master the road with confidence. Dual-control fleet & RTO licensing support in Bengaluru.',
   },
   robots: {

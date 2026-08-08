@@ -501,14 +501,14 @@ export async function cancelStudentBookingAction(bookingId: string) {
           emailData: student?.email
             ? {
                 to: student.email,
-                subject: `⚠️ Booking Cancelled - DriveSuccess Academy #${booking.id.slice(-8)}`,
+                subject: `⚠️ Booking Cancelled - Vahathi Motor Driving School #${booking.id.slice(-8)}`,
                 html: `Cancelled paid booking for ${booking.package.name}. Refund request pending admin review.`,
               }
             : undefined,
           whatsAppData: student?.phone
             ? {
                 phone: student.phone,
-                message: `⚠️ *DriveSuccess Cancellation*\nHello ${student.name}, your booking #${booking.id.slice(-8)} for ${booking.package.name} has been cancelled. Refund request submitted for admin review.`,
+                message: `⚠️ *Vahathi Driving Cancellation*\nHello ${student.name}, your booking #${booking.id.slice(-8)} for ${booking.package.name} has been cancelled. Refund request submitted for admin review.`,
               }
             : undefined,
           metadata: { bookingId: booking.id, packageName: booking.package.name, isPaid: true },
@@ -736,14 +736,14 @@ export async function rescheduleStudentSessionAction({
         emailData: sessionRecord.student?.email
           ? {
               to: sessionRecord.student.email,
-              subject: `📅 Session Rescheduled - DriveSuccess Academy`,
+              subject: `📅 Session Rescheduled - Vahathi Motor Driving School`,
               html: emailHtml,
             }
           : undefined,
         whatsAppData: sessionRecord.student?.phone
           ? {
               phone: sessionRecord.student.phone,
-              message: `📅 *DriveSuccess Rescheduled*\nHello ${sessionRecord.student.name}, your training session for ${sessionRecord.booking.package.name} with ${sessionRecord.instructor.name} is now scheduled for ${formattedDate}.`,
+              message: `📅 *Vahathi Driving Rescheduled*\nHello ${sessionRecord.student.name}, your training session for ${sessionRecord.booking.package.name} with ${sessionRecord.instructor.name} is now scheduled for ${formattedDate}.`,
             }
           : undefined,
         metadata: {

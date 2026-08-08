@@ -79,7 +79,7 @@ export default function ShowcasePage() {
             }}
           >
             <h2 className="font-serif text-[clamp(2.4rem,6vw,4rem)] font-normal text-white tracking-tight leading-[1.05] mb-6">
-              Ready to Experience <em className="italic font-normal" style={{ color: 'rgba(167,243,208,0.95)' }}>DriveSuccess</em>?
+              Ready to Experience <em className="italic font-normal" style={{ color: 'rgba(167,243,208,0.95)' }}>Vahathi Driving</em>?
             </h2>
             <p className="text-lg text-white/80 font-light max-w-xl mx-auto leading-relaxed mb-10">
               Book your session online with instant instructor and dual-control vehicle selection.

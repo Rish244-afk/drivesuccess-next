@@ -64,7 +64,7 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       console.log(`[DriveAI Router] Route: GREETING | Query: "${userMessage}"`);
       return {
         success: true,
-        message: "Hi there! Welcome to DriveSuccess Academy. I'm your DriveAI Assistant — how can I help you today?",
+        message: "Hi there! Welcome to Vahathi Motor Driving School. I'm your DriveAI Assistant — how can I help you today?",
         options: [
           { label: '📦 Browse Packages', value: 'Show packages' },
           { label: '📅 Check Open Slots', value: 'Check available slots' },
@@ -325,7 +325,7 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
       console.log(`[DriveAI Router] Route: ABOUT_WEBSITE | Query: "${userMessage}"`);
       return {
         success: true,
-        message: 'DriveSuccess Academy is a premier ISO 9001:2026 certified driving school. We offer accredited 2-wheeler and 4-wheeler practical driving courses with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), doorstep pickup, and RTO exam track preparation!',
+        message: 'Vahathi Motor Driving School is a premier ISO 9001:2026 certified driving school. We offer accredited 2-wheeler and 4-wheeler practical driving courses with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), doorstep pickup, and RTO exam track preparation!',
         options: [
           { label: '📦 Browse Packages', value: 'Show packages' },
           { label: '📅 Check Open Slots', value: 'Check available slots' },
@@ -456,7 +456,7 @@ export async function processAIChatAction(userMessage: string, history: AIMessag
     console.error('processAIChatAction Error:', error);
     return {
       success: true,
-      message: 'DriveSuccess Academy offers 2-wheeler and 4-wheeler practical driving training with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and RTO exam prep. How can I help you today?',
+      message: 'Vahathi Motor Driving School offers 2-wheeler and 4-wheeler practical driving training with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and RTO exam prep. How can I help you today?',
     };
   }
 }

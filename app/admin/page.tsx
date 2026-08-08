@@ -8,7 +8,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Admin Overview | DriveSuccess Academy',
+  title: 'Admin Overview | Vahathi Motor Driving School',
   description: 'Administrative dashboard for academy revenue, bookings, instructors, and vehicle fleet.',
 };
 

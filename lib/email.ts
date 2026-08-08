@@ -30,7 +30,7 @@ export async function sendEmail({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'DriveSuccess Academy <onboarding@resend.dev>',
+          from: 'Vahathi Motor Driving School <onboarding@resend.dev>',
           to: [to],
           subject,
           html,
@@ -55,7 +55,7 @@ export async function sendBookingConfirmationEmail({
   razorpayPaymentId,
 }: BookingEmailParams) {
   try {
-    const subject = `🚗 Booking Confirmed! DriveSuccess Academy - #${bookingId.slice(-8)}`;
+    const subject = `🚗 Booking Confirmed! Vahathi Motor Driving School - #${bookingId.slice(-8)}`;
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -77,7 +77,7 @@ export async function sendBookingConfirmationEmail({
         <body>
           <div class="card">
             <div class="header">
-              <a href="https://drivesuccess.edu" class="logo">DriveSuccess Academy</a>
+              <a href="https://drivesuccess.edu" class="logo">Vahathi Motor Driving School</a>
               <h2 style="color: #f8fafc; margin-top: 16px;">Booking Confirmation</h2>
               <span class="badge">Payment Received</span>
             </div>
@@ -112,7 +112,7 @@ export async function sendBookingConfirmationEmail({
             <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-top: 24px;">You can view your session schedules, instructor info, and RTO documents on your student dashboard anytime.</p>
 
             <div class="footer">
-              © 2026 DriveSuccess Academy. All rights reserved.<br/>
+              © 2026 Vahathi Motor Driving School. All rights reserved.<br/>
               Support: support@drivesuccess.edu | +91 7829780778
             </div>
           </div>
@@ -145,7 +145,7 @@ export async function sendBookingCancellationEmail({
   isPaid: boolean;
 }) {
   try {
-    const subject = `⚠️ Booking Cancelled - DriveSuccess Academy #${bookingId.slice(-8)}`;
+    const subject = `⚠️ Booking Cancelled - Vahathi Motor Driving School #${bookingId.slice(-8)}`;
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -189,7 +189,7 @@ export async function sendSessionRescheduledEmail({
   instructorName: string;
 }) {
   try {
-    const subject = `📅 Session Rescheduled - DriveSuccess Academy`;
+    const subject = `📅 Session Rescheduled - Vahathi Motor Driving School`;
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -232,7 +232,7 @@ export async function sendRefundProcessedEmail({
   refundId?: string;
 }) {
   try {
-    const subject = `💸 Refund Processed - DriveSuccess Academy`;
+    const subject = `💸 Refund Processed - Vahathi Motor Driving School`;
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -266,7 +266,7 @@ export async function sendPaymentFailedEmail({
   packageName: string;
 }) {
   try {
-    const subject = `⚠️ Payment Attempt Unsuccessful - DriveSuccess Academy`;
+    const subject = `⚠️ Payment Attempt Unsuccessful - Vahathi Motor Driving School`;
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -300,7 +300,7 @@ export async function sendBookingExpiredEmail({
   packageName: string;
 }) {
   try {
-    const subject = `⌛ Pending Reservation Expired - DriveSuccess Academy`;
+    const subject = `⌛ Pending Reservation Expired - Vahathi Motor Driving School`;
     const htmlContent = `
       <!DOCTYPE html>
       <html>

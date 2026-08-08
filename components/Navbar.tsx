@@ -105,8 +105,17 @@ export function Navbar() {
         {/* Brand Logo */}
         <Magnetic range={25} strength={0.2}>
           <Link href="/" className="flex items-center gap-3 group cursor-pointer py-1">
-            <span className="font-serif text-2xl font-normal text-[#4A5A44] tracking-tight group-hover:text-[#384633] transition-colors">
-              DriveSuccess
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-[#4A5A44]/20 shadow-xs shrink-0 bg-white">
+              <Image
+                src="/images/circle_logo.png"
+                alt="Vahathi Motor Driving School"
+                width={32}
+                height={32}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span className="font-serif text-xl sm:text-2xl font-normal text-[#4A5A44] tracking-tight group-hover:text-[#384633] transition-colors">
+              Vahathi Motor Driving School
             </span>
           </Link>
         </Magnetic>

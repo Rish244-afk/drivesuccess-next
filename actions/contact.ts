@@ -101,7 +101,7 @@ export async function submitContactInquiryAction(formData: {
       const adminEmail = process.env.ADMIN_EMAIL || 'support@drivesuccess.edu';
       await sendEmail({
         to: adminEmail,
-        subject: `[Vahathi DriveSuccess] New Inquiry from ${name}`,
+        subject: `[Vahathi Motor Driving School] New Inquiry from ${name}`,
         html: `
           <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0b0f19; color: #f8fafc; border-radius: 10px;">
             <h2 style="color: #fbbf24;">New Customer Inquiry Received</h2>

@@ -8,7 +8,7 @@ const FAQ_KNOWLEDGE_BASE = [
   {
     category: 'ABOUT',
     keywords: ['about', 'website', 'drivesuccess', 'school', 'academy', 'services', 'offer', 'what do you do', 'who are you'],
-    answer: 'DriveSuccess Academy is an accredited ISO 9001:2026 driving school. We provide 2-Wheeler (Bike/Scooter) and 4-Wheeler (Compact/Sedan/SUV) practical driving courses, RTO mock test prep, dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and doorstep pickup.',
+    answer: 'Vahathi Motor Driving School is an accredited ISO 9001:2026 driving school. We provide 2-Wheeler (Bike/Scooter) and 4-Wheeler (Compact/Sedan/SUV) practical driving courses, RTO mock test prep, dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and doorstep pickup.',
   },
   {
     category: 'DOCUMENTS',
@@ -159,6 +159,6 @@ export async function getFAQAnswerTool(params: { query: string }) {
   return {
     success: true,
     isMatched: false,
-    answer: 'DriveSuccess Academy offers accredited 2-wheeler and 4-wheeler practical driving courses with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and RTO exam track prep. How can I assist you with packages or lesson slots?',
+    answer: 'Vahathi Motor Driving School offers accredited 2-wheeler and 4-wheeler practical driving courses with dual-control safety vehicles, flexible daily slots (9:00 AM - 6:00 PM), and RTO exam track prep. How can I assist you with packages or lesson slots?',
   };
 }

@@ -5,7 +5,7 @@ import { getStudentProfileDataAction } from '@/actions/profile';
 import { ProfileSettingsView } from '@/components/dashboard/ProfileSettingsView';
 
 export const metadata: Metadata = {
-  title: 'Account Settings | DriveSuccess Academy',
+  title: 'Account Settings | Vahathi Motor Driving School',
   description: 'Manage personal profile details, contact preferences, and privacy settings.',
 };
 

@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
         whatsAppData: sessionRecord.student?.phone
           ? {
               phone: sessionRecord.student.phone,
-              message: `🚗 *DriveSuccess Reminder*\nHello ${sessionRecord.student.name}, your driving session with ${sessionRecord.instructor.name} is scheduled for tomorrow at ${formattedTime}.`,
+              message: `🚗 *Vahathi Driving Reminder*\nHello ${sessionRecord.student.name}, your driving session with ${sessionRecord.instructor.name} is scheduled for tomorrow at ${formattedTime}.`,
             }
           : undefined,
         metadata: {

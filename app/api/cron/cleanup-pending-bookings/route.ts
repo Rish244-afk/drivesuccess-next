@@ -102,14 +102,14 @@ export async function GET(req: NextRequest) {
             emailData: student.email
               ? {
                   to: student.email,
-                  subject: `⌛ Pending Reservation Expired - DriveSuccess Academy`,
+                  subject: `⌛ Pending Reservation Expired - Vahathi Motor Driving School`,
                   html: emailHtml,
                 }
               : undefined,
             whatsAppData: student.phone
               ? {
                   phone: student.phone,
-                  message: `⌛ *DriveSuccess Alert*\nHello ${student.name}, your 15-minute reservation window elapsed without payment. The reserved slot has been released.`,
+                  message: `⌛ *Vahathi Driving Alert*\nHello ${student.name}, your 15-minute reservation window elapsed without payment. The reserved slot has been released.`,
                 }
               : undefined,
             metadata: { bookingId: booking.id },

@@ -3,7 +3,7 @@ import { BookingWizard } from '@/components/booking/BookingWizard';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Book a Driving Session | DriveSuccess Academy',
+  title: 'Book a Driving Session | Vahathi Motor Driving School',
   description: 'Select your package, instructor, vehicle, and time slot. Live database booking with double-booking safety checks.',
 };
 

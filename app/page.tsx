@@ -333,7 +333,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           
           <div className="space-y-4">
-            <h3 className="font-serif text-2xl font-normal text-[#384633]">DriveSuccess</h3>
+            <h3 className="font-serif text-2xl font-normal text-[#384633]">Vahathi Motor Driving School</h3>
             <p className="text-xs text-[#7E8466] font-light leading-relaxed max-w-sm">
               Vahathi Motor Driving School. Certified 2W & 4W driving instruction in Kasavanahalli, Bengaluru.
             </p>

@@ -62,7 +62,7 @@ export function InvoiceModal({ isOpen, onClose, booking }: InvoiceModalProps) {
           <div className="flex justify-between items-start border-b border-slate-100 pb-6">
             <div>
               <h2 className="font-serif text-2xl font-semibold text-slate-900">
-                DriveSuccess Academy
+                Vahathi Motor Driving School
               </h2>
               <p className="text-xs text-slate-500 font-light mt-0.5">
                 Licensed Motor Driving Institute & RTO Training Portal
