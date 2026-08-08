@@ -19,7 +19,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif', style: ['normal', 'italic'] });
 
 export const viewport: Viewport = {
-  themeColor: '#090A0F',
+  themeColor: '#F4F0E8',
   width: 'device-width',
   initialScale: 1,
 };
@@ -73,7 +73,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="font-sans bg-[#090A0F] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500/30 selection:text-cyan-400">
+      <body className="font-sans bg-[#F4F0E8] text-[#2B3B2B] min-h-screen flex flex-col antialiased selection:bg-[#2B3B2B]/20 selection:text-[#2B3B2B]">
         <JsonLdSchemas />
         <PremiumCursor />
         <LoadingScreen />

@@ -4,16 +4,16 @@
 
 @layer base {
   :root {
-    --background: 228 27% 4%;
-    --foreground: 210 40% 98%;
-    --card: 228 25% 8%;
-    --card-foreground: 210 40% 98%;
-    --border: 217 19% 15%;
-    --accent: 199 89% 60%;
-    --accent-purple: 263 70% 60%;
-    --radius: 1rem;
+    --background: 40 25% 93%;
+    --foreground: 120 16% 20%;
+    --card: 40 20% 97%;
+    --card-foreground: 120 16% 20%;
+    --border: 40 15% 85%;
+    --accent: 120 16% 20%;
+    --accent-purple: 120 20% 30%;
+    --radius: 1.5rem;
 
-    /* Premium ambient light positions (updated by mouse JS) */
+    /* Premium ambient light positions */
     --mouse-x: 50%;
     --mouse-y: 50%;
   }
@@ -23,12 +23,12 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
-    background-color: #090A0F;
-    color: #F8FAFC;
+    background-color: #F4F0E8;
+    color: #2B3B2B;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }

@@ -81,51 +81,33 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Courses', href: '/courses' },
-    { name: 'Vehicle Fleet', href: '/fleet' },
-    { name: 'Book Session', href: '/book' },
-    { name: 'Engineering', href: '/engineering' },
-    { name: 'Contact', href: '/contact' },
+    { name: 'Our Method', href: '/' },
+    { name: 'Fleet', href: '/fleet' },
+    { name: 'Instructors', href: '/courses' },
+    { name: 'Sustainability', href: '/engineering' },
+    { name: 'Experience', href: '/contact' },
   ];
 
   return (
     <header
       ref={headerRef}
-      className={`sticky top-0 z-50 text-slate-100 font-sans transition-all duration-300 ${isDashboardRoute ? 'hidden md:block' : ''}`}
-      style={{
-        background: 'rgba(9, 10, 15, 0.85)',
-        backdropFilter: 'blur(28px)',
-        WebkitBackdropFilter: 'blur(28px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: scrolled
-          ? '0 4px 20px rgba(0, 0, 0, 0.6), 0 0 30px rgba(56, 189, 248, 0.05)'
-          : '0 1px 0 rgba(255, 255, 255, 0.05)',
-      }}
+      className={`sticky top-3 z-50 text-[#2B3B2B] font-sans transition-all duration-300 ${isDashboardRoute ? 'hidden md:block' : ''}`}
     >
-      <div className={`max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between transition-all duration-300 ${
-        scrolled ? 'h-16' : 'h-20'
-      }`}>
+      <div
+        className="max-w-7xl mx-auto px-6 sm:px-8 py-3 rounded-full flex items-center justify-between transition-all duration-300 border border-[#2B3B2B]/10 shadow-sm"
+        style={{
+          background: 'rgba(244, 240, 232, 0.88)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}
+      >
         
         {/* Brand Logo */}
         <Magnetic range={25} strength={0.2}>
           <Link href="/" className="flex items-center gap-3 group cursor-pointer py-1">
-            <Image
-              src="/images/logo.png"
-              alt="Vahathi Motor Driving School"
-              width={140}
-              height={80}
-              className="h-12 w-auto object-contain brightness-125 contrast-125 filter drop-shadow-[0_0_8px_rgba(56,189,248,0.3)] transition-transform duration-300 group-hover:scale-105"
-              priority
-            />
-            <div className="hidden sm:flex flex-col">
-              <span className="font-serif text-base font-bold text-white tracking-wide leading-tight group-hover:text-cyan-400 transition-colors">
-                DriveSuccess
-              </span>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-slate-400">
-                Academy • Bengaluru
-              </span>
-            </div>
+            <span className="font-serif text-2xl font-normal text-[#2B3B2B] tracking-tight group-hover:text-[#1E2B1E] transition-colors">
+              DriveSuccess
+            </span>
           </Link>
         </Magnetic>
 
@@ -137,18 +119,11 @@ export function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`text-xs tracking-widest uppercase font-medium transition-colors relative py-1 ${
-                  isActive ? 'text-cyan-400 font-semibold' : 'text-slate-300 hover:text-cyan-400'
+                className={`text-xs font-medium transition-colors relative py-1 ${
+                  isActive ? 'text-[#2B3B2B] font-semibold border-b-2 border-[#2B3B2B]' : 'text-[#5C6B5C] hover:text-[#2B3B2B]'
                 }`}
               >
                 {link.name}
-                {isActive && (
-                  <motion.div
-                    layoutId="navbar-indicator"
-                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full shadow-[0_0_8px_rgba(56,189,248,0.8)]"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
               </Link>
             );
           })}
@@ -160,16 +135,9 @@ export function Navbar() {
 
           <button
             onClick={handleStudentPortalClick}
-            className="text-xs tracking-widest uppercase font-medium text-slate-300 hover:text-cyan-400 px-3 py-2 transition-colors focus:outline-none cursor-pointer"
+            className="text-xs font-medium text-[#5C6B5C] hover:text-[#2B3B2B] px-3 py-2 transition-colors focus:outline-none cursor-pointer"
           >
             <span>Student Portal</span>
-          </button>
-
-          <button
-            onClick={handleAdminClick}
-            className="text-xs tracking-widest uppercase font-semibold text-cyan-400 hover:text-cyan-300 px-2 py-2 transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <span>Admin</span>
           </button>
 
           <Magnetic range={30} strength={0.35}>
@@ -181,10 +149,9 @@ export function Navbar() {
                 router.push('/book?reset=1');
                 setMobileMenuOpen(false);
               }}
-              className="relative overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-widest px-6 py-2.5 rounded-full flex items-center gap-1.5 shadow-[0_0_20px_rgba(56,189,248,0.3)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer border border-cyan-300/30"
+              className="bg-[#2B3B2B] hover:bg-[#1E2B1E] text-white font-medium text-xs px-6 py-2.5 rounded-full flex items-center gap-1.5 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-sm"
             >
-              <span>Reserve Session</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>Book Session</span>
             </button>
           </Magnetic>
         </div>
@@ -192,12 +159,11 @@ export function Navbar() {
         {/* Mobile Hamburger Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-slate-300 hover:text-cyan-400 p-2.5 rounded-xl border border-white/10 bg-white/5 focus:outline-none transition"
+          className="md:hidden text-[#2B3B2B] hover:text-[#1E2B1E] p-2 rounded-full border border-[#2B3B2B]/20 bg-white/50 focus:outline-none transition"
           aria-label="Toggle Navigation Menu"
           aria-expanded={mobileMenuOpen}
-          aria-controls="mobile-navigation-drawer"
         >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
       </div>
@@ -210,7 +176,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="md:hidden bg-[#0D0E15]/95 backdrop-blur-2xl border-b border-white/10 px-8 py-8 space-y-6"
+            className="md:hidden mt-2 max-w-7xl mx-auto bg-[#F4F0E8]/95 backdrop-blur-2xl border border-[#2B3B2B]/15 rounded-3xl px-8 py-8 space-y-6 shadow-xl"
           >
             <div className="space-y-3">
               {navLinks.map((link) => (
@@ -219,7 +185,7 @@ export function Navbar() {
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block font-serif text-2xl py-2 transition-colors ${
-                    pathname === link.href ? 'text-cyan-400 italic font-medium' : 'text-slate-300 hover:text-white'
+                    pathname === link.href ? 'text-[#2B3B2B] italic font-medium' : 'text-[#5C6B5C] hover:text-[#2B3B2B]'
                   }`}
                 >
                   {link.name}
@@ -227,13 +193,13 @@ export function Navbar() {
               ))}
             </div>
 
-            <div className="pt-6 border-t border-white/10 flex flex-col gap-3">
+            <div className="pt-6 border-t border-[#2B3B2B]/10 flex flex-col gap-3">
               <button
                 onClick={(e) => {
                   setMobileMenuOpen(false);
                   handleStudentPortalClick(e);
                 }}
-                className="w-full text-center py-3.5 border border-white/10 text-slate-200 font-medium text-xs tracking-wider uppercase rounded-full bg-white/5 cursor-pointer hover:bg-white/10"
+                className="w-full text-center py-3.5 border border-[#2B3B2B]/20 text-[#2B3B2B] font-medium text-xs uppercase tracking-wider rounded-full bg-white/60 cursor-pointer"
               >
                 Student Portal
               </button>
@@ -243,7 +209,7 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   handleAdminClick(e);
                 }}
-                className="w-full text-center py-3.5 border border-cyan-500/30 text-cyan-400 font-semibold text-xs tracking-wider uppercase rounded-full bg-cyan-950/40 cursor-pointer"
+                className="w-full text-center py-3.5 border border-[#2B3B2B]/20 text-[#2B3B2B] font-medium text-xs uppercase tracking-wider rounded-full bg-[#EAE5DB] cursor-pointer"
               >
                 Admin Control Portal 🔑
               </button>
@@ -256,9 +222,9 @@ export function Navbar() {
                   setMobileMenuOpen(false);
                   router.push('/book?reset=1');
                 }}
-                className="w-full text-center py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs tracking-wider uppercase rounded-full shadow-[0_0_20px_rgba(56,189,248,0.3)] cursor-pointer"
+                className="w-full text-center py-3.5 bg-[#2B3B2B] text-white font-medium text-xs uppercase tracking-wider rounded-full shadow-md cursor-pointer"
               >
-                Reserve Training Session
+                Book Session
               </button>
             </div>
           </motion.div>
