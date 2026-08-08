@@ -279,15 +279,15 @@ export function GoogleSignInButton({
       )}
 
       {loading ? (
-        <div className="w-full py-3.5 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
-          <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+        <div className="w-full py-3.5 bg-white border border-[#384633]/20 text-[#384633] rounded-2xl flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider">
+          <Loader2 className="w-4 h-4 animate-spin text-[#384633]" />
           <span>Verifying Google Account...</span>
         </div>
       ) : (
         <button
           type="button"
           onClick={handleGoogleClick}
-          className="w-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-3 text-xs tracking-wider transition shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 cursor-pointer"
+          className="w-full bg-white hover:bg-[#F4F0E8] border border-[#384633]/20 text-[#384633] font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 text-xs tracking-wider transition shadow-xs focus:outline-none cursor-pointer"
         >
           <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

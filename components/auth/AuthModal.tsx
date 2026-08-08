@@ -14,7 +14,6 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   redirectToDashboard?: boolean;
-  /** The path to redirect to after a successful Google OAuth login. Defaults to '/dashboard'. */
   returnTo?: string;
 }
 
@@ -66,7 +65,6 @@ export function AuthModal({
       : formattedPhone;
 
     try {
-      // CAPTCHA-protected Firebase Phone SMS Auth
       const appVerifier = setupRecaptcha();
       if (appVerifier) {
         const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
@@ -80,7 +78,6 @@ export function AuthModal({
       console.warn('Firebase SMS Auth fallback triggered:', err);
     }
 
-    // Fallback Server OTP Action
     const res = await sendOtpAction(phone);
     setLoading(false);
 
@@ -109,22 +106,25 @@ export function AuthModal({
       try {
         const userCredential = await confirmationResult.confirm(otp);
         const firebaseIdToken = await userCredential.user.getIdToken();
-        const loginRes = await verifyFirebaseIdTokenAction(firebaseIdToken);
-        if (loginRes.success) {
-          setMessage('Phone authenticated successfully!');
-          setLoading(false);
+        const res = await verifyFirebaseIdTokenAction(firebaseIdToken);
+
+        if (res.success) {
           if (onSuccess) onSuccess();
-          onClose();
           if (redirectToDashboard) {
-            router.push('/dashboard');
-            router.refresh();
+            router.push(returnTo);
           }
+          onClose();
+          router.refresh();
+          return;
+        } else {
+          setError(res.error || 'Authentication failed.');
+          setLoading(false);
           return;
         }
-      } catch (err: any) {
-        console.warn('Firebase verification failed:', err);
+      } catch (firebaseErr: any) {
+        console.error('Firebase OTP Verification Error:', firebaseErr);
+        setError('Invalid OTP code. Please check the 6-digit code sent to your phone and try again.');
         setLoading(false);
-        setError(err?.message || 'Invalid verification code. Please check the 6-digit code and try again.');
         return;
       }
     }
@@ -133,54 +133,40 @@ export function AuthModal({
     setLoading(false);
 
     if (!res.success) {
-      setError(res.error || 'Verification code failed.');
+      setError(res.error || 'Verification failed. Invalid OTP code.');
       return;
     }
 
-    setMessage('Phone authenticated successfully!');
     if (onSuccess) onSuccess();
-    onClose();
     if (redirectToDashboard) {
-      router.push('/dashboard');
-      router.refresh();
+      router.push(returnTo);
     }
+    onClose();
+    router.refresh();
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={
-        <div className="flex items-center gap-2 text-blue-600">
-          <ShieldCheck className="w-5 h-5 text-blue-600" />
-          <span className="font-heading font-extrabold uppercase tracking-wider text-xs">
-            Student Portal Sign In
-          </span>
-        </div>
-      }
-      maxWidth="max-w-md"
-    >
-      <div className="space-y-5 font-sans">
-        <div className="text-center space-y-1">
-          <h3 className="font-heading font-extrabold text-xl text-slate-900">
+    <Modal isOpen={isOpen} onClose={onClose} title="STUDENT PORTAL SIGN IN" maxWidth="max-w-md">
+      <div className="space-y-6 pt-2 font-sans text-[#384633]">
+        <div className="text-center space-y-1.5">
+          <h3 className="font-serif text-2xl font-normal text-[#384633]">
             Access Your Student Portal
           </h3>
-          <p className="text-xs text-slate-500 font-light">
+          <p className="text-xs text-[#7E8466] font-light">
             Log in securely using Mobile Phone OTP or Google Account.
           </p>
         </div>
 
-        {/* Feedback Messages */}
         {error && (
-          <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{error}</span>
           </div>
         )}
 
         {message && (
-          <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
             <span>{message}</span>
           </div>
         )}
@@ -191,17 +177,17 @@ export function AuthModal({
         {step === 'PHONE' ? (
           <form onSubmit={handleSendOtp} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-bold text-[#384633] uppercase tracking-wider mb-1.5">
                 Mobile Phone Number *
               </label>
               <div className="relative">
-                <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7E8466]" />
                 <input
                   type="tel"
                   placeholder="Enter 10-digit mobile phone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 pl-10 pr-4 py-3 rounded-xl outline-none text-xs font-medium transition"
+                  className="w-full bg-white border border-[#384633]/20 focus:border-[#384633] text-[#384633] pl-10 pr-4 py-3 rounded-2xl outline-none text-xs font-medium transition"
                   required
                 />
               </div>
@@ -210,14 +196,14 @@ export function AuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition disabled:opacity-50 cursor-pointer"
+              className="w-full bg-[#384633] hover:bg-[#2B3B2B] text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-md transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
                 <>
                   <span>Send Verification Code</span>
-                  <ShieldCheck className="w-4 h-4" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 </>
               )}
             </button>
@@ -226,26 +212,26 @@ export function AuthModal({
           <form onSubmit={handleVerifyOtp} className="space-y-4">
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                <label className="block text-[11px] font-bold text-[#384633] uppercase tracking-wider">
                   Enter 6-Digit Verification Code *
                 </label>
                 <button
                   type="button"
                   onClick={() => setStep('PHONE')}
-                  className="text-[11px] text-blue-600 hover:underline"
+                  className="text-[11px] text-[#384633] font-semibold underline hover:text-[#2B3B2B]"
                 >
                   Change Phone
                 </button>
               </div>
               <div className="relative">
-                <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7E8466]" />
                 <input
                   type="text"
                   maxLength={6}
                   placeholder="••••••"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/[^\d]/g, ''))}
-                  className="w-full bg-white border border-slate-200 focus:border-blue-500 text-slate-900 tracking-widest text-center text-base font-bold pl-10 pr-4 py-3 rounded-xl outline-none transition"
+                  className="w-full bg-white border border-[#384633]/20 focus:border-[#384633] text-[#384633] tracking-widest text-center text-base font-bold pl-10 pr-4 py-3 rounded-2xl outline-none transition"
                   required
                 />
               </div>
@@ -254,14 +240,14 @@ export function AuthModal({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-lg shadow-blue-600/15 transition disabled:opacity-50 cursor-pointer"
+              className="w-full bg-[#384633] hover:bg-[#2B3B2B] text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 text-xs uppercase tracking-wider shadow-md transition disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
                 <>
                   <span>Verify & Access Student Portal</span>
-                  <ShieldCheck className="w-4 h-4" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 </>
               )}
             </button>
@@ -270,11 +256,11 @@ export function AuthModal({
 
         {/* Divider */}
         <div className="flex items-center gap-4 my-2">
-          <div className="h-[1px] bg-slate-200 flex-1" />
-          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
+          <div className="h-[1px] bg-[#384633]/15 flex-1" />
+          <span className="text-[10px] font-semibold text-[#7E8466] uppercase tracking-widest">
             OR
           </span>
-          <div className="h-[1px] bg-slate-200 flex-1" />
+          <div className="h-[1px] bg-[#384633]/15 flex-1" />
         </div>
 
         {/* Google OAuth Button */}
