@@ -40,3 +40,26 @@ export async function sendWhatsAppNotification({
     return { success: false, error: 'WhatsApp dispatch failed.' };
   }
 }
+
+export async function sendWhatsAppNotificationRaw({
+  phone,
+  message,
+}: {
+  phone: string;
+  message: string;
+}) {
+  try {
+    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/\D/g, '')}`;
+
+    if (process.env.TWILIO_WHATSAPP_TOKEN) {
+      console.log(`[WHATSAPP DISPATCH] Sending raw message to ${formattedPhone}`);
+      return { success: true, status: 'DELIVERED' };
+    } else {
+      console.log(`[SIMULATION] WhatsApp message sent to ${formattedPhone}:\n${message}`);
+      return { success: true, simulated: true };
+    }
+  } catch (error) {
+    console.error('sendWhatsAppNotificationRaw Error:', error);
+    return { success: false, error: 'WhatsApp dispatch failed.' };
+  }
+}

@@ -776,20 +776,20 @@ export function BookingWizard() {
       notes: notes,
     });
 
-    if (!res.success || !res.booking) {
+    if (!res.success || !res.bookingId) {
       setLoading(false);
       setPaymentPhase('idle');
       setError(res.error || 'Failed to create booking.');
       return;
     }
 
-    setCreatedBookingId(res.booking.id);
+    setCreatedBookingId(res.bookingId);
     setPaymentStatus('PENDING');
     setPaymentPhase('initializing-razorpay');
     setStep(6);
 
     // Launch Razorpay Order & Checkout Modal immediately
-    await launchRazorpayCheckout(res.booking.id);
+    await launchRazorpayCheckout(res.bookingId);
   };
 
   // Step B: Create Razorpay Order & Trigger Checkout Modal

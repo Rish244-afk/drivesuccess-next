@@ -130,3 +130,233 @@ export async function sendBookingConfirmationEmail({
     return { success: false, error: 'Email dispatch failed.' };
   }
 }
+
+export async function sendBookingCancellationEmail({
+  studentEmail,
+  studentName,
+  bookingId,
+  packageName,
+  isPaid,
+}: {
+  studentEmail: string;
+  studentName: string;
+  bookingId: string;
+  packageName: string;
+  isPaid: boolean;
+}) {
+  try {
+    const subject = `⚠️ Booking Cancelled - DriveSuccess Academy #${bookingId.slice(-8)}`;
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #0b192c; color: #f8fafc; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 32px;">
+            <h2 style="color: #ef4444; text-align: center;">Booking Cancellation Notice</h2>
+            <p>Hello <strong>${studentName}</strong>,</p>
+            <p style="color: #94a3b8;">Your booking for <strong>${packageName}</strong> (ID: #${bookingId.slice(-8)}) has been cancelled.</p>
+            <div style="margin: 20px 0; background-color: #020617; border-radius: 12px; padding: 16px; border: 1px solid #1e293b; text-align: center; color: #cbd5e1;">
+              ${
+                isPaid
+                  ? '<strong>Payment Status:</strong> Paid. Your refund request has been submitted for admin review in accordance with our 24-hour cancellation policy.'
+                  : '<strong>Payment Status:</strong> Unpaid. Held slot released.'
+              }
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; text-align: center;">If you have any questions, contact support at support@drivesuccess.edu or +91 7829780778.</p>
+          </div>
+        </body>
+      </html>
+    `;
+    return await sendEmail({ to: studentEmail, subject, html: htmlContent });
+  } catch (error) {
+    console.error('sendBookingCancellationEmail Error:', error);
+    return { success: false, error: 'Email failed' };
+  }
+}
+
+export async function sendSessionRescheduledEmail({
+  studentEmail,
+  studentName,
+  bookingId,
+  packageName,
+  newScheduledAt,
+  instructorName,
+}: {
+  studentEmail: string;
+  studentName: string;
+  bookingId: string;
+  packageName: string;
+  newScheduledAt: string;
+  instructorName: string;
+}) {
+  try {
+    const subject = `📅 Session Rescheduled - DriveSuccess Academy`;
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #0b192c; color: #f8fafc; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 32px;">
+            <h2 style="color: #3b82f6; text-align: center;">Session Rescheduled</h2>
+            <p>Hello <strong>${studentName}</strong>,</p>
+            <p style="color: #94a3b8;">Your training session for <strong>${packageName}</strong> has been successfully rescheduled.</p>
+            <div style="margin: 20px 0; background-color: #020617; border-radius: 12px; padding: 16px; border: 1px solid #1e293b;">
+              <p style="margin: 4px 0;"><strong>New Time:</strong> ${newScheduledAt}</p>
+              <p style="margin: 4px 0;"><strong>Instructor:</strong> ${instructorName}</p>
+            </div>
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://drivesuccess.edu'}/dashboard" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">View Student Dashboard</a>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    return await sendEmail({ to: studentEmail, subject, html: htmlContent });
+  } catch (error) {
+    console.error('sendSessionRescheduledEmail Error:', error);
+    return { success: false, error: 'Email failed' };
+  }
+}
+
+export async function sendRefundProcessedEmail({
+  studentEmail,
+  studentName,
+  bookingId,
+  packageName,
+  amount,
+  refundId,
+}: {
+  studentEmail: string;
+  studentName: string;
+  bookingId: string;
+  packageName: string;
+  amount: number;
+  refundId?: string;
+}) {
+  try {
+    const subject = `💸 Refund Processed - DriveSuccess Academy`;
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #0b192c; color: #f8fafc; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 32px;">
+            <h2 style="color: #10b981; text-align: center;">Refund Processed</h2>
+            <p>Hello <strong>${studentName}</strong>,</p>
+            <p style="color: #94a3b8;">A refund of <strong>₹${amount.toLocaleString()}</strong> for <strong>${packageName}</strong> (Booking #${bookingId.slice(-8)}) has been issued to your original payment method.</p>
+            ${refundId ? `<p style="font-size: 12px; color: #64748b;">Razorpay Refund ID: ${refundId}</p>` : ''}
+            <p style="font-size: 13px; color: #94a3b8; text-align: center; margin-top: 24px;">Refunds typically reflect in your account within 5-7 business days depending on your bank.</p>
+          </div>
+        </body>
+      </html>
+    `;
+    return await sendEmail({ to: studentEmail, subject, html: htmlContent });
+  } catch (error) {
+    console.error('sendRefundProcessedEmail Error:', error);
+    return { success: false, error: 'Email failed' };
+  }
+}
+
+export async function sendPaymentFailedEmail({
+  studentEmail,
+  studentName,
+  bookingId,
+  packageName,
+}: {
+  studentEmail: string;
+  studentName: string;
+  bookingId: string;
+  packageName: string;
+}) {
+  try {
+    const subject = `⚠️ Payment Attempt Unsuccessful - DriveSuccess Academy`;
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #0b192c; color: #f8fafc; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 32px;">
+            <h2 style="color: #f59e0b; text-align: center;">Payment Attempt Failed</h2>
+            <p>Hello <strong>${studentName}</strong>,</p>
+            <p style="color: #94a3b8;">Your payment attempt for <strong>${packageName}</strong> could not be completed.</p>
+            <p style="color: #94a3b8;">You can retry payment on your student dashboard within the 15-minute reservation window to secure your slot.</p>
+            <div style="text-align: center; margin-top: 24px;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://drivesuccess.edu'}/dashboard" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Retry Payment on Dashboard</a>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+    return await sendEmail({ to: studentEmail, subject, html: htmlContent });
+  } catch (error) {
+    console.error('sendPaymentFailedEmail Error:', error);
+    return { success: false, error: 'Email failed' };
+  }
+}
+
+export async function sendBookingExpiredEmail({
+  studentEmail,
+  studentName,
+  packageName,
+}: {
+  studentEmail: string;
+  studentName: string;
+  packageName: string;
+}) {
+  try {
+    const subject = `⌛ Pending Reservation Expired - DriveSuccess Academy`;
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #0b192c; color: #f8fafc; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 32px;">
+            <h2 style="color: #64748b; text-align: center;">Reservation Expired</h2>
+            <p>Hello <strong>${studentName}</strong>,</p>
+            <p style="color: #94a3b8;">Your 15-minute checkout window for <strong>${packageName}</strong> elapsed without payment. The reserved slot has been released.</p>
+            <p style="color: #94a3b8;">You may start a new booking anytime to select a new slot.</p>
+          </div>
+        </body>
+      </html>
+    `;
+    return await sendEmail({ to: studentEmail, subject, html: htmlContent });
+  } catch (error) {
+    console.error('sendBookingExpiredEmail Error:', error);
+    return { success: false, error: 'Email failed' };
+  }
+}
+
+export async function sendSessionReminderEmail({
+  studentEmail,
+  studentName,
+  scheduledAt,
+  instructorName,
+  vehicleName,
+}: {
+  studentEmail: string;
+  studentName: string;
+  scheduledAt: string;
+  instructorName: string;
+  vehicleName: string;
+}) {
+  try {
+    const subject = `🚗 Upcoming Session Reminder - Tomorrow at ${scheduledAt}`;
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <body style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #0b192c; color: #f8fafc; margin: 0; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 32px;">
+            <h2 style="color: #3b82f6; text-align: center;">Upcoming Driving Session</h2>
+            <p>Hello <strong>${studentName}</strong>,</p>
+            <p style="color: #94a3b8;">This is a reminder that your driving session is scheduled for tomorrow!</p>
+            <div style="margin: 20px 0; background-color: #020617; border-radius: 12px; padding: 16px; border: 1px solid #1e293b;">
+              <p style="margin: 4px 0;"><strong>Scheduled Time:</strong> ${scheduledAt}</p>
+              <p style="margin: 4px 0;"><strong>Instructor:</strong> ${instructorName}</p>
+              <p style="margin: 4px 0;"><strong>Vehicle:</strong> ${vehicleName}</p>
+            </div>
+            <p style="font-size: 13px; color: #94a3b8; text-align: center;">Please arrive 10 minutes prior to your start time. Drive safe!</p>
+          </div>
+        </body>
+      </html>
+    `;
+    return await sendEmail({ to: studentEmail, subject, html: htmlContent });
+  } catch (error) {
+    console.error('sendSessionReminderEmail Error:', error);
+    return { success: false, error: 'Email failed' };
+  }
+}

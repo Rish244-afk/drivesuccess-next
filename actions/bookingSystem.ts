@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
-import { DayOfWeek, BookingStatus, SessionStatus, PaymentStatus } from '@prisma/client';
+import { DayOfWeek, BookingStatus, SessionStatus, PaymentStatus, NotificationType } from '@prisma/client';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 
@@ -208,17 +208,12 @@ export async function createBookingTransactionAction(inputData: unknown) {
           };
         }
 
-        // Safe to update — phone is either not taken or already belongs to this student.
         await prisma.student.update({
           where: { id: studentId },
           data: { phone: normalizedPhone },
         });
       } catch (phoneErr: any) {
-        console.error('createBookingTransactionAction — phone update error:', {
-          code: phoneErr?.code,
-          meta: phoneErr?.meta,
-          message: phoneErr?.message,
-        });
+        console.error('createBookingTransactionAction — phone update error:', phoneErr?.message);
         if (phoneErr?.code === 'P2002') {
           return {
             success: false,
@@ -231,8 +226,6 @@ export async function createBookingTransactionAction(inputData: unknown) {
             error: 'Student account not found. Please log out and log back in.',
           };
         }
-        // Non-blocking: phone update failed for an unexpected reason but we
-        // should still allow the booking to proceed (phone is optional data).
         console.warn('Phone update failed with unexpected error, continuing with booking creation:', phoneErr?.message);
       }
     }
@@ -257,7 +250,6 @@ export async function createBookingTransactionAction(inputData: unknown) {
 
     // ATOMIC PRISMA TRANSACTION: Prevent Double Booking
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Double Booking Check: Re-verify if instructor or vehicle was booked during form submission
       const startWindow = new Date(scheduledAt.getTime() - 30 * 60 * 1000);
       const endWindow = new Date(scheduledAt.getTime() + 30 * 60 * 1000);
 
@@ -279,103 +271,63 @@ export async function createBookingTransactionAction(inputData: unknown) {
         throw new Error('DOUBLE_BOOKING_CONFLICT');
       }
 
-      // 2. Create Booking (Status: PENDING)
-      const newBooking = await tx.booking.create({
+      const booking = await tx.booking.create({
         data: {
-          studentId: studentId,
+          studentId,
           packageId: data.packageId,
-          vehicleId: data.vehicleId,
           instructorId: data.instructorId,
+          vehicleId: data.vehicleId,
+          totalAmount: pkg.price,
+          notes: data.notes || null,
           status: BookingStatus.PENDING,
           paymentStatus: PaymentStatus.PENDING,
-          totalAmount: pkg.price,
-          notes: data.notes || `Booking for ${pkg.name}`,
         },
       });
 
-      // 3. Create initial Session record
-      const newSession = await tx.session.create({
+      await tx.session.create({
         data: {
-          bookingId: newBooking.id,
-          studentId: studentId,
+          bookingId: booking.id,
+          studentId,
           instructorId: data.instructorId,
           vehicleId: data.vehicleId,
-          scheduledAt: scheduledAt,
-          durationMins: 60,
+          scheduledAt,
           status: SessionStatus.SCHEDULED,
-          location: 'Main Training Track',
-          notes: `First session for ${pkg.name}`,
+          notes: `Initial session for ${pkg.name}`,
         },
       });
 
-      return { booking: newBooking, session: newSession };
+      return booking;
     });
 
     revalidatePath('/dashboard');
 
     return {
       success: true,
-      message: 'Booking created successfully! Status: PENDING',
-      booking: result.booking,
-      session: result.session,
+      bookingId: result.id,
+      amount: result.totalAmount,
+      packageName: pkg.name,
     };
   } catch (error: any) {
-    // Log the full error server-side so it appears in Vercel/server logs.
-    console.error('createBookingTransactionAction Error:', {
-      name: error?.name,
-      code: error?.code,        // Prisma error code e.g. P2002, P2003
-      meta: error?.meta,        // Prisma metadata (target field, model)
-      message: error?.message,
-      stack: error?.stack,
-    });
+    console.error('createBookingTransactionAction Error:', error);
 
     if (error?.message === 'DOUBLE_BOOKING_CONFLICT') {
       return {
         success: false,
-        error: 'Slot conflict: The selected instructor or vehicle was just booked by another student. Please select another time slot.',
+        error: 'Slot conflict: The selected instructor or vehicle is no longer available at this time. Please select another slot.',
       };
     }
 
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
-    }
-
-    // Prisma unique constraint (P2002): field-level conflict inside the transaction.
     if (error?.code === 'P2002') {
-      const field = error?.meta?.target as string[] | string | undefined;
-      const targets = Array.isArray(field) ? field : typeof field === 'string' ? [field] : [];
-
-      // ── Slot exclusivity constraints (P-10 defence layer 2) ────────────────
-      // Fires when a concurrent INSERT violates the partial unique indexes:
-      //   unique_active_instructor_slot  ON sessions (instructorId, scheduledAt)
-      //                                  WHERE status IN ('SCHEDULED', 'IN_PROGRESS')
-      //   unique_active_vehicle_slot     ON sessions (vehicleId, scheduledAt)
-      //                                  WHERE status IN ('SCHEDULED', 'IN_PROGRESS')
-      // i.e., a race condition bypassed the findFirst soft-check above.
-      if (
-        targets.includes('unique_active_instructor_slot') ||
-        targets.includes('unique_active_vehicle_slot') ||
-        targets.some((t) => t.includes('instructor') || t.includes('vehicle'))
-      ) {
-        return {
-          success: false,
-          error: 'Slot conflict: The selected slot was just reserved by another student. Please choose a different time.',
-        };
-      }
-
-      if (targets.includes('razorpayOrderId')) {
-        return { success: false, error: 'A payment order already exists for this booking. Please refresh and try again.' };
-      }
-      return { success: false, error: `A record with this information already exists (${targets.join(', ') || 'unknown field'}). Please contact support if this persists.` };
+      return {
+        success: false,
+        error: 'Slot conflict: The selected instructor or vehicle is no longer available at this time. Please select another slot.',
+      };
     }
 
-
-    // Prisma foreign key violation (P2003): referenced record does not exist.
     if (error?.code === 'P2003') {
       return { success: false, error: 'One of the selected items (package, instructor, or vehicle) no longer exists. Please refresh and try again.' };
     }
 
-    // Prisma record not found (P2025): update target missing.
     if (error?.code === 'P2025') {
       return { success: false, error: 'Your student account was not found. Please log out and log back in.' };
     }
@@ -436,5 +388,396 @@ export async function getBookingStatusAction(bookingId: string): Promise<{
   } catch (error: any) {
     console.error('getBookingStatusAction error:', error);
     return { success: false, error: 'SERVER_ERROR' };
+  }
+}
+
+/**
+ * Student Self-Service Booking Cancellation Action.
+ * Strict Server-Side Authentication & Row-Level Authorization.
+ * Handles PENDING (unpaid) and CONFIRMED (paid > 24h notice) cancellations.
+ * Preserves admin-only control for actual Razorpay refunds.
+ */
+export async function cancelStudentBookingAction(bookingId: string) {
+  try {
+    if (!bookingId || typeof bookingId !== 'string') {
+      return { success: false, error: 'Invalid booking ID.' };
+    }
+
+    const session = await getServerSession();
+    if (!session || !session.sub) {
+      return { success: false, error: 'Unauthorized request. Please log in.' };
+    }
+
+    // 1. Fetch booking with sessions and package information
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        package: true,
+        sessions: {
+          orderBy: { scheduledAt: 'asc' },
+        },
+      },
+    });
+
+    if (!booking) {
+      return { success: false, error: 'Booking record not found.' };
+    }
+
+    // 2. IDOR Protection: Verify booking belongs strictly to authenticated student
+    if (booking.studentId !== session.sub) {
+      return { success: false, error: 'Unauthorized. You do not have permission to cancel this booking.' };
+    }
+
+    // 3. Status Checks
+    if (booking.status === BookingStatus.COMPLETED) {
+      return { success: false, error: 'Completed bookings cannot be cancelled.' };
+    }
+
+    if (booking.status === BookingStatus.CANCELLED) {
+      // Idempotent return
+      return { success: true, message: 'Booking is already cancelled.', booking };
+    }
+
+    // 4. Multi-Session & Policy Evaluation: Find earliest scheduled session
+    const earliestSession = booking.sessions.find(
+      (s) => s.status !== SessionStatus.CANCELLED
+    ) || booking.sessions[0];
+
+    const now = new Date();
+
+    if (booking.paymentStatus === PaymentStatus.PAID) {
+      // 24-Hour Notice Rule Evaluation
+      const earliestScheduledAt = earliestSession
+        ? new Date(earliestSession.scheduledAt)
+        : new Date(booking.createdAt.getTime() + 48 * 60 * 60 * 1000);
+
+      const hoursUntilSession = (earliestScheduledAt.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+      if (hoursUntilSession < 24) {
+        return {
+          success: false,
+          error:
+            'Self-service cancellation is unavailable within 24 hours of your scheduled driving session. Please contact support at +91 98765 43210 for emergency assistance.',
+        };
+      }
+
+      // Paid Booking > 24 Hours: Transactional Cancel + Admin Refund Review Flag
+      const updatedBooking = await prisma.$transaction(async (tx) => {
+        const b = await tx.booking.update({
+          where: { id: bookingId },
+          data: {
+            status: BookingStatus.CANCELLED,
+            cancelReason: 'Cancelled by student (>24h notice). Pending admin refund review.',
+            notes: 'Student self-service cancellation with >24h notice. Refund pending admin review.',
+          },
+        });
+
+        await tx.session.updateMany({
+          where: { bookingId },
+          data: {
+            status: SessionStatus.CANCELLED,
+            notes: 'Session cancelled due to student booking cancellation.',
+          },
+        });
+
+        return b;
+      });
+
+      // Multi-channel notification dispatch
+      try {
+        const { dispatchNotificationEvent } = await import('@/lib/notification');
+
+        const student = await prisma.student.findUnique({
+          where: { id: session.sub },
+          select: { email: true, phone: true, name: true },
+        });
+
+        await dispatchNotificationEvent({
+          studentId: session.sub,
+          eventType: 'BOOKING_CANCELLED',
+          title: 'Booking Cancelled',
+          message: `Your booking for ${booking.package.name} has been cancelled. Your refund request is pending admin review.`,
+          notificationType: NotificationType.SYSTEM_ALERT,
+          emailData: student?.email
+            ? {
+                to: student.email,
+                subject: `⚠️ Booking Cancelled - DriveSuccess Academy #${booking.id.slice(-8)}`,
+                html: `Cancelled paid booking for ${booking.package.name}. Refund request pending admin review.`,
+              }
+            : undefined,
+          whatsAppData: student?.phone
+            ? {
+                phone: student.phone,
+                message: `⚠️ *DriveSuccess Cancellation*\nHello ${student.name}, your booking #${booking.id.slice(-8)} for ${booking.package.name} has been cancelled. Refund request submitted for admin review.`,
+              }
+            : undefined,
+          metadata: { bookingId: booking.id, packageName: booking.package.name, isPaid: true },
+        });
+      } catch (notifErr) {
+        console.warn('Failed to dispatch cancellation notification:', notifErr);
+      }
+
+      revalidatePath('/dashboard');
+      return {
+        success: true,
+        message: 'Booking cancelled successfully. Your refund request has been submitted to admin for review.',
+        booking: updatedBooking,
+      };
+    }
+
+    // Unpaid / Pending Booking Cancellation: Immediate Release
+    const updatedBooking = await prisma.$transaction(async (tx) => {
+      const b = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: BookingStatus.CANCELLED,
+          cancelReason: 'Cancelled by student before payment completion.',
+          notes: 'Unpaid booking cancelled by student.',
+        },
+      });
+
+      await tx.session.updateMany({
+        where: { bookingId },
+        data: {
+          status: SessionStatus.CANCELLED,
+          notes: 'Session released due to unpaid booking cancellation.',
+        },
+      });
+
+      return b;
+    });
+
+    try {
+      const { dispatchNotificationEvent } = await import('@/lib/notification');
+
+      const student = await prisma.student.findUnique({
+        where: { id: session.sub },
+        select: { email: true, phone: true, name: true },
+      });
+
+      await dispatchNotificationEvent({
+        studentId: session.sub,
+        eventType: 'BOOKING_CANCELLED',
+        title: 'Booking Cancelled',
+        message: `Your unpaid reservation for ${booking.package.name} has been cancelled.`,
+        notificationType: NotificationType.SYSTEM_ALERT,
+        emailData: student?.email
+          ? {
+              to: student.email,
+              subject: `⚠️ Booking Cancelled - DriveSuccess Academy #${booking.id.slice(-8)}`,
+              html: `Unpaid reservation for ${booking.package.name} has been cancelled and the slot released.`,
+            }
+          : undefined,
+        whatsAppData: student?.phone
+          ? {
+              phone: student.phone,
+              message: `⚠️ *DriveSuccess Cancellation*\nHello ${student.name}, your unpaid reservation #${booking.id.slice(-8)} for ${booking.package.name} has been cancelled.`,
+            }
+          : undefined,
+        metadata: { bookingId: booking.id, packageName: booking.package.name, isPaid: false },
+      });
+    } catch (notifErr) {
+      console.warn('Failed to dispatch cancellation notification:', notifErr);
+    }
+
+    revalidatePath('/dashboard');
+    return {
+      success: true,
+      message: 'Unpaid booking cancelled and reserved slot released.',
+      booking: updatedBooking,
+    };
+  } catch (error) {
+    console.error('cancelStudentBookingAction Error:', error);
+    return { success: false, error: 'Failed to cancel booking. Please try again.' };
+  }
+}
+
+/**
+ * Student Self-Service Session Rescheduling Action.
+ * Enforces 24h notice rule, authoritative slot availability re-check, and atomic single-session update.
+ */
+export async function rescheduleStudentSessionAction({
+  sessionId,
+  newDateStr,
+  newTimeSlot,
+}: {
+  sessionId: string;
+  newDateStr: string;
+  newTimeSlot: string;
+}) {
+  try {
+    if (!sessionId || !newDateStr || !newTimeSlot) {
+      return { success: false, error: 'Session ID, new date, and time slot are required.' };
+    }
+
+    const session = await getServerSession();
+    if (!session || !session.sub) {
+      return { success: false, error: 'Unauthorized request. Please log in.' };
+    }
+
+    // 1. Fetch Session with Booking details
+    const sessionRecord = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: {
+        booking: {
+          include: { package: true },
+        },
+        instructor: true,
+        vehicle: true,
+        student: true,
+      },
+    });
+
+    if (!sessionRecord) {
+      return { success: false, error: 'Session record not found.' };
+    }
+
+    // 2. IDOR Check: Ensure session belongs to a booking owned by authenticated student
+    if (sessionRecord.studentId !== session.sub) {
+      return { success: false, error: 'Unauthorized. You do not have permission to reschedule this session.' };
+    }
+
+    // 3. Status Checks
+    if (
+      sessionRecord.status === SessionStatus.COMPLETED ||
+      sessionRecord.status === SessionStatus.CANCELLED ||
+      sessionRecord.status === SessionStatus.NO_SHOW
+    ) {
+      return { success: false, error: 'Only upcoming scheduled sessions can be rescheduled.' };
+    }
+
+    if (sessionRecord.booking.status === BookingStatus.CANCELLED) {
+      return { success: false, error: 'Cannot reschedule a session for a cancelled booking.' };
+    }
+
+    // 4. 24-Hour Notice Rule Check
+    const now = new Date();
+    const currentScheduledAt = new Date(sessionRecord.scheduledAt);
+    const hoursUntilCurrentSession = (currentScheduledAt.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (hoursUntilCurrentSession < 24) {
+      return {
+        success: false,
+        error: 'Rescheduling is unavailable within 24 hours of your scheduled session. Please contact support.',
+      };
+    }
+
+    // 5. Parse target datetime
+    const [timeStr, period] = newTimeSlot.split(' ');
+    let [hours, minutes] = timeStr.split(':').map(Number);
+    if (period === 'PM' && hours < 12) hours += 12;
+    if (period === 'AM' && hours === 12) hours = 0;
+
+    const newScheduledAt = new Date(newDateStr);
+    newScheduledAt.setHours(hours, minutes, 0, 0);
+
+    if (newScheduledAt.getTime() <= now.getTime()) {
+      return { success: false, error: 'Rescheduled time slot must be in the future.' };
+    }
+
+    // 6. Atomic Transaction: Concurrency Conflict Check & Slot Mutation
+    await prisma.$transaction(async (tx) => {
+      const startWindow = new Date(newScheduledAt.getTime() - 30 * 60 * 1000);
+      const endWindow = new Date(newScheduledAt.getTime() + 30 * 60 * 1000);
+
+      const conflictSession = await tx.session.findFirst({
+        where: {
+          id: { not: sessionId },
+          scheduledAt: {
+            gte: startWindow,
+            lte: endWindow,
+          },
+          status: { not: SessionStatus.CANCELLED },
+          OR: [
+            { instructorId: sessionRecord.instructorId },
+            { vehicleId: sessionRecord.vehicleId },
+          ],
+        },
+      });
+
+      if (conflictSession) {
+        throw new Error('DOUBLE_BOOKING_CONFLICT');
+      }
+
+      await tx.session.update({
+        where: { id: sessionId },
+        data: {
+          scheduledAt: newScheduledAt,
+          notes: `Rescheduled from ${currentScheduledAt.toLocaleString()} to ${newScheduledAt.toLocaleString()}.`,
+        },
+      });
+    });
+
+    // Multi-channel Event Notification Dispatch
+    try {
+      const { dispatchNotificationEvent } = await import('@/lib/notification');
+      const { sendSessionRescheduledEmail } = await import('@/lib/email');
+      const formattedDate = newScheduledAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ' + newTimeSlot;
+
+      let emailHtml = '';
+      if (sessionRecord.student?.email) {
+        const emailRes = await sendSessionRescheduledEmail({
+          studentEmail: sessionRecord.student.email,
+          studentName: sessionRecord.student.name,
+          bookingId: sessionRecord.bookingId,
+          packageName: sessionRecord.booking.package.name,
+          newScheduledAt: formattedDate,
+          instructorName: sessionRecord.instructor.name,
+        });
+        emailHtml = (emailRes as any)?.html || '';
+      }
+
+      await dispatchNotificationEvent({
+        studentId: session.sub,
+        eventType: 'SESSION_RESCHEDULED',
+        title: 'Session Rescheduled',
+        message: `Your training session with ${sessionRecord.instructor.name} was moved to ${formattedDate}.`,
+        notificationType: NotificationType.SESSION_SCHEDULED,
+        emailData: sessionRecord.student?.email
+          ? {
+              to: sessionRecord.student.email,
+              subject: `📅 Session Rescheduled - DriveSuccess Academy`,
+              html: emailHtml,
+            }
+          : undefined,
+        whatsAppData: sessionRecord.student?.phone
+          ? {
+              phone: sessionRecord.student.phone,
+              message: `📅 *DriveSuccess Rescheduled*\nHello ${sessionRecord.student.name}, your training session for ${sessionRecord.booking.package.name} with ${sessionRecord.instructor.name} is now scheduled for ${formattedDate}.`,
+            }
+          : undefined,
+        metadata: {
+          sessionId,
+          bookingId: sessionRecord.bookingId,
+          newScheduledAt: newScheduledAt.toISOString(),
+        },
+      });
+    } catch (notifErr) {
+      console.warn('Failed to dispatch reschedule notification:', notifErr);
+    }
+
+    revalidatePath('/dashboard');
+    return {
+      success: true,
+      message: `Session rescheduled successfully to ${newScheduledAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at ${newTimeSlot}.`,
+    };
+  } catch (error: any) {
+    console.error('rescheduleStudentSessionAction Error:', error);
+
+    if (error?.message === 'DOUBLE_BOOKING_CONFLICT') {
+      return {
+        success: false,
+        error: 'Slot conflict: The requested time slot was just taken by another student. Please select another slot.',
+      };
+    }
+
+    if (error?.code === 'P2002') {
+      return {
+        success: false,
+        error: 'Slot conflict: The selected time slot is no longer available.',
+      };
+    }
+
+    return { success: false, error: 'Failed to reschedule session. Please try again.' };
   }
 }
