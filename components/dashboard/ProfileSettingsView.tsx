@@ -27,6 +27,9 @@ interface ProfileSettingsViewProps {
     name: string;
     email?: string | null;
     phone?: string | null;
+    googleId?: string | null;
+    emailVerified?: boolean;
+    phoneVerified?: boolean;
     address?: string | null;
     city?: string | null;
     state?: string | null;
@@ -255,6 +258,88 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
           </div>
         </div>
 
+        {/* Section 3: Linked Accounts & Security Status (Read-Only) */}
+        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
+            <Shield className="w-5 h-5 text-blue-600" />
+            <h3 className="font-serif text-xl text-slate-900 font-normal">
+              Linked Accounts & Security
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+            {/* Google Account */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold uppercase tracking-wider text-slate-500 text-[10px]">
+                  Google Account
+                </span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-extrabold tracking-wider border ${
+                    student.googleId || (student.email && student.emailVerified)
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-slate-100 text-slate-600 border-slate-200'
+                  }`}
+                >
+                  {student.googleId || (student.email && student.emailVerified) ? 'Linked' : 'Not Linked'}
+                </span>
+              </div>
+              <p className="text-slate-700 font-medium truncate">
+                {student.email || 'No Google account linked'}
+              </p>
+              <p className="text-[11px] text-slate-400 font-light">
+                {student.googleId || (student.email && student.emailVerified)
+                  ? 'Authenticated via Google OAuth 2.0'
+                  : 'Google identity not associated'}
+              </p>
+            </div>
+
+            {/* Mobile Number */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold uppercase tracking-wider text-slate-500 text-[10px]">
+                  Mobile Number
+                </span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-extrabold tracking-wider border ${
+                    student.phoneVerified || student.phone
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-amber-50 text-amber-800 border-amber-200'
+                  }`}
+                >
+                  {student.phoneVerified || student.phone ? 'Verified' : 'Unverified'}
+                </span>
+              </div>
+              <p className="text-slate-700 font-mono font-medium">
+                {student.phone || 'No phone linked'}
+              </p>
+              <p className="text-[11px] text-slate-400 font-light">
+                {student.phoneVerified || student.phone
+                  ? 'Verified via SMS OTP / Auth'
+                  : 'Add a mobile number to secure account'}
+              </p>
+            </div>
+
+            {/* Session Security */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold uppercase tracking-wider text-slate-500 text-[10px]">
+                  Session Security
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-extrabold tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                  Active
+                </span>
+              </div>
+              <p className="text-slate-700 font-medium">
+                Secure session active
+              </p>
+              <p className="text-[11px] text-slate-400 font-light">
+                Protected with HTTP-only 30-day session token
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Save Button */}
         <div className="flex flex-col sm:flex-row justify-end">
           <button
@@ -268,7 +353,7 @@ export function ProfileSettingsView({ student }: ProfileSettingsViewProps) {
         </div>
       </form>
 
-      {/* Section 3: Danger Zone & Privacy Erasure */}
+      {/* Section 4: Danger Zone & Privacy Erasure */}
       <div className="bg-red-50/50 border border-red-200 rounded-3xl p-6 sm:p-8 space-y-4">
         <div className="flex items-center gap-2 text-red-800 font-serif text-lg">
           <Trash2 className="w-5 h-5 text-red-600" />

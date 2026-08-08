@@ -179,16 +179,15 @@ export default function HomePage() {
   return (
     <div
       ref={containerRef}
-      className="overflow-hidden mesh-gradient-slow"
-      style={{ backgroundColor: '#F8FAFC' }}
+      className="overflow-hidden bg-[#090A0F] text-slate-100 font-sans"
     >
 
       {/* ═══════════════════════════════════════════
           1. CINEMATIC SPATIAL HERO
           ═══════════════════════════════════════════ */}
-      <section className="hero-section relative pt-16 pb-20 lg:pt-40 lg:pb-48 overflow-hidden flex items-center min-h-[92vh]">
+      <section className="hero-section relative pt-20 pb-24 lg:pt-36 lg:pb-44 overflow-hidden flex items-center min-h-[90vh]">
 
-        {/* ── Multi-layer atmospheric background video ── */}
+        {/* ── Multi-layer atmospheric background ── */}
         <div aria-hidden="true" className="hero-bg-layer absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
           <video
             autoPlay
@@ -196,217 +195,167 @@ export default function HomePage() {
             muted
             playsInline
             poster="/images/hero_spatial_bg.jpg"
-            className="hero-bg-img w-full h-full object-cover opacity-0 scale-[1.05] pointer-events-none"
+            className="hero-bg-img w-full h-full object-cover opacity-20 scale-[1.05] pointer-events-none filter brightness-75 contrast-125"
             style={{ willChange: 'opacity, transform' }}
           >
             <source src="/videos/swift.mp4" type="video/mp4" />
           </video>
-          {/* Layered vignette overlays for depth */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#F8FAFC]/30 via-[#F8FAFC]/55 to-[#F8FAFC]/85" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#F8FAFC]/20 via-transparent to-[#F8FAFC]/20" />
+          {/* Layered dark vignette overlays */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#090A0F] via-[#090A0F]/80 to-[#090A0F]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#090A0F] via-transparent to-[#090A0F]" />
         </div>
 
         {/* ── Mesh Gradient overlay ── */}
-        <div className="mesh-gradient-container opacity-0 absolute inset-0 z-0 pointer-events-none" style={{ willChange: 'opacity, transform' }}>
+        <div className="mesh-gradient-container opacity-40 absolute inset-0 z-0 pointer-events-none" style={{ willChange: 'opacity, transform' }}>
           <MeshGradient />
         </div>
 
         {/* ── Floating particles ── */}
-        <div className="floating-particles-container opacity-0 absolute inset-0 z-0 pointer-events-none">
+        <div className="floating-particles-container opacity-60 absolute inset-0 z-0 pointer-events-none">
           <FloatingParticles count={25} />
         </div>
 
         {/* ── 3D decorative scene ── */}
-        <Hero3DScene className="ambient-float-item absolute inset-0 w-full h-full" />
+        <Hero3DScene className="ambient-float-item absolute inset-0 w-full h-full opacity-40" />
 
-        {/* ── Ambient lighting sources ── */}
-        {/* Top-left: Blue */}
+        {/* ── Ambient glowing lights ── */}
         <div
           aria-hidden="true"
-          className="hero-ambient-tl ambient-parallax-fast absolute -top-32 -left-32 w-[700px] h-[700px] rounded-full pointer-events-none opacity-0"
+          className="hero-ambient-tl ambient-parallax-fast absolute -top-32 -left-32 w-[700px] h-[700px] rounded-full pointer-events-none opacity-60"
           style={{
-            background: 'radial-gradient(circle, rgba(37,99,235,0.10) 0%, transparent 70%)',
-            filter: 'blur(60px)',
+            background: 'radial-gradient(circle, rgba(56,189,248,0.15) 0%, transparent 70%)',
+            filter: 'blur(80px)',
           }}
         />
-        {/* Top-right: Purple */}
         <div
           aria-hidden="true"
-          className="hero-ambient-tr ambient-parallax-slow absolute -top-24 -right-40 w-[600px] h-[600px] rounded-full pointer-events-none opacity-0"
+          className="hero-ambient-tr ambient-parallax-slow absolute -top-24 -right-40 w-[600px] h-[600px] rounded-full pointer-events-none opacity-50"
           style={{
-            background: 'radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 70%)',
-            filter: 'blur(70px)',
+            background: 'radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%)',
+            filter: 'blur(90px)',
           }}
         />
-        {/* Bottom center: Cyan whisper */}
-        <div
-          aria-hidden="true"
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] rounded-full pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse, rgba(6,182,212,0.05) 0%, transparent 70%)',
-            filter: 'blur(50px)',
-          }}
-        />
-
-        {/* ── Floating decorative rings (desktop only) ── */}
-        <div aria-hidden="true" className="hidden lg:block absolute top-[18%] right-[8%] w-24 h-24 rounded-full border border-blue-200/30 float-ring" style={{ animationDelay: '0s' }} />
-        <div aria-hidden="true" className="hidden lg:block absolute top-[45%] right-[4%] w-14 h-14 rounded-full border border-purple-200/25 float-ring-slow" style={{ animationDelay: '2s' }} />
-        <div aria-hidden="true" className="hidden lg:block absolute bottom-[20%] left-[6%] w-20 h-20 rounded-full border border-cyan-200/20 float-ring" style={{ animationDelay: '1s' }} />
-        <div aria-hidden="true" className="hidden lg:block absolute top-[30%] left-[5%] w-8 h-8 rounded-full bg-blue-400/8 blur-sm drift-blob" />
 
         {/* ── Hero Content ── */}
         <div className="max-w-7xl mx-auto px-6 sm:px-8 relative z-10 w-full">
           <div className="text-center max-w-5xl mx-auto space-y-10">
 
             {/* Badge */}
-            <div className="hero-badge opacity-0 inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-blue-600 text-xs font-semibold tracking-widest uppercase select-none"
+            <div className="hero-badge opacity-0 inline-flex items-center gap-2.5 px-5 py-2 rounded-full text-cyan-400 text-xs font-semibold tracking-[0.2em] uppercase select-none"
               style={{
-                background: 'rgba(255,255,255,0.72)',
+                background: 'rgba(15, 23, 42, 0.75)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
-                border: '1px solid rgba(37,99,235,0.15)',
-                boxShadow: '0 2px 12px rgba(37,99,235,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                boxShadow: '0 0 20px rgba(56, 189, 248, 0.1)',
               }}
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-              <span>Certified Automotive Pedagogy</span>
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Vahathi Motor Driving School • BTM Stage 2</span>
             </div>
 
-            {/* Headline */}
-            <h1 className="hero-title font-serif text-[clamp(3.2rem,8vw,6.5rem)] font-normal text-slate-900 leading-[1.02] tracking-tight">
-              Learn to Drive with Confidence
+            {/* Oversized Headline */}
+            <h1 className="hero-title font-serif text-[clamp(3rem,7.5vw,6rem)] font-normal text-white leading-[1.03] tracking-tight">
+              Master the Road with <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400">Serenity & Precision.</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="hero-subtitle opacity-0 text-base sm:text-xl text-slate-500 font-light leading-relaxed max-w-2xl mx-auto px-2">
-              Safe, structured instruction for first-time drivers. Our pedagogical methodology builds lasting competence, road safety, and stress-free license certification.
+            <p className="hero-subtitle opacity-0 text-base sm:text-xl text-slate-300 font-light leading-relaxed max-w-2xl mx-auto px-2">
+              Safe, structured driving instruction for first-time drivers. Dual-control Hyundai Creta SUV & Honda City fleet, certified master instructors, and end-to-end RTO licensing support in Bengaluru.
             </p>
 
-            {/* CTA */}
-            <div className="hero-ctas opacity-0 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-5 pt-2">
+            {/* CTA Buttons */}
+            <div className="hero-ctas opacity-0 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 pt-3">
+              <Magnetic range={25} strength={0.2}>
+                <Link
+                  href="/book"
+                  className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-widest w-full sm:w-auto px-10 py-4.5 rounded-full flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 shadow-[0_0_30px_rgba(56,189,248,0.35)] border border-cyan-300/30"
+                >
+                  <span>Book Training Session</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Magnetic>
+
               <Magnetic range={25} strength={0.2}>
                 <Link
                   href="/courses"
-                  className="group relative overflow-hidden border text-slate-700 font-semibold text-xs uppercase tracking-widest w-full sm:w-auto px-9 py-4 rounded-full flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95"
-                  style={{
-                    background: 'rgba(255,255,255,0.80)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    borderColor: 'rgba(37,99,235,0.15)',
-                    boxShadow: '0 2px 12px rgba(15,23,42,0.06), 0 8px 32px rgba(37,99,235,0.07), inset 0 1px 0 rgba(255,255,255,0.9)',
-                  }}
+                  className="group relative overflow-hidden bg-white/5 hover:bg-white/10 text-slate-200 border border-white/15 font-semibold text-xs uppercase tracking-widest w-full sm:w-auto px-9 py-4.5 rounded-full flex items-center justify-center gap-3 transition-all duration-300 hover:border-cyan-400/50"
+                  style={{ backdropFilter: 'blur(20px)' }}
                 >
-                  <span>Explore Curriculum</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  <span>Explore Packages</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-cyan-400" />
                 </Link>
               </Magnetic>
             </div>
 
-            {/* Social proof bar */}
-            <div className="hero-proof opacity-0 pt-4 flex flex-wrap items-center justify-center gap-5 sm:gap-8 select-none">
+            {/* Verified highlights bar */}
+            <div className="hero-proof opacity-0 pt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6 select-none">
               <div
-                className="flex items-center gap-3 px-5 py-2.5 rounded-full transition-all duration-300 hover:scale-105"
-                style={{
-                  background: 'rgba(255,255,255,0.75)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(226,232,240,0.7)',
-                  boxShadow: '0 2px 8px rgba(15,23,42,0.05)',
-                }}
+                className="flex items-center gap-3 px-5 py-2.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl text-slate-300 text-xs font-medium"
               >
                 <div className="flex -space-x-2">
-                  <Image src="/images/rajesh.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
-                  <Image src="/images/priya.jpg" alt="Student" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-white object-cover" />
-                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
-                    +2.4k
-                  </div>
+                  <Image src="/images/rajesh.jpg" alt="Rajesh Kumar" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" />
+                  <Image src="/images/priya.jpg" alt="Priya Sharma" width={28} height={28} className="w-7 h-7 rounded-full border-2 border-slate-900 object-cover" />
                 </div>
-                <span className="text-xs text-slate-600 font-medium">Certified Student Drivers</span>
+                <span>Certified Master Instructors (12+ Yrs Exp)</span>
               </div>
 
               <div
-                className="flex items-center gap-2 text-xs text-slate-600 font-medium px-5 py-2.5 rounded-full transition-all duration-300 hover:scale-105"
-                style={{
-                  background: 'rgba(255,255,255,0.75)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(226,232,240,0.7)',
-                  boxShadow: '0 2px 8px rgba(15,23,42,0.05)',
-                }}
+                className="flex items-center gap-2 text-xs text-slate-300 font-medium px-5 py-2.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl"
               >
-                <span className="text-yellow-500 text-sm">★★★★★</span>
-                <span>98.4% First-Attempt Pass Rate</span>
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                <span>100% Dual-Control Pedal Vehicles</span>
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* ── Curved SVG bottom fade to stat band ── */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none" aria-hidden="true">
-          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-16 sm:h-20" preserveAspectRatio="none">
-            <path d="M0,80 C360,20 1080,20 1440,80 L1440,80 L0,80 Z" fill="rgba(238,244,255,0.55)" />
-          </svg>
-        </div>
-
       </section>
 
       {/* ═══════════════════════════════════════════
-          2. FROSTED GLASS STAT BAND
+          2. HORIZONTAL METRIC & INFORMATION STRIP
           ═══════════════════════════════════════════ */}
-      <section
-        className="stat-section relative py-20 overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #EEF4FF 0%, #F8F5FF 50%, #F5F9FF 100%)' }}
-      >
-        {/* Ambient blob behind stats */}
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-64 h-64 rounded-full drift-blob"
-            style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%)', filter: 'blur(50px)' }} />
-          <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-56 h-56 rounded-full drift-blob-alt"
-            style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.06) 0%, transparent 70%)', filter: 'blur(50px)' }} />
-        </div>
-
-        <div className="max-w-6xl mx-auto px-4 sm:px-8 relative z-10">
-          {/* Frosted glass container */}
+      <section className="stat-section relative py-12 border-y border-white/10 bg-[#0D0E15]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div
-            className="rounded-3xl p-8 sm:p-14"
-            style={{
-              background: 'rgba(255,255,255,0.62)',
-              backdropFilter: 'blur(32px)',
-              WebkitBackdropFilter: 'blur(32px)',
-              border: '1px solid rgba(255,255,255,0.55)',
-              boxShadow: '0 4px 16px rgba(15,23,42,0.04), 0 16px 56px rgba(37,99,235,0.07), 0 40px 100px rgba(15,23,42,0.04), inset 0 1px 0 rgba(255,255,255,0.9)',
-            }}
+            className="rounded-3xl p-8 sm:p-12 border border-white/10 bg-white/[0.03] backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)]"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center divide-y md:divide-y-0 md:divide-x divide-slate-200/60">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-white/10">
 
-              <div className="stat-item opacity-0 space-y-3 py-6 md:py-0 cursor-default">
-                <p className="font-serif text-5xl sm:text-6xl font-normal tracking-tight" style={{ color: '#0F172A' }}>
-                  <span className="stat-count" data-target="2400">0</span>
-                  <em className="italic font-normal" style={{ color: '#2563EB' }}>+</em>
+              <div className="stat-item space-y-2 py-4 md:py-0">
+                <p className="font-serif text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+                  100<span className="text-cyan-400">%</span>
                 </p>
-                <p className="text-xs uppercase tracking-[0.15em] font-semibold" style={{ color: '#64748B' }}>
-                  Students Certified
+                <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-400">
+                  Dual-Control Fleet Safety
                 </p>
               </div>
 
-              <div className="stat-item opacity-0 space-y-3 py-6 md:py-0 cursor-default">
-                <p className="font-serif text-5xl sm:text-6xl font-normal tracking-tight" style={{ color: '#0F172A' }}>
-                  <span className="stat-count" data-target="12">0</span>
-                  <em className="italic font-normal" style={{ color: '#2563EB' }}> Yrs</em>
+              <div className="stat-item space-y-2 py-4 md:py-0">
+                <p className="font-serif text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+                  12<span className="text-cyan-400">+ Yrs</span>
                 </p>
-                <p className="text-xs uppercase tracking-[0.15em] font-semibold" style={{ color: '#64748B' }}>
-                  Pedagogical Experience
+                <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-400">
+                  Pedagogical Instruction
                 </p>
               </div>
 
-              <div className="stat-item opacity-0 space-y-3 py-6 md:py-0 cursor-default">
-                <p className="font-serif text-5xl sm:text-6xl font-normal tracking-tight" style={{ color: '#0F172A' }}>
-                  <span className="stat-count" data-target="98.4" data-decimals="1">0</span>
-                  <em className="italic font-normal" style={{ color: '#2563EB' }}>%</em>
+              <div className="stat-item space-y-2 py-4 md:py-0">
+                <p className="font-serif text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+                  2W &amp; 4W
                 </p>
-                <p className="text-xs uppercase tracking-[0.15em] font-semibold" style={{ color: '#64748B' }}>
-                  First-Attempt Pass Rate
+                <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-400">
+                  RTO License Support
+                </p>
+              </div>
+
+              <div className="stat-item space-y-2 py-4 md:py-0">
+                <p className="font-serif text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+                  6 AM – 8 PM
+                </p>
+                <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-400">
+                  Flexible Daily Slots
                 </p>
               </div>
 
@@ -416,99 +365,84 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════
-          3. PEDAGOGY STANDARDS — GRADIENT BORDER CARDS
+          3. FEATURE CARD SYSTEM (4 VISUAL CARDS)
           ═══════════════════════════════════════════ */}
-      <section
-        className="pedagogy-section relative py-32 lg:py-40 overflow-hidden"
-        style={{ background: 'linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 50%, #F8FAFC 100%)' }}
-      >
+      <section className="pedagogy-section relative py-28 lg:py-36 bg-[#090A0F]">
         {/* Ambient lighting */}
         <div aria-hidden="true" className="absolute top-0 right-0 w-[600px] h-[600px] pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 65%)', filter: 'blur(80px)' }} />
-        <div aria-hidden="true" className="absolute bottom-0 left-0 w-[500px] h-[500px] pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.05) 0%, transparent 65%)', filter: 'blur(80px)' }} />
+          style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 65%)', filter: 'blur(100px)' }} />
 
-        {/* Decorative floating rings */}
-        <div aria-hidden="true" className="hidden lg:block absolute top-[15%] left-[3%] w-32 h-32 rounded-full border border-blue-100/60 float-ring-slow" />
-        <div aria-hidden="true" className="hidden lg:block absolute bottom-[12%] right-[4%] w-20 h-20 rounded-full border border-purple-100/50 float-ring" />
-
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-20 relative z-10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16 relative z-10">
 
           {/* Section header */}
-          <div className="pedagogy-header opacity-0 max-w-3xl space-y-5">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] px-4 py-1.5 rounded-full"
-              style={{
-                color: '#2563EB',
-                background: 'rgba(37,99,235,0.07)',
-                border: '1px solid rgba(37,99,235,0.12)',
-              }}
-            >
-              Pedagogical Standards
+          <div className="pedagogy-header opacity-0 max-w-3xl space-y-4">
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full text-cyan-400 bg-cyan-950/40 border border-cyan-500/20">
+              DriveSuccess Standards
             </span>
-            <h2 className="font-serif text-[clamp(2.4rem,5vw,4rem)] font-normal text-slate-900 tracking-tight leading-[1.08]">
-              Designed for Stress-Free{' '}
-              <em className="italic not-italic" style={{ color: '#2563EB' }}>Mastery</em>
+            <h2 className="font-serif text-[clamp(2.2rem,4.5vw,3.6rem)] font-normal text-white tracking-tight leading-[1.1]">
+              Architected for Absolute <span className="italic text-cyan-400">Road Confidence</span>
             </h2>
-            <p className="text-lg text-slate-500 font-light leading-relaxed max-w-2xl">
-              We replace anxiety with structured practice. Every training module builds muscle memory, spatial awareness, and calm decision-making.
+            <p className="text-base sm:text-lg text-slate-400 font-light leading-relaxed">
+              We eliminate driving anxiety with structured module progression, dual-control instructor intervention, and complete RTO license assistance.
             </p>
           </div>
 
-          {/* Gradient-border cards grid */}
-          <div className="pedagogy-cards-grid grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* 4 Feature Cards Grid */}
+          <div className="pedagogy-cards-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {[
               {
-                icon: <ShieldCheck className="w-7 h-7 stroke-[1.5]" style={{ color: '#2563EB' }} />,
-                title: 'Dual-Control Safety',
-                desc: 'Every vehicle features instructor dual-pedal overrides, ensuring instant safety intervention during real traffic sessions.',
+                num: '01',
+                title: 'Structured Curriculum',
+                desc: 'Module-by-module learning from clutch-gear coordination and parking geometry to high-speed spatial dynamics.',
+                badge: '10 & 15 Days',
               },
               {
-                icon: <SlidersHorizontal className="w-7 h-7 stroke-[1.5]" style={{ color: '#7C3AED' }} />,
-                title: 'Tailored Progression',
-                desc: 'Progress from private track maneuvering to main-road navigation at a pace calibrated to your unique comfort level.',
+                num: '02',
+                title: 'Dual-Control Smart Fleet',
+                desc: 'Hyundai Creta SUV, Honda City sedan, and Swift hatchbacks equipped with dual pedals and instructor safety overrides.',
+                badge: 'SUV & Sedan',
               },
               {
-                icon: <Award className="w-7 h-7 stroke-[1.5]" style={{ color: '#06B6D4' }} />,
-                title: 'RTO Exam Fast-Track',
-                desc: 'Full documentation assistance and mock driver tests covering parallel parking, H-tracks, and gradient starts.',
+                num: '03',
+                title: '1-on-1 Master Mentorship',
+                desc: 'Dedicated RTO-certified instructors (Rajesh Kumar & Priya Sharma) assigned to match your personal learning pace.',
+                badge: 'Certified Mentors',
+              },
+              {
+                num: '04',
+                title: 'RTO Vault & Support',
+                desc: 'Complete documentation filing for Form 20, Learner’s License, and official RTO driving track exam support.',
+                badge: 'RTO Support',
               },
             ].map((card, i) => (
               <div key={i} className="pedagogy-card-container opacity-0 group/card">
-                {/* Gradient border wrapper — p-[1.5px] technique */}
-                <div
-                  className="gradient-border-card p-[1.5px] rounded-3xl h-full"
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                >
-                  {/* Inner frosted card */}
-                  <div
-                    className="rounded-[22px] h-full p-8 flex flex-col gap-5 relative overflow-hidden"
-                    style={{
-                      background: 'rgba(255,255,255,0.92)',
-                      backdropFilter: 'blur(20px)',
-                      WebkitBackdropFilter: 'blur(20px)',
-                    }}
-                  >
-                    {/* Subtle top-corner highlight */}
-                    <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)' }} />
-                    {/* Ambient inner glow on hover */}
-                    <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none"
-                      style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%)', filter: 'blur(20px)' }} />
+                <div className="h-full rounded-3xl p-7 border border-white/10 bg-[#12141F] hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group-hover/card:shadow-[0_0_30px_rgba(56,189,248,0.15)]">
+                  
+                  {/* Glowing corner glow */}
+                  <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-cyan-500/10 blur-xl group-hover/card:bg-cyan-500/20 transition-all duration-500 pointer-events-none" />
 
-                    {/* Icon container */}
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                      style={{ background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.10)' }}>
-                      {card.icon}
+                  <div className="space-y-4 relative">
+                    <div className="flex items-center justify-between">
+                      <span className="font-serif text-2xl font-bold text-cyan-400/80 group-hover/card:text-cyan-400 transition-colors">
+                        {card.num}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-widest font-semibold text-slate-400 px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                        {card.badge}
+                      </span>
                     </div>
 
-                    <div className="space-y-2.5">
-                      <h3 className="font-serif text-[1.4rem] text-slate-900 font-normal leading-snug">
-                        {card.title}
-                      </h3>
-                      <p className="text-sm text-slate-500 leading-relaxed font-light">
-                        {card.desc}
-                      </p>
-                    </div>
+                    <h3 className="font-serif text-xl text-white font-medium leading-snug group-hover/card:text-cyan-300 transition-colors">
+                      {card.title}
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-relaxed font-light">
+                      {card.desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t border-white/5 flex items-center text-xs font-semibold text-cyan-400 gap-2 group-hover/card:translate-x-1 transition-transform">
+                    <span>Learn Details</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
               </div>
@@ -518,81 +452,117 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── Curved SVG transition into CTA ─── */}
-      <div aria-hidden="true" className="pointer-events-none -mt-1 overflow-hidden leading-none">
-        <svg viewBox="0 0 1440 90" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full" preserveAspectRatio="none" style={{ height: '60px' }}>
-          <path d="M0,0 C480,90 960,90 1440,0 L1440,90 L0,90 Z" fill="url(#ctaFill)" />
-          <defs>
-            <linearGradient id="ctaFill" x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#3B82F6" />
-              <stop offset="50%" stopColor="#6366F1" />
-              <stop offset="100%" stopColor="#7C3AED" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      {/* ═══════════════════════════════════════════
+          4. EDITORIAL STORYTELLING SECTION
+          ═══════════════════════════════════════════ */}
+      <section className="relative py-24 bg-[#0D0E15] border-y border-white/10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            
+            {/* Story Visual Card */}
+            <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.6)] group">
+              <Image
+                src="/images/creta.jpg"
+                alt="DriveSuccess Learning Vehicle Fleet"
+                width={700}
+                height={460}
+                className="w-full h-[400px] object-cover group-hover:scale-105 transition-transform duration-700 brightness-90 contrast-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#090A0F] via-transparent to-transparent opacity-90" />
+              
+              <div className="absolute bottom-8 left-8 right-8 p-6 rounded-2xl bg-[#090A0F]/80 backdrop-blur-xl border border-white/10 space-y-2">
+                <span className="text-[10px] uppercase tracking-widest text-cyan-400 font-bold">
+                  Dual-Control Telemetry &amp; Override
+                </span>
+                <h4 className="font-serif text-lg text-white font-medium">
+                  Hyundai Creta SUV Practical Training Unit
+                </h4>
+                <p className="text-xs text-slate-400">
+                  Elevated driving posture, electronic brake override, and real-time clutch monitoring.
+                </p>
+              </div>
+            </div>
+
+            {/* Story Text Content */}
+            <div className="space-y-8">
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400 px-4 py-1.5 rounded-full bg-cyan-950/40 border border-cyan-500/20">
+                The DriveSuccess Method
+              </span>
+
+              <h2 className="font-serif text-[clamp(2.2rem,4vw,3.4rem)] font-normal text-white leading-[1.1] tracking-tight">
+                Pedagogy Built Around <span className="italic text-cyan-400">Calm Control</span>
+              </h2>
+
+              <p className="text-base text-slate-300 font-light leading-relaxed">
+                Traditional driving lessons often cause unnecessary stress. At DriveSuccess Academy, our certified instructors use step-by-step spatial telemetry and dual-control vehicles to ensure safety before introducing complex traffic maneuvers.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <h4 className="font-serif text-base text-white font-semibold mb-1">
+                    Track &amp; Road Practice
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Dedicated practice on RTO track geometries (H-track, slope start, reverse parking) followed by main road navigation.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <h4 className="font-serif text-base text-white font-semibold mb-1">
+                    Doorstep Pickup Available
+                  </h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Convenient session pickups in BTM Layout, Kasavanahalli, HSR, and surrounding Eastwood Township locations.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <Link
+                  href="/fleet"
+                  className="inline-flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  <span>Explore Our Dual-Control Fleet</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════
-          4. PREMIUM CTA BAND
+          5. HIGH-IMPACT CALL TO ACTION
           ═══════════════════════════════════════════ */}
-      <section className="relative py-32 text-center overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #2563EB 0%, #4F46E5 45%, #7C3AED 100%)' }}
-      >
-        {/* Noise texture overlay on dark section */}
-        <div aria-hidden="true" className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")",
-          }}
-        />
-
-        {/* Ambient glows inside CTA */}
-        <div aria-hidden="true" className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%)', filter: 'blur(80px)' }} />
-        <div aria-hidden="true" className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.30) 0%, transparent 70%)', filter: 'blur(80px)' }} />
-
-        {/* Floating decorative rings */}
-        <div aria-hidden="true" className="hidden lg:block absolute top-8 left-[10%] w-32 h-32 rounded-full border border-white/10 float-ring" />
-        <div aria-hidden="true" className="hidden lg:block absolute bottom-8 right-[10%] w-20 h-20 rounded-full border border-white/10 float-ring-slow" />
-        <div aria-hidden="true" className="hidden lg:block absolute top-[30%] right-[6%] w-10 h-10 rounded-full border border-white/15 float-ring" style={{ animationDelay: '1s' }} />
+      <section className="relative py-28 text-center overflow-hidden bg-[#090A0F]">
+        <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse, rgba(56,189,248,0.12) 0%, transparent 70%)', filter: 'blur(100px)' }} />
 
         <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-8 relative z-10">
-
-          {/* Glass floating content panel */}
-          <div className="mx-auto max-w-3xl rounded-3xl p-10 sm:p-14 relative"
-            style={{
-              background: 'rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(24px)',
-              WebkitBackdropFilter: 'blur(24px)',
-              border: '1px solid rgba(255,255,255,0.18)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)',
-            }}
-          >
-            <h2 className="font-serif text-[clamp(2.4rem,6vw,4.2rem)] font-normal text-white tracking-tight leading-[1.05] mb-6">
-              Your Journey to{' '}
-              <em className="italic font-normal" style={{ color: 'rgba(167,243,208,0.95)' }}>Freedom</em>{' '}
-              Starts Today
+          <div className="rounded-3xl p-10 sm:p-16 border border-white/15 bg-gradient-to-b from-white/10 to-white/[0.02] backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.7)] space-y-8">
+            
+            <h2 className="font-serif text-[clamp(2.4rem,5.5vw,4rem)] font-normal text-white tracking-tight leading-[1.08]">
+              Start Your Driving Journey <span className="italic text-cyan-400">Today</span>
             </h2>
-            <p className="text-lg text-white/80 font-light max-w-xl mx-auto leading-relaxed mb-10">
-              Reserve your preferred training vehicle, instructor, and schedule online in under 2 minutes.
+            <p className="text-base sm:text-lg text-slate-300 font-light max-w-xl mx-auto leading-relaxed">
+              Reserve your vehicle, instructor, and preferred morning or evening session online in under 2 minutes.
             </p>
 
-            <Magnetic range={35} strength={0.4}>
-              <Link
-                href="/book"
-                className="group relative overflow-hidden bg-white text-blue-700 font-bold text-xs uppercase tracking-widest px-12 py-5 rounded-full inline-flex items-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95"
-                style={{
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.20), 0 2px 8px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,1)',
-                }}
-              >
-                {/* Shimmer sweep */}
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-50/60 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                <span className="relative">Reserve Your Session Now</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative" />
-              </Link>
-            </Magnetic>
-          </div>
+            <div className="pt-2">
+              <Magnetic range={35} strength={0.4}>
+                <Link
+                  href="/book"
+                  className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs uppercase tracking-widest px-12 py-5 rounded-full inline-flex items-center gap-3 transition-all duration-300 hover:scale-105 shadow-[0_0_35px_rgba(56,189,248,0.4)] border border-cyan-300/30"
+                >
+                  <span>Reserve Your Training Session</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </Magnetic>
+            </div>
 
+          </div>
         </div>
       </section>
 

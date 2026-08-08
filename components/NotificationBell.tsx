@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bell, Check, CheckCheck, Clock } from 'lucide-react';
 import { markNotificationAsReadAction, markAllNotificationsAsReadAction } from '@/actions/notification';
 
+import Link from 'next/link';
+
 export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -60,7 +62,8 @@ export function NotificationBell() {
     };
   }, []);
 
-  const handleMarkRead = async (id: string) => {
+  const handleMarkRead = async (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     await markNotificationAsReadAction(id);
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
@@ -72,6 +75,13 @@ export function NotificationBell() {
     await markAllNotificationsAsReadAction();
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     setUnreadCount(0);
+  };
+
+  const getNotificationLink = (n: any) => {
+    if (n.metadata?.bookingId && (n.type === 'BOOKING_CONFIRMED' || n.type === 'PAYMENT_RECEIVED')) {
+      return `/booking/${n.metadata.bookingId}/confirmation`;
+    }
+    return '/dashboard';
   };
 
   return (
@@ -126,19 +136,24 @@ export function NotificationBell() {
               </div>
             ) : (
               notifications.map((n) => (
-                <div
+                <Link
                   key={n.id}
-                  className={`p-3 rounded-xl border transition space-y-1.5 ${
+                  href={getNotificationLink(n)}
+                  onClick={() => {
+                    if (!n.isRead) handleMarkRead(n.id);
+                    setIsOpen(false);
+                  }}
+                  className={`block p-3 rounded-xl border transition space-y-1.5 hover:border-blue-400 cursor-pointer ${
                     !n.isRead
                       ? 'bg-slate-50 border-blue-300'
-                      : 'bg-slate-100 border-slate-200 opacity-70'
+                      : 'bg-slate-100/70 border-slate-200 opacity-70'
                   }`}
                 >
                   <div className="flex justify-between items-start">
                     <h4 className="font-heading font-bold text-xs text-slate-900">{n.title}</h4>
                     {!n.isRead && (
                       <button
-                        onClick={() => handleMarkRead(n.id)}
+                        onClick={(e) => handleMarkRead(n.id, e)}
                         className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
                       >
                         <Check className="w-3 h-3" />
@@ -149,11 +164,14 @@ export function NotificationBell() {
 
                   <p className="text-xs text-slate-600 leading-relaxed">{n.message}</p>
 
-                  <div className="flex items-center gap-1 text-[10px] text-slate-400 pt-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>{new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <span className="text-blue-600 font-medium">View &rarr;</span>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>

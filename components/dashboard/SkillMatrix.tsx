@@ -60,25 +60,25 @@ export function SkillMatrix({ skills = DEFAULT_SKILLS, instructorNote }: SkillMa
   ).toFixed(1);
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-3xl p-8 sm:p-10 shadow-sm space-y-8">
+    <div className="bg-[#0D0E15] border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-8 text-slate-100">
       {/* Matrix Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-5">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-5">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-widest text-blue-600 flex items-center gap-1.5 mb-1">
-            <Award className="w-4 h-4 text-blue-600" />
+          <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5 mb-1">
+            <Award className="w-4 h-4 text-cyan-400" />
             Pedagogical Driving Skill Matrix
           </span>
-          <h3 className="font-serif text-2xl text-slate-900 font-normal">
+          <h3 className="font-serif text-2xl text-white font-normal">
             Practical Competency Matrix
           </h3>
         </div>
 
-        <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 px-4 py-2 rounded-2xl">
-          <Sparkles className="w-4 h-4 text-blue-600" />
+        <div className="flex items-center gap-3 bg-cyan-950/40 border border-cyan-500/30 px-4 py-2 rounded-2xl">
+          <Sparkles className="w-4 h-4 text-cyan-400" />
           <div>
-            <span className="text-[10px] text-slate-500 font-medium block uppercase tracking-wider">Average Skill Rating</span>
-            <span className="font-serif text-lg font-bold text-slate-900">
-              {avgRating} <span className="text-xs font-sans text-amber-500 font-medium">/ 5.0 ★</span>
+            <span className="text-[10px] text-slate-400 font-medium block uppercase tracking-wider">Average Skill Rating</span>
+            <span className="font-serif text-lg font-bold text-white">
+              {avgRating} <span className="text-xs font-sans text-amber-400 font-medium">/ 5.0 ★</span>
             </span>
           </div>
         </div>
@@ -89,41 +89,41 @@ export function SkillMatrix({ skills = DEFAULT_SKILLS, instructorNote }: SkillMa
         {skills.map((skill, index) => (
           <div
             key={index}
-            className="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-5 space-y-3 hover:bg-white hover:border-slate-300 transition-all duration-200"
+            className="bg-[#12141F] border border-white/10 rounded-2xl p-5 space-y-3 hover:border-cyan-500/40 transition-all duration-200"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-cyan-400 bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-500/20">
                   {skill.category}
                 </span>
-                <h4 className="font-serif text-base text-slate-900 font-medium mt-1">
+                <h4 className="font-serif text-base text-white font-medium mt-1">
                   {skill.name}
                 </h4>
               </div>
 
               {/* Star Rating */}
-              <div className="flex items-center gap-1 bg-white px-2.5 py-1 rounded-xl border border-slate-200 shadow-2xs">
+              <div className="flex items-center gap-1 bg-white/5 px-2.5 py-1 rounded-xl border border-white/10">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
                     className={`w-3.5 h-3.5 ${
                       star <= skill.rating
                         ? 'text-amber-400 fill-amber-400'
-                        : 'text-slate-200'
+                        : 'text-slate-700'
                     }`}
                   />
                 ))}
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 font-light leading-relaxed">
+            <p className="text-xs text-slate-400 font-light leading-relaxed">
               {skill.description}
             </p>
 
             {/* Proficiency Bar */}
-            <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
+                className="h-full bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full shadow-[0_0_8px_rgba(56,189,248,0.5)]"
                 style={{ width: `${(skill.rating / 5) * 100}%` }}
               />
             </div>
@@ -132,15 +132,15 @@ export function SkillMatrix({ skills = DEFAULT_SKILLS, instructorNote }: SkillMa
       </div>
 
       {/* Instructor Feedback Note */}
-      <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 flex items-start gap-4">
-        <div className="p-2 bg-blue-600 text-white rounded-xl shadow-sm">
+      <div className="bg-cyan-950/30 border border-cyan-500/30 rounded-2xl p-5 flex items-start gap-4">
+        <div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl shadow-sm">
           <ShieldCheck className="w-5 h-5" />
         </div>
         <div className="space-y-1">
-          <h5 className="text-xs font-semibold uppercase tracking-wider text-blue-900">
+          <h5 className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
             Instructor Evaluator Note
           </h5>
-          <p className="text-xs text-slate-600 font-light leading-relaxed">
+          <p className="text-xs text-slate-300 font-light leading-relaxed">
             {instructorNote ||
               '“Demonstrates excellent lane discipline and emergency braking reactions. Focus next session on parallel parking alignment and smooth hill clutch release.” — Academy Senior Instructor'}
           </p>

@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { razorpay, RAZORPAY_KEY_ID, verifyRazorpaySignature } from '@/lib/razorpay';
 import { getServerSession } from '@/lib/auth';
 import { getAdminSession } from '@/actions/admin';
-import { BookingStatus, PaymentStatus, Role, SessionStatus } from '@prisma/client';
+import { BookingStatus, PaymentStatus, Role, SessionStatus, NotificationType } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { logger } from '@/lib/logger';
 
@@ -401,6 +401,58 @@ export async function markPaymentFailedAction(bookingId: string, reason?: string
       },
     });
 
+    try {
+      const { dispatchNotificationEvent } = await import('@/lib/notification');
+      const { sendPaymentFailedEmail } = await import('@/lib/email');
+
+      const student = await prisma.student.findUnique({
+        where: { id: booking.studentId },
+        select: { email: true, phone: true, name: true },
+      });
+
+      const pkg = await prisma.package.findUnique({
+        where: { id: booking.packageId },
+        select: { name: true },
+      });
+
+      const packageName = pkg?.name || 'Driving Package';
+
+      let emailHtml = '';
+      if (student?.email) {
+        const emailRes = await sendPaymentFailedEmail({
+          studentEmail: student.email,
+          studentName: student.name,
+          bookingId: booking.id,
+          packageName,
+        });
+        emailHtml = (emailRes as any)?.html || '';
+      }
+
+      await dispatchNotificationEvent({
+        studentId: booking.studentId,
+        eventType: 'PAYMENT_FAILED',
+        title: 'Payment Attempt Unsuccessful',
+        message: `Your payment attempt for ${packageName} could not be completed. You can retry payment on your dashboard.`,
+        notificationType: NotificationType.PAYMENT_FAILED,
+        emailData: student?.email
+          ? {
+              to: student.email,
+              subject: `⚠️ Payment Attempt Unsuccessful - DriveSuccess Academy`,
+              html: emailHtml,
+            }
+          : undefined,
+        whatsAppData: student?.phone
+          ? {
+              phone: student.phone,
+              message: `⚠️ *DriveSuccess Payment Alert*\nHello ${student.name}, your payment attempt for ${packageName} could not be completed. You can retry payment on your dashboard.`,
+            }
+          : undefined,
+        metadata: { bookingId: booking.id, packageName },
+      });
+    } catch (notifErr) {
+      console.warn('Failed to dispatch payment failure notification:', notifErr);
+    }
+
     revalidatePath('/dashboard');
     return { success: true, message: 'Payment marked as failed.' };
   } catch (error) {
@@ -661,6 +713,65 @@ export async function processBookingRefundAction({
 
       return b;
     });
+
+    // Multi-Channel Refund Notification Dispatch
+    try {
+      const { dispatchNotificationEvent } = await import('@/lib/notification');
+      const { sendRefundProcessedEmail } = await import('@/lib/email');
+
+      const student = await prisma.student.findUnique({
+        where: { id: updatedBooking.studentId },
+        select: { email: true, phone: true, name: true },
+      });
+
+      const pkg = await prisma.package.findUnique({
+        where: { id: updatedBooking.packageId },
+        select: { name: true },
+      });
+
+      const packageName = pkg?.name || 'Driving Package';
+
+      let emailHtml = '';
+      if (student?.email) {
+        const emailRes = await sendRefundProcessedEmail({
+          studentEmail: student.email,
+          studentName: student.name,
+          bookingId: updatedBooking.id,
+          packageName,
+          amount: refundAmount,
+          refundId: finalRefundId,
+        });
+        emailHtml = (emailRes as any)?.html || '';
+      }
+
+      await dispatchNotificationEvent({
+        studentId: updatedBooking.studentId,
+        eventType: 'REFUND_PROCESSED',
+        title: 'Refund Processed',
+        message: `A refund of ₹${refundAmount.toLocaleString()} for ${packageName} has been processed.`,
+        notificationType: NotificationType.REFUND_PROCESSED,
+        emailData: student?.email
+          ? {
+              to: student.email,
+              subject: `💸 Refund Processed - DriveSuccess Academy`,
+              html: emailHtml,
+            }
+          : undefined,
+        whatsAppData: student?.phone
+          ? {
+              phone: student.phone,
+              message: `💸 *DriveSuccess Refund*\nHello ${student.name}, a refund of ₹${refundAmount.toLocaleString()} for ${packageName} (Booking #${updatedBooking.id.slice(-8)}) has been processed.`,
+            }
+          : undefined,
+        metadata: {
+          bookingId: updatedBooking.id,
+          refundId: finalRefundId,
+          refundAmount,
+        },
+      });
+    } catch (notifErr) {
+      console.warn('Failed to dispatch refund notification:', notifErr);
+    }
 
     try {
       revalidatePath('/dashboard');

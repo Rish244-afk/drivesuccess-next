@@ -123,11 +123,14 @@ export async function updateStudentProfileAction(data: {
   try {
     const studentId = session.sub;
 
+    // Normalize phone number (preserve leading +, remove spaces/hyphens/formatting)
+    const normalizedPhone = data.phone !== undefined ? data.phone.trim().replace(/[^\d+]/g, '') : undefined;
+
     const updatedStudent = await prisma.student.update({
       where: { id: studentId },
       data: {
         ...(data.name && { name: data.name.trim() }),
-        ...(data.phone && { phone: data.phone.trim() }),
+        ...(normalizedPhone !== undefined && { phone: normalizedPhone }),
         ...(data.address !== undefined && { address: data.address.trim() }),
         ...(data.city !== undefined && { city: data.city.trim() }),
         ...(data.state !== undefined && { state: data.state.trim() }),

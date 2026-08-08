@@ -71,6 +71,55 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Multi-channel notification dispatch for expired bookings
+    try {
+      const { dispatchNotificationEvent } = await import('@/lib/notification');
+      const { sendBookingExpiredEmail } = await import('@/lib/email');
+
+      for (const booking of expiredBookings) {
+        const student = await prisma.student.findUnique({
+          where: { id: booking.studentId },
+          select: { email: true, phone: true, name: true },
+        });
+
+        if (student) {
+          let emailHtml = '';
+          if (student.email) {
+            const emailRes = await sendBookingExpiredEmail({
+              studentEmail: student.email,
+              studentName: student.name,
+              packageName: 'Driving Package',
+            });
+            emailHtml = (emailRes as any)?.html || '';
+          }
+
+          await dispatchNotificationEvent({
+            studentId: booking.studentId,
+            eventType: 'BOOKING_EXPIRED',
+            title: 'Reservation Expired',
+            message: 'Your 15-minute checkout window elapsed without payment. The reserved slot has been released.',
+            notificationType: BookingStatus.CANCELLED as any,
+            emailData: student.email
+              ? {
+                  to: student.email,
+                  subject: `⌛ Pending Reservation Expired - DriveSuccess Academy`,
+                  html: emailHtml,
+                }
+              : undefined,
+            whatsAppData: student.phone
+              ? {
+                  phone: student.phone,
+                  message: `⌛ *DriveSuccess Alert*\nHello ${student.name}, your 15-minute reservation window elapsed without payment. The reserved slot has been released.`,
+                }
+              : undefined,
+            metadata: { bookingId: booking.id },
+          });
+        }
+      }
+    } catch (notifErr) {
+      console.warn('Failed to dispatch expired booking notifications:', notifErr);
+    }
+
     return NextResponse.json({
       success: true,
       count: expiredBookings.length,
