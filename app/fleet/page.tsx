@@ -90,28 +90,29 @@ function FleetContent() {
   return (
     <div className="space-y-0 font-sans overflow-hidden bg-[#F4F0E8] text-[#384633] min-h-screen">
       
-      {/* 1. HERO SECTION (VERDA Reference Screenshot) */}
-      <section className="relative min-h-[85vh] flex flex-col justify-between py-16 px-6 sm:px-8 max-w-7xl mx-auto overflow-hidden">
-        {/* Full-Bright 4K Coastal Arches Background */}
-        <div aria-hidden="true" className="absolute inset-0 pointer-events-none rounded-[3rem] overflow-hidden my-2 shadow-sm">
+      {/* 1. FULL-BLEED 4K HERO SECTION */}
+      <section className="relative w-full min-h-[90vh] flex flex-col justify-between overflow-hidden bg-[#F4F0E8] pt-2">
+        {/* Full-Bleed Edge-to-Edge Coastal Arches Background */}
+        <div aria-hidden="true" className="absolute inset-0 w-full h-full pointer-events-none z-0">
           <Image
             src="/images/coastal_arches.jpg"
             alt="Fleet Collection Environment - Coastal Arches"
             fill
             priority
-            className="object-cover opacity-100 brightness-105 contrast-105"
+            className="object-cover object-center w-full h-full opacity-100 brightness-105 contrast-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/90 via-[#F4F0E8]/40 to-transparent max-w-2xl" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/40 via-transparent to-[#F4F0E8]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/90 via-[#F4F0E8]/50 to-transparent max-w-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/30 via-transparent to-[#F4F0E8]" />
         </div>
 
-        <div className="relative z-10 max-w-3xl pt-12 sm:pt-20 space-y-6">
+        {/* Hero Content Overlay (Grid Contained) */}
+        <div className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 pt-16 sm:pt-24 space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-semibold tracking-widest uppercase bg-white/80 backdrop-blur-md shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-[#384633]" />
             <span>THE COLLECTION</span>
           </div>
 
-          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-normal text-[#384633] tracking-tight leading-[1.05]">
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-normal text-[#384633] tracking-tight leading-[1.05] max-w-3xl">
             Natural Power, <br />
             <em className="italic font-normal text-[#7E8466]">Refined Motion.</em>
           </h1>
