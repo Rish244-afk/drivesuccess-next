@@ -205,7 +205,7 @@ function LoginFormContent() {
         <div className="w-16 h-16 bg-white border border-[#384633]/20 text-[#384633] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
           <ShieldCheck className="w-8 h-8 text-[#384633]" />
         </div>
-        <h1 className="text-2xl font-serif font-normal text-[#384633]">DriveSuccess Academy</h1>
+        <h1 className="text-2xl font-serif font-normal text-[#384633]">Vahathi Motor Driving School</h1>
         <p className="text-xs text-[#7E8466] mt-1 font-light">Vahathi Motor Driving School Student Portal</p>
       </div>
 

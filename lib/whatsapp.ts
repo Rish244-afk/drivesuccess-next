@@ -21,7 +21,7 @@ export async function sendWhatsAppNotification({
     const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/\D/g, '')}`;
     
     const textMessage = 
-      `🏎️ *DriveSuccess Academy Confirmation*\n\n` +
+      `🏎️ *Vahathi Motor Driving School Confirmation*\n\n` +
       `Hello *${studentName}*,\n` +
       `Your payment of *₹${totalAmount.toLocaleString()}* for *${packageName}* (Booking #${bookingId.slice(-8)}) has been confirmed!\n\n` +
       `📅 Practical sessions are scheduled on your student dashboard.\n` +

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, Phone, Clock, ArrowUpRight } from 'lucide-react';
 
 const GOOGLE_MAPS_URL =
@@ -16,8 +17,14 @@ export function Footer() {
         {/* Top Editorial Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#384633]/10 pb-12 gap-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 border border-[#384633]/30 text-[#384633] bg-white/70 rounded-full flex items-center justify-center font-serif text-2xl italic shadow-xs shrink-0">
-              V
+            <div className="w-12 h-12 border border-[#384633]/20 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-xs shrink-0">
+              <Image
+                src="/images/circle_logo.png"
+                alt="Vahathi Motor Driving School"
+                width={48}
+                height={48}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <span className="font-serif text-2xl text-[#384633] block font-normal leading-tight">
@@ -148,7 +155,7 @@ export function Footer() {
 
         {/* Bottom Rights & Links */}
         <div className="pt-8 border-t border-[#384633]/10 flex flex-col sm:flex-row justify-between items-center text-[11px] text-[#7E8466] gap-4">
-          <p>© 2026 Vahathi Motor Driving School (DriveSuccess Platform). All rights reserved.</p>
+          <p>© 2026 Vahathi Motor Driving School. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy" className="hover:text-[#384633] transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-[#384633] transition-colors">Terms & Conditions</Link>

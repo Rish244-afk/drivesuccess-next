@@ -4,7 +4,7 @@ export function JsonLdSchemas() {
   const localBusinessSchema = {
     '@context': 'https://schema.org',
     '@type': 'AutomotiveBusiness',
-    name: 'Vahathi Motor Driving School (DriveSuccess Academy)',
+    name: 'Vahathi Motor Driving School',
     image: 'https://drivesuccess-next.vercel.app/images/hero_bg.jpg',
     '@id': 'https://drivesuccess-next.vercel.app/#organization',
     url: 'https://drivesuccess-next.vercel.app',

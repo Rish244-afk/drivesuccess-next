@@ -18,7 +18,7 @@ export default function PrivacyPolicyPage() {
       <div className="space-y-6 text-sm font-light text-slate-600 leading-relaxed">
         <h2 className="font-serif text-2xl text-slate-900 font-normal">1. Information We Collect</h2>
         <p>
-          Vahathi Motor Driving School (DriveSuccess Platform) collects essential student information including full name, phone number, email address, training schedule preferences, and RTO driver license documentation necessary to conduct practical driving sessions.
+          Vahathi Motor Driving School collects essential student information including full name, phone number, email address, training schedule preferences, and RTO driver license documentation necessary to conduct practical driving sessions.
         </p>
 
         <h2 className="font-serif text-2xl text-slate-900 font-normal">2. How We Use Your Information</h2>

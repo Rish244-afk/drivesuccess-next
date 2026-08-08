@@ -349,12 +349,12 @@ function CoursesContent() {
       <footer className="rounded-t-[3rem] bg-[#E7E1D6] border-t border-[#384633]/10 py-16 px-8 lg:px-16 text-[#384633]">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="space-y-4">
-            <h3 className="font-serif text-2xl font-normal text-[#384633]">DriveSuccess</h3>
+            <h3 className="font-serif text-2xl font-normal text-[#384633]">Vahathi Motor Driving School</h3>
             <p className="text-xs text-[#7E8466] font-light leading-relaxed max-w-sm">
-              Sculpting mindful drivers for a sustainable future. Experience the serenity of motion.
+              Certified 2W & 4W driving instruction in Kasavanahalli, Bengaluru. Experience the serenity of motion.
             </p>
             <p className="text-[11px] text-[#7E8466]/80 font-mono pt-4">
-              © 2026 DriveSuccess. Sculpted for the future of motion.
+              © 2026 Vahathi Motor Driving School. All rights reserved.
             </p>
           </div>
 

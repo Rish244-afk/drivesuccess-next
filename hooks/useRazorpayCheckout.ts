@@ -121,7 +121,7 @@ export function useRazorpayCheckout() {
       key: orderRes.keyId,
       amount: orderRes.amount,
       currency: orderRes.currency,
-      name: 'DriveSuccess Academy',
+      name: 'Vahathi Motor Driving School',
       description: `Payment for ${orderRes.packageName}`,
       order_id: orderRes.orderId,
       prefill: {

@@ -45,7 +45,7 @@ export async function GET(
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>Receipt #${booking.id.slice(-8)} | DriveSuccess Academy</title>
+          <title>Receipt #${booking.id.slice(-8)} | Vahathi Motor Driving School</title>
           <style>
             body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #060913; color: #f8fafc; margin: 0; padding: 40px; }
             .card { max-width: 650px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 40px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
@@ -72,7 +72,7 @@ export async function GET(
         <body>
           <div class="card">
             <div class="header">
-              <a href="https://drivesuccess-next.vercel.app" class="logo">Vahathi DriveSuccess Academy</a>
+              <a href="https://drivesuccess-next.vercel.app" class="logo">Vahathi Motor Driving School</a>
               <h2 style="color: #f8fafc; margin-top: 16px; font-size: 20px;">Official Training Booking Receipt</h2>
               <span class="badge">Payment Confirmed (${booking.paymentStatus})</span>
             </div>

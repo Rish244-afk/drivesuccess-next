@@ -173,7 +173,7 @@ export default function EngineeringPage() {
       <div className="max-w-7xl mx-auto text-center space-y-6 pt-6">
         <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-amber-500/30 text-amber-400 text-xs font-semibold uppercase tracking-widest bg-amber-500/10">
           <Sparkles className="w-4 h-4 animate-pulse" />
-          <span>Enterprise Technical Documentation — DriveSuccess Academy</span>
+          <span>Enterprise Technical Documentation — Vahathi Motor Driving School</span>
         </div>
 
         <h1 className="font-heading font-extrabold text-4xl sm:text-6xl text-slate-100 tracking-tight">

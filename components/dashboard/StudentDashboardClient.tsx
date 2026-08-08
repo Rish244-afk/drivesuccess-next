@@ -159,8 +159,8 @@ export function StudentDashboardClient({
         <div className="space-y-8">
           {/* Logo */}
           <Link href="/" className="block py-2">
-            <span className="font-serif text-2xl font-normal text-[#384633] tracking-tight">
-              DriveSuccess
+            <span className="font-serif text-lg font-normal text-[#384633] tracking-tight leading-tight block">
+              Vahathi Motor Driving School
             </span>
           </Link>
 

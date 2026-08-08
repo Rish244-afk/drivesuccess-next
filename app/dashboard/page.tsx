@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'Student Dashboard | DriveSuccess Academy',
+  title: 'Student Dashboard | Vahathi Motor Driving School',
   description: 'Manage upcoming driving bookings, completed sessions, payment history, RTO documents, and skill matrix.',
 };
 
