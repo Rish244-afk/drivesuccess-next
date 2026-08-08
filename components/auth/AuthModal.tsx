@@ -4,8 +4,6 @@ import React, { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
-import { sendOtpAction, verifyOtpAction, verifyFirebaseIdTokenAction } from '@/actions/auth';
-import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
 import { ShieldCheck, Phone, KeyRound, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -32,24 +30,10 @@ export function AuthModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  const setupRecaptcha = () => {
-    if (typeof window === 'undefined') return null;
-    if ((window as any).authModalRecaptchaVerifier) {
-      return (window as any).authModalRecaptchaVerifier;
-    }
-    const verifier = new RecaptchaVerifier(auth, 'auth-modal-recaptcha-container', {
-      size: 'invisible',
-      callback: () => {},
-    });
-    (window as any).authModalRecaptchaVerifier = verifier;
-    return verifier;
-  };
-
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!phone || phone.length < 10) {
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!phone || phone.trim().length < 10) {
       setError('Please enter a valid 10-digit mobile phone number.');
       return;
     }
@@ -58,91 +42,64 @@ export function AuthModal({
     setError(null);
     setMessage(null);
 
-    const cleanDigits = phone.replace(/[^\d]/g, '');
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${cleanDigits}`;
-    const maskedPhone = cleanDigits.length >= 10
-      ? `+91 ******${cleanDigits.slice(-4)}`
-      : formattedPhone;
-
     try {
-      const appVerifier = setupRecaptcha();
-      if (appVerifier) {
-        const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-        setConfirmationResult(confirmation);
-        setMessage(`We've sent a 6-digit verification code to ${maskedPhone}.`);
-        setStep('OTP');
-        setLoading(false);
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+
+      const data = await res.json().catch(() => null);
+      setLoading(false);
+
+      if (!res.ok || !data?.success) {
+        setError(data?.error || 'Failed to send verification code. Please try again.');
         return;
       }
-    } catch (err: any) {
-      console.warn('Firebase SMS Auth fallback triggered:', err);
+
+      setMessage(data.message || 'Verification code sent successfully. Valid for 5 minutes.');
+      setStep('OTP');
+    } catch (err) {
+      setLoading(false);
+      setError('Network error connecting to verification service. Please try again.');
     }
-
-    const res = await sendOtpAction(phone);
-    setLoading(false);
-
-    if (!res.success) {
-      setError(res.error || 'Failed to send verification code.');
-      return;
-    }
-
-    setMessage(res.message || `We've sent a 6-digit verification code to ${maskedPhone}.`);
-    setStep('OTP');
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otp || otp.length !== 6) {
-      setError('Please enter 6-digit verification code.');
+    if (!otp || otp.trim().length !== 6) {
+      setError('Please enter the 6-digit verification code.');
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone.replace(/[^\d]/g, '')}`;
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp: otp.trim() }),
+      });
 
-    if (confirmationResult) {
-      try {
-        const userCredential = await confirmationResult.confirm(otp);
-        const firebaseIdToken = await userCredential.user.getIdToken();
-        const res = await verifyFirebaseIdTokenAction(firebaseIdToken);
+      const data = await res.json().catch(() => null);
+      setLoading(false);
 
-        if (res.success) {
-          if (onSuccess) onSuccess();
-          if (redirectToDashboard) {
-            router.push(returnTo);
-          }
-          onClose();
-          router.refresh();
-          return;
-        } else {
-          setError(res.error || 'Authentication failed.');
-          setLoading(false);
-          return;
-        }
-      } catch (firebaseErr: any) {
-        console.error('Firebase OTP Verification Error:', firebaseErr);
-        setError('Invalid OTP code. Please check the 6-digit code sent to your phone and try again.');
-        setLoading(false);
+      if (!res.ok || !data?.success) {
+        setError(data?.error || 'Invalid or expired verification code. Please try again.');
         return;
       }
-    }
 
-    const res = await verifyOtpAction(formattedPhone, otp);
-    setLoading(false);
-
-    if (!res.success) {
-      setError(res.error || 'Verification failed. Invalid OTP code.');
-      return;
+      if (onSuccess) onSuccess();
+      if (redirectToDashboard) {
+        router.push(returnTo);
+      }
+      onClose();
+      router.refresh();
+    } catch (err) {
+      setLoading(false);
+      setError('Network error during verification. Please try again.');
     }
-
-    if (onSuccess) onSuccess();
-    if (redirectToDashboard) {
-      router.push(returnTo);
-    }
-    onClose();
-    router.refresh();
   };
 
   return (
@@ -170,9 +127,6 @@ export function AuthModal({
             <span>{message}</span>
           </div>
         )}
-
-        {/* Invisible reCAPTCHA container */}
-        <div id="auth-modal-recaptcha-container"></div>
 
         {step === 'PHONE' ? (
           <form onSubmit={handleSendOtp} className="space-y-4">
@@ -215,13 +169,26 @@ export function AuthModal({
                 <label className="block text-[11px] font-bold text-[#384633] uppercase tracking-wider">
                   Enter 6-Digit Verification Code *
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setStep('PHONE')}
-                  className="text-[11px] text-[#384633] font-semibold underline hover:text-[#2B3B2B]"
-                >
-                  Change Phone
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSendOtp()}
+                    className="text-[11px] text-[#384633] font-semibold underline hover:text-[#2B3B2B]"
+                  >
+                    Resend Code
+                  </button>
+                  <span className="text-[#7E8466]">•</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep('PHONE');
+                      setOtp('');
+                    }}
+                    className="text-[11px] text-[#384633] font-semibold underline hover:text-[#2B3B2B]"
+                  >
+                    Change Phone
+                  </button>
+                </div>
               </div>
               <div className="relative">
                 <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#7E8466]" />
