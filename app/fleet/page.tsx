@@ -92,51 +92,52 @@ function FleetContent() {
       
       {/* 1. FULL-BLEED 4K HERO SECTION */}
       <section className="relative w-full min-h-[90vh] flex flex-col justify-between overflow-hidden bg-[#F4F0E8] pt-2">
-        {/* Full-Bleed Edge-to-Edge Coastal Arches Background */}
+        {/* Full-Bleed Edge-to-Edge Coastal Arches Background (100% Crisp Resolution) */}
         <div aria-hidden="true" className="absolute inset-0 w-full h-full pointer-events-none z-0">
           <Image
             src="/images/coastal_arches.jpg"
-            alt="Fleet Collection Environment - Coastal Arches"
+            alt="Vahathi Certified Training Fleet"
             fill
             priority
+            unoptimized
             className="object-cover object-center w-full h-full opacity-100 brightness-105 contrast-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/90 via-[#F4F0E8]/50 to-transparent max-w-3xl" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/30 via-transparent to-[#F4F0E8]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/90 via-[#F4F0E8]/40 to-transparent max-w-2xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/20 via-transparent to-[#F4F0E8]" />
         </div>
 
-        {/* Hero Content Overlay (Grid Contained) */}
+        {/* Hero Content Overlay */}
         <div className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 pt-16 sm:pt-24 space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-semibold tracking-widest uppercase bg-white/80 backdrop-blur-md shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-[#384633]" />
-            <span>THE COLLECTION</span>
+            <span>CERTIFIED DRIVING FLEET</span>
           </div>
 
           <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-normal text-[#384633] tracking-tight leading-[1.05] max-w-3xl">
-            Natural Power, <br />
+            Dual-Control Safety, <br />
             <em className="italic font-normal text-[#7E8466]">Refined Motion.</em>
           </h1>
 
           <p className="text-base sm:text-lg text-[#384633]/90 font-medium max-w-xl leading-relaxed">
-            Our fleet blends electric performance with sculptural design — delivering power that moves with absolute purpose.
+            Our training fleet features 100% dual-control pedals, air conditioning, and senior instructor override telemetry — engineered for calm, confident learning.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-4">
             <Magnetic range={35} strength={0.4}>
               <button
                 onClick={() => handleTierFilterChange('TIER_A_COMPACT')}
-                className="bg-[#384633] hover:bg-[#2B3B2B] text-white font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-3 transition-all duration-300 shadow-md hover:scale-105"
+                className="bg-[#384633] hover:bg-[#2B3B2B] text-white font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-3 transition-all duration-300 shadow-md hover:scale-105 cursor-pointer"
               >
-                <span>Explore Tier A</span>
+                <span>Explore Compact Hatchbacks</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </Magnetic>
 
             <button
               onClick={() => handleTierFilterChange('all')}
-              className="bg-[#E7E1D6] hover:bg-white text-[#384633] border border-[#384633]/20 font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-2 transition-all duration-300 shadow-xs"
+              className="bg-[#E7E1D6] hover:bg-white text-[#384633] border border-[#384633]/20 font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-2 transition-all duration-300 shadow-xs cursor-pointer"
             >
-              <span>View All Models</span>
+              <span>View All Vehicles</span>
             </button>
           </div>
         </div>
@@ -148,34 +149,34 @@ function FleetContent() {
           
           <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/80 space-y-2">
             <div className="p-3 rounded-full bg-[#384633]/10 text-[#384633]">
-              <Compass className="w-5 h-5" />
+              <Shield className="w-5 h-5" />
             </div>
-            <h3 className="font-serif text-lg font-normal text-[#384633]">0 Emissions</h3>
-            <p className="text-[10px] text-[#7E8466] font-semibold uppercase tracking-wider">Pure Electric Drive</p>
+            <h3 className="font-serif text-lg font-normal text-[#384633]">100% Dual Control</h3>
+            <p className="text-[10px] text-[#7E8466] font-semibold uppercase tracking-wider">Instructor Clutch & Brake Override</p>
           </div>
 
           <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/80 space-y-2">
             <div className="p-3 rounded-full bg-[#384633]/10 text-[#384633]">
               <Zap className="w-5 h-5" />
             </div>
-            <h3 className="font-serif text-lg font-normal text-[#384633]">Instant</h3>
-            <p className="text-[10px] text-[#7E8466] font-semibold uppercase tracking-wider">Torque Response</p>
+            <h3 className="font-serif text-lg font-normal text-[#384633]">Power Steering</h3>
+            <p className="text-[10px] text-[#7E8466] font-semibold uppercase tracking-wider">Effortless Maneuvering</p>
           </div>
 
           <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/80 space-y-2">
             <div className="p-3 rounded-full bg-[#384633]/10 text-[#384633]">
-              <Shield className="w-5 h-5" />
+              <Compass className="w-5 h-5" />
             </div>
-            <h3 className="font-serif text-lg font-normal text-[#384633]">ADAS L2+</h3>
-            <p className="text-[10px] text-[#7E8466] font-semibold uppercase tracking-wider">Intelligent Safety</p>
+            <h3 className="font-serif text-lg font-normal text-[#384633]">Air-Conditioned</h3>
+            <p className="text-[10px] text-[#7E8466] font-semibold uppercase tracking-wider">All Weather Comfort</p>
           </div>
 
           <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/80 space-y-2">
             <div className="p-3 rounded-full bg-[#384633]/10 text-[#384633]">
               <Car className="w-5 h-5" />
             </div>
-            <h3 className="font-serif text-lg font-normal text-[#384633]">Premium</h3>
-            <p className="text-[10px] text-[#7E8466] font-semibold uppercase tracking-wider">Cabin Comfort</p>
+            <h3 className="font-serif text-lg font-normal text-[#384633]">2W & 4W Vehicles</h3>
+            <p className="text-[10px] text-[#7E8466] font-semibold uppercase tracking-wider">Multi-Category Practice</p>
           </div>
 
         </div>
@@ -228,6 +229,7 @@ function FleetContent() {
                       src={car.imageUrl || `/images/${car.name.toLowerCase()}.jpg`}
                       alt={car.name}
                       fill
+                      unoptimized
                       className="object-cover opacity-100 brightness-105 contrast-105 group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute top-4 left-4">
@@ -290,10 +292,10 @@ function FleetContent() {
           <div className="space-y-4">
             <h3 className="font-serif text-2xl font-normal text-[#384633]">DriveSuccess</h3>
             <p className="text-xs text-[#7E8466] font-light leading-relaxed max-w-sm">
-              Sculpting mindful drivers for a sustainable future. Experience the serenity of motion.
+              Vahathi Motor Driving School. Certified 2W & 4W driving instruction in Kasavanahalli, Bengaluru.
             </p>
             <p className="text-[11px] text-[#7E8466]/80 font-mono pt-4">
-              © 2024 DriveSuccess. Sculpted for the future of motion.
+              © 2026 Vahathi Motor Driving School. All rights reserved.
             </p>
           </div>
 
@@ -301,8 +303,8 @@ function FleetContent() {
             <h4 className="text-xs font-semibold uppercase tracking-wider text-[#384633]">Journey</h4>
             <ul className="space-y-2 text-xs text-[#7E8466]">
               <li><Link href="/" className="hover:text-[#384633] transition-colors">The Method</Link></li>
-              <li><Link href="/fleet" className="hover:text-[#384633] transition-colors">Sustainable Fleet</Link></li>
-              <li><Link href="/courses" className="hover:text-[#384633] transition-colors">Safety Standards</Link></li>
+              <li><Link href="/fleet" className="hover:text-[#384633] transition-colors">Dual-Control Fleet</Link></li>
+              <li><Link href="/courses" className="hover:text-[#384633] transition-colors">Curriculum & Packages</Link></li>
             </ul>
           </div>
 
