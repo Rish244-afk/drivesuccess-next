@@ -1,37 +1,14 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { generateOtp, sendSmsOtp } from '@/lib/sms';
+import { generateOtp, getSmsProvider } from '@/lib/sms';
+import { normalizePhoneNumber } from '@/lib/phone';
 import { signSessionToken, setAuthCookie, removeAuthCookie, getServerSession } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { Role } from '@prisma/client';
-
-const phoneSchema = z.string().regex(/^\+?\d{10,15}$/, 'Please enter a valid 10-digit mobile number');
-const otpSchema = z.string().length(6, 'OTP must be exactly 6 digits');
-
-/**
- * 1. Login with Phone (Works with Firebase Phone Auth & Direct Phone Verification)
- *
- * Identity Resolution Order — prevents duplicate Student records:
- *
- * STEP 1: If a valid JWT session already exists (e.g. the user is already
- *         signed in via Google), LINK the verified phone to that existing
- *         account. This handles Scenario C: Google → Phone OTP while logged in.
- *
- * STEP 2: Look up by phone number. If a student with this phone exists,
- *         return that account. This handles returning phone-only users.
- *
- * STEP 3: No existing account found. Create a NEW phone-only account.
- *         NOTE: We do NOT generate a synthetic email address. Student.email
- *         is nullable — a phone-only account has email = null until the user
- *         later links a Google account or provides their email explicitly.
- *         This was the root cause of duplicate accounts: the old synthetic
- *         email (student_XXXX@drivesuccess.edu) meant Google login could
- *         never find the phone-only account by email and created a duplicate.
- */
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 
 const FIREBASE_JWKS = createRemoteJWKSet(
@@ -44,8 +21,10 @@ const FIREBASE_JWKS = createRemoteJWKSet(
  */
 async function createVerifiedPhoneSession(phoneInput: string) {
   try {
-    const phone = phoneInput.trim().replace(/[^\d+]/g, '');
-    phoneSchema.parse(phone);
+    const phone = normalizePhoneNumber(phoneInput);
+    if (!phone) {
+      return { success: false, error: 'Please enter a valid 10-digit mobile number.' };
+    }
 
     // ─── STEP 1: Check if user is already logged in via another method ───────
     const currentSession = await getServerSession();
@@ -180,8 +159,10 @@ export async function verifyFirebaseIdTokenAction(idToken: string) {
  */
 export async function sendOtpAction(phoneInput: string) {
   try {
-    const phone = phoneInput.trim().replace(/[^\d+]/g, '');
-    phoneSchema.parse(phone);
+    const phone = normalizePhoneNumber(phoneInput);
+    if (!phone) {
+      return { success: false, error: 'Please enter a valid 10-digit Indian mobile number.' };
+    }
 
     // 1. Cooldown Enforcement: Check if an unexpired OTP was sent in the last 60 seconds
     const existingOtp = await prisma.otpVerification.findUnique({
@@ -203,11 +184,28 @@ export async function sendOtpAction(phoneInput: string) {
     // 2. Generate Cryptographically Secure 6-Digit OTP
     const otp = generateOtp();
 
-    // 3. Hash OTP using bcrypt (Salt Rounds = 10) before Database Storage
+    // 3. Dispatch SMS via Provider FIRST (Masked Phone for Logging)
+    const provider = getSmsProvider();
+    const smsResult = await provider.sendOtp(phone, otp);
+
+    if (!smsResult.success) {
+      logger.auth({
+        event: 'OTP_DISPATCHED',
+        outcome: 'FAILURE',
+        phone,
+        reason: smsResult.error || 'SMS provider delivery failed',
+      });
+      return {
+        success: false,
+        error: 'Failed to send verification code. Please check your mobile number or try again.',
+      };
+    }
+
+    // 4. Hash OTP using bcrypt (Salt Rounds = 10) before Database Storage
     const otpHash = await bcrypt.hash(otp, 10);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 Minutes Expiry
 
-    // 4. Upsert OTP record in Database with 0 initial failed attempts
+    // 5. Commit/Upsert OTP record in Database ONLY after successful SMS dispatch
     await prisma.otpVerification.upsert({
       where: { phone },
       update: {
@@ -224,29 +222,22 @@ export async function sendOtpAction(phoneInput: string) {
       },
     });
 
-    // 5. Dispatch SMS via Provider (Masked Phone for Logging)
-    const smsResult = await sendSmsOtp(phone, otp);
-
     const maskedPhone = phone.replace(/(\+\d{2}\d{4})\d{4}(\d{2})/, '$1****$2');
-    console.log(`🔒 Secure OTP generated for ${maskedPhone}. Expiration: 5m.`);
 
     logger.auth({
       event: 'OTP_DISPATCHED',
       outcome: 'SUCCESS',
       phone,
-      details: { smsDelivered: smsResult },
+      details: { smsDelivered: true },
     });
 
     return {
       success: true,
       message: `Verification code sent to ${maskedPhone}. Valid for 5 minutes.`,
-      smsDelivered: smsResult,
+      smsDelivered: true,
     };
   } catch (error) {
     console.error('sendOtpAction Error:', error);
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
-    }
     return { success: false, error: 'Failed to send OTP code. Please try again.' };
   }
 }
@@ -256,11 +247,15 @@ export async function sendOtpAction(phoneInput: string) {
  */
 export async function verifyOtpAction(phoneInput: string, otpInput: string) {
   try {
-    const phone = phoneInput.trim().replace(/[^\d+]/g, '');
-    const otp = otpInput.trim();
+    const phone = normalizePhoneNumber(phoneInput);
+    if (!phone) {
+      return { success: false, error: 'Please enter a valid 10-digit mobile number.' };
+    }
 
-    phoneSchema.parse(phone);
-    otpSchema.parse(otp);
+    const otp = (otpInput || '').trim();
+    if (!/^\d{6}$/.test(otp)) {
+      return { success: false, error: 'Verification code must be exactly 6 numeric digits.' };
+    }
 
     // 1. Fetch OTP record from Database
     const otpRecord = await prisma.otpVerification.findUnique({
@@ -340,9 +335,6 @@ export async function verifyOtpAction(phoneInput: string, otpInput: string) {
     return await createVerifiedPhoneSession(phone);
   } catch (error) {
     console.error('verifyOtpAction Error:', error);
-    if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
-    }
     return { success: false, error: 'Failed to verify code. Please try again.' };
   }
 }

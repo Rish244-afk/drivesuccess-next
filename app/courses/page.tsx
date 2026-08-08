@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { CheckCircle2, ArrowRight, Sparkles, ShieldCheck, Compass } from 'lucide-react';
 import { getPackagesAction } from '@/actions/package';
 import { BoneyardWrapper, CourseCardSkeleton } from '@/components/ui/Skeleton';
 import { InspiraCard } from '@/components/ui/InspiraCard';
@@ -39,6 +40,39 @@ function CoursesContent() {
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
 
   const gridContainerRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement | null>(null);
+
+  // Smooth 3D Parallax Mouse Trackers
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 25, stiffness: 120 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  // Background Car Image 3D Rotation & Translation
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [6, -6]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-6, 6]);
+  const imgTranslateX = useTransform(smoothX, [-0.5, 0.5], [-20, 20]);
+  const imgTranslateY = useTransform(smoothY, [-0.5, 0.5], [-20, 20]);
+
+  // Foreground Content Micro-Movement (Opposite Direction for Deep 3D Depth Illusion)
+  const textTranslateX = useTransform(smoothX, [-0.5, 0.5], [10, -10]);
+  const textTranslateY = useTransform(smoothY, [-0.5, 0.5], [10, -10]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    const xRatio = (e.clientX - rect.left) / rect.width - 0.5;
+    const yRatio = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(xRatio);
+    mouseY.set(yRatio);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   useEffect(() => {
     async function loadPackages() {
@@ -79,20 +113,110 @@ function CoursesContent() {
   return (
     <div className="space-y-0 overflow-hidden bg-[#F4F0E8] text-[#384633] min-h-screen font-sans">
       
-      {/* 1. HERO SECTION */}
-      <section className="relative py-24 lg:py-32 text-center overflow-hidden">
-        <div className="max-w-4xl mx-auto px-6 sm:px-8 space-y-6 relative z-10 font-sans">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-semibold tracking-[0.2em] uppercase bg-white/80 backdrop-blur-md shadow-xs">
+      {/* 1. FULL-BLEED 4K CINEMATIC HERO SECTION WITH 3D PARALLAX */}
+      <section
+        ref={heroRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative w-full min-h-[90vh] flex flex-col justify-between overflow-hidden bg-[#F4F0E8] pt-2 [perspective:1000px]"
+      >
+        {/* Crisp Architectural Silver Car Background Image with Interactive 3D Motion */}
+        <motion.div
+          aria-hidden="true"
+          style={{
+            rotateX,
+            rotateY,
+            x: imgTranslateX,
+            y: imgTranslateY,
+            scale: 1.08,
+            transformStyle: 'preserve-3d',
+          }}
+          className="absolute -inset-4 w-[calc(100%+2rem)] h-[calc(100%+2rem)] pointer-events-none z-0"
+        >
+          <Image
+            src="/images/curriculum_hero.jpg"
+            alt="Vahathi Curated Driver Curriculum & Vehicle Training"
+            fill
+            priority
+            unoptimized
+            className="object-cover object-center w-full h-full opacity-100 brightness-105 contrast-105"
+          />
+          {/* Light gradient backdrop for maximum text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/95 via-[#F4F0E8]/60 to-transparent max-w-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/30 via-transparent to-[#F4F0E8]" />
+        </motion.div>
+
+        {/* Hero Content Overlay (Floats Layered in 3D Space) */}
+        <motion.div
+          style={{
+            x: textTranslateX,
+            y: textTranslateY,
+          }}
+          className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 pt-16 sm:pt-24 space-y-6"
+        >
+          {/* Tag Pill */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-semibold tracking-widest uppercase bg-white/80 backdrop-blur-md shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-[#384633]" />
-            <span>Accredited Curriculum</span>
+            <span>ACCREDITED CURRICULUM</span>
           </div>
 
-          <h1 className="font-serif text-5xl sm:text-6xl lg:text-7xl font-normal text-[#384633] tracking-tight leading-tight">
-            Curated Driver <em className="italic text-[#7E8466] font-normal">Packages</em>
+          {/* Main Hero Headline */}
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-normal text-[#384633] tracking-tight leading-[1.05] max-w-3xl">
+            Curated Driver <br />
+            <em className="italic font-normal text-[#7E8466]">Packages.</em>
           </h1>
-          <p className="text-base sm:text-lg text-[#7E8466] font-light max-w-2xl mx-auto leading-relaxed">
+
+          {/* Subtitle */}
+          <p className="text-base sm:text-lg text-[#384633]/90 font-medium max-w-xl leading-relaxed">
             Explore our structured 2W and 4W training programs tailored for first-time drivers, license endorsements, RTO exam preparation, and refresher practice.
           </p>
+
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap items-center gap-4 pt-4">
+            <Magnetic range={35} strength={0.4}>
+              <Link
+                href="/book"
+                className="bg-[#384633] hover:bg-[#2B3B2B] text-white font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-3 transition-all duration-300 shadow-md hover:scale-105"
+              >
+                <span>Book a Package</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Magnetic>
+
+            <button
+              type="button"
+              onClick={() => gridContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="bg-white/90 hover:bg-white text-[#384633] border border-[#384633]/20 font-medium text-xs uppercase tracking-wider px-8 py-4 rounded-full inline-flex items-center gap-2 transition-all duration-300 shadow-xs cursor-pointer"
+            >
+              <span>Explore Programs</span>
+              <Compass className="w-4 h-4 text-[#7E8466]" />
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Floating Bottom Metric Glass Bar */}
+        <div className="relative z-10 w-full px-6 sm:px-8 pb-6 my-4">
+          <div className="bg-[#384633]/90 backdrop-blur-xl text-white rounded-full p-4 px-8 max-w-5xl mx-auto shadow-2xl flex flex-wrap items-center justify-between gap-6 border border-white/20">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <span className="text-xs font-medium tracking-wide">Government RTO Approved</span>
+            </div>
+            <div className="h-4 w-px bg-white/20 hidden sm:block" />
+            <div className="flex flex-col">
+              <span className="font-serif text-sm font-bold">10 & 15-Day Modules</span>
+              <span className="text-[10px] text-white/70 uppercase tracking-wider">Zero-to-License Track</span>
+            </div>
+            <div className="h-4 w-px bg-white/20 hidden sm:block" />
+            <div className="flex flex-col">
+              <span className="font-serif text-sm font-bold">1-on-1 Dedicated Coach</span>
+              <span className="text-[10px] text-white/70 uppercase tracking-wider">Dual-Control Fleet</span>
+            </div>
+            <div className="h-4 w-px bg-white/20 hidden sm:block" />
+            <Link href="/fleet" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-400 hover:text-emerald-300 transition-colors">
+              <span>View Fleet</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -230,7 +354,7 @@ function CoursesContent() {
               Sculpting mindful drivers for a sustainable future. Experience the serenity of motion.
             </p>
             <p className="text-[11px] text-[#7E8466]/80 font-mono pt-4">
-              © 2024 DriveSuccess. Sculpted for the future of motion.
+              © 2026 DriveSuccess. Sculpted for the future of motion.
             </p>
           </div>
 
