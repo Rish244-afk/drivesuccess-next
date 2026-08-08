@@ -4,21 +4,70 @@ import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Award, ShieldCheck, ArrowRight, Sparkles, Compass, Car, Leaf, RefreshCw, Clock } from 'lucide-react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { Magnetic } from '@/components/ui/Magnetic';
 
 export default function HomePage() {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const heroRef = useRef<HTMLDivElement | null>(null);
+
+  // Smooth 3D Parallax Mouse Trackers
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 25, stiffness: 120 };
+  const smoothX = useSpring(mouseX, springConfig);
+  const smoothY = useSpring(mouseY, springConfig);
+
+  // Background Car Image 3D Rotation & Translation
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [6, -6]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-6, 6]);
+  const imgTranslateX = useTransform(smoothX, [-0.5, 0.5], [-20, 20]);
+  const imgTranslateY = useTransform(smoothY, [-0.5, 0.5], [-20, 20]);
+
+  // Foreground Content Micro-Movement (Opposite Direction for Deep 3D Depth Illusion)
+  const textTranslateX = useTransform(smoothX, [-0.5, 0.5], [10, -10]);
+  const textTranslateY = useTransform(smoothY, [-0.5, 0.5], [10, -10]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    const xRatio = (e.clientX - rect.left) / rect.width - 0.5;
+    const yRatio = (e.clientY - rect.top) / rect.height - 0.5;
+    mouseX.set(xRatio);
+    mouseY.set(yRatio);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
 
   return (
     <div
       ref={containerRef}
       className="overflow-hidden bg-[#F4F0E8] text-[#384633] font-sans min-h-screen"
     >
-      {/* 1. FULL-BLEED 4K CINEMATIC HERO SECTION */}
-      <section className="relative w-full min-h-[95vh] flex flex-col justify-between overflow-hidden bg-[#F4F0E8] pt-2">
-        
-        {/* Crisp 4K Sanctuary Arch Hero Image (100% Full Resolution) */}
-        <div aria-hidden="true" className="absolute inset-0 w-full h-full pointer-events-none z-0">
+      {/* 1. FULL-BLEED 4K CINEMATIC HERO SECTION WITH 3D PARALLAX */}
+      <section
+        ref={heroRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative w-full min-h-[95vh] flex flex-col justify-between overflow-hidden bg-[#F4F0E8] pt-2 [perspective:1000px]"
+      >
+        {/* Crisp 4K Sanctuary Arch Hero Image with Interactive 3D Motion */}
+        <motion.div
+          aria-hidden="true"
+          style={{
+            rotateX,
+            rotateY,
+            x: imgTranslateX,
+            y: imgTranslateY,
+            scale: 1.08,
+            transformStyle: 'preserve-3d',
+          }}
+          className="absolute -inset-4 w-[calc(100%+2rem)] h-[calc(100%+2rem)] pointer-events-none z-0"
+        >
           <Image
             src="/images/sanctuary_arch.jpg"
             alt="Vahathi Motor Driving School Sanctuary Stage"
@@ -30,10 +79,16 @@ export default function HomePage() {
           {/* Light gradient backdrop for maximum text readability */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#F4F0E8]/90 via-[#F4F0E8]/40 to-transparent max-w-2xl" />
           <div className="absolute inset-0 bg-gradient-to-b from-[#F4F0E8]/20 via-transparent to-[#F4F0E8]" />
-        </div>
+        </motion.div>
 
-        {/* Hero Content Overlay */}
-        <div className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 pt-16 sm:pt-24 space-y-6">
+        {/* Hero Content Overlay (Floats Layered in 3D Space) */}
+        <motion.div
+          style={{
+            x: textTranslateX,
+            y: textTranslateY,
+          }}
+          className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-8 pt-16 sm:pt-24 space-y-6"
+        >
           {/* Tag Pill */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#384633]/20 text-[#384633] text-xs font-semibold tracking-widest uppercase bg-white/80 backdrop-blur-md shadow-xs">
             <Sparkles className="w-3.5 h-3.5 text-[#384633]" />
@@ -71,7 +126,7 @@ export default function HomePage() {
               <Compass className="w-4 h-4 text-[#7E8466]" />
             </Link>
           </div>
-        </div>
+        </motion.div>
 
         {/* Floating Bottom Metric Glass Bar */}
         <div className="relative z-10 w-full px-6 sm:px-8 pb-6 my-4">
