@@ -89,6 +89,28 @@ export function AIChatWidget() {
     prevMessagesLengthRef.current = messages.length;
   }, [messages.length, loading]);
 
+  const handleNavigateToBooking = useCallback(
+    (packageId: string) => {
+      if (navigatingToBook) return;
+      if (!packageId || packageId === 'undefined' || packageId === 'null' || !packageId.trim()) return;
+
+      setNavigatingToBook(true);
+      const destination = `/book?package=${encodeURIComponent(packageId)}`;
+      setIsOpen(false);
+
+      try {
+        router.push(destination);
+      } catch (err) {
+        console.error('[DriveAI] Navigation error:', err);
+      }
+
+      setTimeout(() => {
+        setNavigatingToBook(false);
+      }, 4000);
+    },
+    [navigatingToBook, router]
+  );
+
   // Auto-Redirect Handoff Handler
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
@@ -139,28 +161,6 @@ export function AIChatWidget() {
       ]);
     }
   };
-
-  const handleNavigateToBooking = useCallback(
-    (packageId: string) => {
-      if (navigatingToBook) return;
-      if (!packageId || packageId === 'undefined' || packageId === 'null' || !packageId.trim()) return;
-
-      setNavigatingToBook(true);
-      const destination = `/book?package=${encodeURIComponent(packageId)}`;
-      setIsOpen(false);
-
-      try {
-        router.push(destination);
-      } catch (err) {
-        console.error('[DriveAI] Navigation error:', err);
-      }
-
-      setTimeout(() => {
-        setNavigatingToBook(false);
-      }, 4000);
-    },
-    [navigatingToBook, router]
-  );
 
   const handleResetChat = () => {
     setMessages([initialWelcomeMessage]);
