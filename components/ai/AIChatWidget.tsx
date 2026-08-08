@@ -24,7 +24,7 @@ export function AIChatWidget() {
 
   const initialWelcomeMessage: AIMessage = {
     role: 'assistant',
-    content: 'Hello! I am your DriveAI Assistant. How can I help you today?',
+    content: 'Hello! I am DriveAI, virtual assistant for Vahathi Motor Driving School. How can I help you today?',
     options: [
       { label: 'Browse Packages', value: 'Show packages' },
       { label: 'Check Open Slots', value: 'Check available slots' },
