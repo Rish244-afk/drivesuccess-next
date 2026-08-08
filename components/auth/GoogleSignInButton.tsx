@@ -265,9 +265,24 @@ export function GoogleSignInButton({
   return (
     <div className="w-full space-y-3 font-sans">
       {error && (
-        <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-500 text-xs flex items-start gap-2 text-left">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <span className="leading-relaxed">{error}</span>
+        <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-900 text-xs space-y-2 text-left shadow-xs">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
+            <span className="leading-relaxed font-medium">{error}</span>
+          </div>
+          {(error.includes('signed in') || error.includes('connected') || error.includes('linked')) && (
+            <button
+              type="button"
+              onClick={async () => {
+                setLoading(true);
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.reload();
+              }}
+              className="w-full bg-[#384633] hover:bg-[#2B3B2B] text-white py-2 px-3 rounded-xl text-[11px] font-bold uppercase tracking-wider transition cursor-pointer shadow-xs"
+            >
+              Sign Out & Try Again
+            </button>
+          )}
         </div>
       )}
 
