@@ -65,8 +65,8 @@ export async function submitContactInquiryAction(formData: {
     const normalizedEmail = email.toLowerCase();
 
     // 4. Server-Side Rate Limiting (IP & Email Dual Bucket)
-    const ipCheck = checkRateLimit(`contact_ip_${clientIp}`, { limit: 3, windowMs: 15 * 60 * 1000 });
-    const emailCheck = checkRateLimit(`contact_email_${normalizedEmail}`, { limit: 3, windowMs: 15 * 60 * 1000 });
+    const ipCheck = await checkRateLimit(`contact_ip_${clientIp}`, { limit: 3, windowMs: 15 * 60 * 1000 });
+    const emailCheck = await checkRateLimit(`contact_email_${normalizedEmail}`, { limit: 3, windowMs: 15 * 60 * 1000 });
 
     if (!ipCheck.allowed || !emailCheck.allowed) {
       return {

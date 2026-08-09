@@ -77,7 +77,7 @@ export async function middleware(req: NextRequest) {
 
   // 2. RATE LIMITING: Global API Rate Limiter (60 req/min)
   if (pathname.startsWith('/api/')) {
-    const rateCheck = apiRateLimiter.check(clientIp);
+    const rateCheck = await apiRateLimiter.check(clientIp);
     if (!rateCheck.success) {
       return NextResponse.json(
         { success: false, error: 'Too Many Requests. Please slow down.' },

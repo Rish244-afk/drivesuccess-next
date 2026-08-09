@@ -4,9 +4,21 @@ import { prisma } from '@/lib/prisma';
 import { signSessionToken, setAuthCookie, removeAuthCookie, getServerSession } from '@/lib/auth';
 import { Role, BookingStatus, PaymentStatus, VehicleTier, Transmission, VehicleStatus, PackageType } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { adminLoginRateLimiter } from '@/lib/rateLimit';
 
 const ADMIN_COOKIE_NAME = 'admin_auth_token';
+
+function getAdminClientIp(): string {
+  try {
+    const headerList = headers();
+    const forwardedFor = headerList.get('x-forwarded-for');
+    const realIp = headerList.get('x-real-ip');
+    if (forwardedFor) return forwardedFor.split(',')[0].trim();
+    if (realIp) return realIp.trim();
+  } catch {}
+  return '127.0.0.1';
+}
 
 /**
  * 1. Admin Separate Login Action
@@ -14,6 +26,16 @@ const ADMIN_COOKIE_NAME = 'admin_auth_token';
  */
 export async function adminLoginAction(formData: FormData) {
   try {
+    // 1. Rate limiting check (5 attempts / 15 mins) before credential evaluation
+    const clientIp = getAdminClientIp();
+    const rateCheck = await adminLoginRateLimiter.check(`admin_login_${clientIp}`);
+    if (!rateCheck.success) {
+      return {
+        success: false,
+        error: 'Too many login attempts. Please wait 15 minutes before trying again.',
+      };
+    }
+
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 

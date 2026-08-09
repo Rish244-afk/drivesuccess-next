@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: Request) {
   try {
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
-    const rateCheck = checkRateLimit(`ai_chat_api_${ip}`, { limit: 20, windowMs: 10 * 60 * 1000 });
+    const rateCheck = await checkRateLimit(`ai_chat_api_${ip}`, { limit: 20, windowMs: 10 * 60 * 1000 });
     if (!rateCheck.allowed) {
       return NextResponse.json(
         {

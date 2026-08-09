@@ -25,10 +25,10 @@ async function main() {
   // TEST 2: IP Rate Limit Enforcement (Max 3 / 15 min)
   console.log('[Test 2: IP Rate Limit Enforcement (3 per 15 min)]');
   const ipKey = `contact_ip_127.0.0.1_${Date.now()}`;
-  const r1 = checkRateLimit(ipKey, { limit: 3, windowMs: 15 * 60 * 1000 });
-  const r2 = checkRateLimit(ipKey, { limit: 3, windowMs: 15 * 60 * 1000 });
-  const r3 = checkRateLimit(ipKey, { limit: 3, windowMs: 15 * 60 * 1000 });
-  const r4 = checkRateLimit(ipKey, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const r1 = await checkRateLimit(ipKey, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const r2 = await checkRateLimit(ipKey, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const r3 = await checkRateLimit(ipKey, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const r4 = await checkRateLimit(ipKey, { limit: 3, windowMs: 15 * 60 * 1000 });
 
   console.log(`  -> Attempt 1 Allowed: ${r1.allowed}`);
   console.log(`  -> Attempt 2 Allowed: ${r2.allowed}`);
@@ -38,13 +38,13 @@ async function main() {
   const test2Passed = r1.allowed && r2.allowed && r3.allowed && !r4.allowed;
   console.log(`  -> Test 2 Result: ${test2Passed ? 'PASS ✅' : 'FAIL 🔴'}\n`);
 
-  // TEST 3: Email Rate Limit Enforcement
-  console.log('[Test 3: Email Rate Limit Enforcement Across IPs]');
-  const emailKey = `contact_email_spammer_${Date.now()}@example.com`;
-  const e1 = checkRateLimit(emailKey, { limit: 3, windowMs: 15 * 60 * 1000 });
-  const e2 = checkRateLimit(emailKey, { limit: 3, windowMs: 15 * 60 * 1000 });
-  const e3 = checkRateLimit(emailKey, { limit: 3, windowMs: 15 * 60 * 1000 });
-  const e4 = checkRateLimit(emailKey, { limit: 3, windowMs: 15 * 60 * 1000 });
+  // TEST 3: Email Rate Limit Enforcement (Max 3 / 15 min)
+  console.log('[Test 3: Email Rate Limit Enforcement (3 per 15 min)]');
+  const emailKey = `contact_email_test_${Date.now()}@example.com`;
+  const e1 = await checkRateLimit(emailKey, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const e2 = await checkRateLimit(emailKey, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const e3 = await checkRateLimit(emailKey, { limit: 3, windowMs: 15 * 60 * 1000 });
+  const e4 = await checkRateLimit(emailKey, { limit: 3, windowMs: 15 * 60 * 1000 });
 
   console.log(`  -> Email Attempt 1: ${e1.allowed}`);
   console.log(`  -> Email Attempt 4: ${e4.allowed} (Expected: false)`);

@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const rateLimit = checkRateLimit(`google_auth_${ip}`, { limit: 15, windowMs: 60 * 1000 });
+    const rateLimit = await checkRateLimit(`google_auth_${ip}`, { limit: 15, windowMs: 60 * 1000, sensitive: true });
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { success: false, error: 'Too many authentication attempts. Please wait a minute and try again.' },

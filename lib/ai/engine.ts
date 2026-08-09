@@ -38,7 +38,7 @@ export async function runDriveAIEngine(options: ProcessAIChatOptions): Promise<P
   // 2. UNIFIED SERVER-SIDE RATE LIMITING
   const session = sessionOverride !== undefined ? sessionOverride : await getServerSession();
   const rateLimitKey = session?.sub ? `ai_chat_user_${session.sub}` : `ai_chat_ip_${ipAddress}`;
-  const rateCheck = checkRateLimit(rateLimitKey, { limit: 20, windowMs: 10 * 60 * 1000 }); // 20 requests per 10 mins
+  const rateCheck = await checkRateLimit(rateLimitKey, { limit: 20, windowMs: 10 * 60 * 1000 }); // 20 requests per 10 mins
 
   if (!rateCheck.allowed) {
     return {

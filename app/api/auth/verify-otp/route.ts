@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     // 1. IP & Brute-Force Rate Limiting (10 requests / 1 min)
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
-    const rateCheck = checkRateLimit(`verify_otp_${ip}`, { limit: 10, windowMs: 60 * 1000 });
+    const rateCheck = await checkRateLimit(`verify_otp_${ip}`, { limit: 10, windowMs: 60 * 1000, sensitive: true });
 
     if (!rateCheck.allowed) {
       return NextResponse.json(

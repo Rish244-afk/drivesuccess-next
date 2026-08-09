@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     // 1. IP & Endpoint Rate Limiting (3 requests / 10 min)
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
-    const rateCheck = checkRateLimit(`send_otp_${ip}`, { limit: 3, windowMs: 10 * 60 * 1000 });
+    const rateCheck = await checkRateLimit(`send_otp_${ip}`, { limit: 3, windowMs: 10 * 60 * 1000, sensitive: true });
 
     if (!rateCheck.allowed) {
       return NextResponse.json(
