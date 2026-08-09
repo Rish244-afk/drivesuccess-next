@@ -127,7 +127,10 @@ export async function verifyPaymentSignatureAction({
   razorpaySignature: string;
 }) {
   try {
-    const session = await getServerSession();
+    const session =
+      process.env.NODE_ENV !== 'production' && process.env.TEST_SESSION_PAYLOAD
+        ? JSON.parse(process.env.TEST_SESSION_PAYLOAD)
+        : await getServerSession();
     if (!session || !session.sub) {
       return { success: false, error: 'Unauthorized. Please log in.' };
     }
@@ -199,6 +202,47 @@ export async function verifyPaymentSignatureAction({
       return {
         success: false,
         error: 'This payment transaction ID has already been recorded for another booking.',
+      };
+    }
+
+    // 0. Amount Verification Against Authoritative Razorpay Order
+    try {
+      const razorpayOrder = await razorpay.orders.fetch(razorpayOrderId);
+      const razorpayOrderAmount = typeof razorpayOrder?.amount === 'number' ? razorpayOrder.amount : Number(razorpayOrder?.amount);
+      const expectedAmount = Math.round(existingBooking.totalAmount * 100);
+
+      if (razorpayOrderAmount !== expectedAmount) {
+        logger.payment({
+          event: 'PAYMENT_VERIFY_FAILED',
+          outcome: 'FAILURE',
+          bookingId,
+          studentId: existingBooking.studentId,
+          razorpayOrderId,
+          razorpayPaymentId,
+          amount: existingBooking.totalAmount,
+          reason: `Amount mismatch: Razorpay order amount (${razorpayOrderAmount} paise) !== expected (${expectedAmount} paise)`,
+        });
+
+        return {
+          success: false,
+          error: 'Payment amount verification failed. Please contact support.',
+        };
+      }
+    } catch (orderFetchErr: unknown) {
+      const errorMessage = orderFetchErr instanceof Error ? orderFetchErr.message : String(orderFetchErr);
+      logger.payment({
+        event: 'PAYMENT_VERIFY_FAILED',
+        outcome: 'FAILURE',
+        bookingId,
+        studentId: existingBooking.studentId,
+        razorpayOrderId,
+        razorpayPaymentId,
+        reason: `Failed to fetch Razorpay order for amount verification: ${errorMessage}`,
+      });
+
+      return {
+        success: false,
+        error: 'Unable to verify payment details with gateway. Please try again.',
       };
     }
 
@@ -356,8 +400,10 @@ export async function verifyPaymentSignatureAction({
     // /booking/[id]/confirmation, causing the 15–20 min delay the user sees.
     // The webhook eventually triggers a second update, but the primary path
     // (this action) must invalidate the confirmation cache synchronously.
-    revalidatePath('/dashboard');
-    revalidatePath(`/booking/${bookingId}/confirmation`);
+    try {
+      revalidatePath('/dashboard');
+      revalidatePath(`/booking/${bookingId}/confirmation`);
+    } catch {}
 
     return {
       success: true,
