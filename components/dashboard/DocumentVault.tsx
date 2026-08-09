@@ -17,6 +17,7 @@ function isSafeDocumentUrl(url?: string | null): boolean {
   if (!url) return false;
   const lower = url.toLowerCase().trim();
   return (
+    lower.startsWith('/api/documents/download') ||
     lower.startsWith('data:image/jpeg;base64,') ||
     lower.startsWith('data:image/png;base64,') ||
     lower.startsWith('data:image/webp;base64,') ||
@@ -27,6 +28,7 @@ function isSafeDocumentUrl(url?: string | null): boolean {
 
 interface DocumentVaultProps {
   documents: Array<{
+    id?: string;
     type: string;
     fileUrl?: string | null;
     status: string;
@@ -68,10 +70,14 @@ export function DocumentVault({ documents, onRefresh }: DocumentVaultProps) {
 
   const getDocStatus = (type: string) => {
     const userDoc = documents?.find((d) => d.type === type);
+    const downloadUrl = userDoc?.id
+      ? `/api/documents/download?id=${userDoc.id}`
+      : userDoc?.fileUrl;
+
     return {
       doc: userDoc,
       status: userDoc?.status || 'not_uploaded',
-      url: userDoc?.fileUrl,
+      url: downloadUrl,
     };
   };
 

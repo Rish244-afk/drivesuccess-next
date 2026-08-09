@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
+import { put } from '@vercel/blob';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB ceiling
 
@@ -17,6 +18,13 @@ const ALLOWED_MIME_TYPES = new Set([
   'image/webp',
   'application/pdf',
 ]);
+
+const MIME_TO_EXTENSION: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'application/pdf': 'pdf',
+};
 
 /**
  * Verify binary file signature (magic bytes) against expected MIME type.
@@ -63,7 +71,15 @@ function verifyMagicBytes(buffer: Buffer, mimeType: string): boolean {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    let session = null;
+    const token = request.cookies.get('auth_token')?.value;
+    if (token) {
+      const { validateSessionToken } = await import('@/lib/auth');
+      session = await validateSessionToken(token);
+    } else {
+      session = await getServerSession();
+    }
+
     if (!session || !session.sub) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -109,9 +125,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const dataUrl = `data:${mimeType};base64,${buffer.toString('base64')}`;
+    // 5. Store File in Private Vercel Blob Storage
+    const extension = MIME_TO_EXTENSION[mimeType] || 'bin';
+    const pathname = `documents/${session.sub}/${type}-${Date.now()}.${extension}`;
 
-    // 5. Save or update document record in the database
+    const blob = await put(pathname, buffer, {
+      access: 'private',
+      contentType: mimeType,
+    });
+
+    const fileUrl = blob.url;
+
+    // 6. Save or update document record in the database
     const existingDoc = await prisma.studentDocument.findFirst({
       where: { studentId: session.sub, type },
     });
@@ -120,7 +145,7 @@ export async function POST(request: NextRequest) {
       await prisma.studentDocument.update({
         where: { id: existingDoc.id },
         data: {
-          fileUrl: dataUrl,
+          fileUrl,
           status: 'submitted',
           uploadedAt: new Date(),
         },
@@ -130,14 +155,14 @@ export async function POST(request: NextRequest) {
         data: {
           studentId: session.sub,
           type,
-          fileUrl: dataUrl,
+          fileUrl,
           status: 'submitted',
           uploadedAt: new Date(),
         },
       });
     }
 
-    return NextResponse.json({ success: true, url: dataUrl });
+    return NextResponse.json({ success: true, url: fileUrl });
   } catch (error) {
     console.error('Error uploading document:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -6,6 +6,7 @@ function isSafeDocumentUrl(url?: string | null): boolean {
   if (!url) return false;
   const lower = url.toLowerCase().trim();
   return (
+    lower.startsWith('/api/documents/download') ||
     lower.startsWith('data:image/jpeg;base64,') ||
     lower.startsWith('data:image/png;base64,') ||
     lower.startsWith('data:image/webp;base64,') ||
@@ -70,7 +71,12 @@ export function AdminDocumentsClient({ documents }: { documents: any[] }) {
               </td>
               <td className="p-5 text-sm">
                 {doc.fileUrl && isSafeDocumentUrl(doc.fileUrl) ? (
-                  <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                  <a
+                    href={`/api/documents/download?id=${doc.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
                     View Document
                   </a>
                 ) : doc.fileUrl ? (
