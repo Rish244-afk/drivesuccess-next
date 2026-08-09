@@ -6,6 +6,16 @@ import { Role, BookingStatus, PaymentStatus, VehicleTier, Transmission, VehicleS
 import { revalidatePath } from 'next/cache';
 import { cookies, headers } from 'next/headers';
 import { adminLoginRateLimiter } from '@/lib/rateLimit';
+import {
+  createPackageSchema,
+  createVehicleSchema,
+  createInstructorSchema,
+  bookingAssignmentSchema,
+  cancelBookingSchema,
+  updateDocumentStatusSchema,
+  entityIdSchema,
+} from '@/lib/security';
+import { ZodError } from 'zod';
 
 const ADMIN_COOKIE_NAME = 'admin_auth_token';
 
@@ -257,38 +267,22 @@ export async function getAdminBookingsAction(search?: string, status?: string) {
 
 /**
  * Update Booking Assignment (Instructor, Vehicle) & Status Management
+ * CRITICAL: paymentStatus is strictly disallowed to prevent unauthorized payment state tampering.
  */
-export async function updateBookingAssignmentAction({
-  bookingId,
-  instructorId,
-  vehicleId,
-  status,
-  paymentStatus,
-}: {
-  bookingId: string;
-  instructorId?: string;
-  vehicleId?: string;
-  status?: BookingStatus;
-  paymentStatus?: PaymentStatus;
-}) {
+export async function updateBookingAssignmentAction(rawData: unknown) {
   try {
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
-    const updateData: any = {};
-    if (instructorId !== undefined) updateData.instructorId = instructorId || null;
-    if (vehicleId !== undefined) updateData.vehicleId = vehicleId || null;
-    if (status) updateData.status = status;
-    if (paymentStatus) {
-      updateData.paymentStatus = paymentStatus;
-      if (paymentStatus === PaymentStatus.PAID) {
-        updateData.paidAt = new Date();
-        updateData.status = BookingStatus.CONFIRMED;
-      }
-    }
+    const data = bookingAssignmentSchema.parse(rawData);
+
+    const updateData: { instructorId?: string | null; vehicleId?: string | null; status?: BookingStatus } = {};
+    if (data.instructorId !== undefined) updateData.instructorId = data.instructorId || null;
+    if (data.vehicleId !== undefined) updateData.vehicleId = data.vehicleId || null;
+    if (data.status !== undefined) updateData.status = data.status;
 
     const updatedBooking = await prisma.booking.update({
-      where: { id: bookingId },
+      where: { id: data.bookingId },
       data: updateData,
       include: {
         student: true,
@@ -300,12 +294,12 @@ export async function updateBookingAssignmentAction({
     });
 
     // Also update assigned instructor/vehicle on related scheduled sessions
-    if (instructorId || vehicleId) {
+    if (data.instructorId !== undefined || data.vehicleId !== undefined) {
       await prisma.session.updateMany({
-        where: { bookingId },
+        where: { bookingId: data.bookingId },
         data: {
-          ...(instructorId !== undefined ? { instructorId: instructorId || (await prisma.instructor.findFirst())?.id || '' } : {}),
-          ...(vehicleId !== undefined ? { vehicleId: vehicleId || (await prisma.vehicle.findFirst())?.id || '' } : {}),
+          ...(data.instructorId !== undefined ? { instructorId: data.instructorId || (await prisma.instructor.findFirst())?.id || '' } : {}),
+          ...(data.vehicleId !== undefined ? { vehicleId: data.vehicleId || (await prisma.vehicle.findFirst())?.id || '' } : {}),
         },
       });
     }
@@ -317,6 +311,9 @@ export async function updateBookingAssignmentAction({
     return { success: true, message: 'Booking updated successfully!', booking: updatedBooking };
   } catch (error) {
     console.error('updateBookingAssignmentAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid booking assignment input.' };
+    }
     return { success: false, error: 'Failed to update booking assignment.' };
   }
 }
@@ -324,22 +321,18 @@ export async function updateBookingAssignmentAction({
 /**
  * Cancel Booking with Reason Action
  */
-export async function cancelBookingWithReasonAction({
-  bookingId,
-  cancelReason,
-}: {
-  bookingId: string;
-  cancelReason: string;
-}) {
+export async function cancelBookingWithReasonAction(rawData: unknown) {
   try {
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
+    const data = cancelBookingSchema.parse(rawData);
+
     const updatedBooking = await prisma.booking.update({
-      where: { id: bookingId },
+      where: { id: data.bookingId },
       data: {
         status: BookingStatus.CANCELLED,
-        cancelReason: cancelReason || 'Cancelled by Admin',
+        cancelReason: data.cancelReason,
       },
       include: {
         student: true,
@@ -357,6 +350,9 @@ export async function cancelBookingWithReasonAction({
     return { success: true, message: 'Booking cancelled with reason.', booking: updatedBooking };
   } catch (error) {
     console.error('cancelBookingWithReasonAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid cancellation parameters.' };
+    }
     return { success: false, error: 'Failed to cancel booking.' };
   }
 }
@@ -521,17 +517,17 @@ export async function createPackageAction(formData: unknown) {
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
-    const data = formData as any;
+    const data = createPackageSchema.parse(formData);
     const pkg = await prisma.package.create({
       data: {
         name: data.name,
         slug: data.slug || data.name.toLowerCase().replace(/[^\w]+/g, '-'),
-        type: data.type as PackageType,
+        type: data.type,
         description: data.description,
-        price: parseFloat(data.price),
-        sessionsCount: parseInt(data.sessionsCount),
+        price: data.price,
+        sessionsCount: data.sessionsCount,
         badge: data.badge || null,
-        isPopular: data.isPopular || false,
+        isPopular: false, // Server controlled: client cannot set isPopular
       },
     });
 
@@ -541,6 +537,9 @@ export async function createPackageAction(formData: unknown) {
     return { success: true, message: 'Package created successfully!', package: pkg };
   } catch (error) {
     console.error('createPackageAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid package input parameters.' };
+    }
     return { success: false, error: 'Failed to create package.' };
   }
 }
@@ -550,12 +549,17 @@ export async function deletePackageAction(packageId: string) {
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
-    await prisma.package.delete({ where: { id: packageId } });
+    const validId = entityIdSchema.parse(packageId);
+
+    await prisma.package.delete({ where: { id: validId } });
     revalidatePath('/admin/packages');
     revalidatePath('/courses');
     return { success: true, message: 'Package deleted successfully.' };
   } catch (error) {
     console.error('deletePackageAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid package ID.' };
+    }
     return { success: false, error: 'Cannot delete package with active bookings.' };
   }
 }
@@ -568,18 +572,18 @@ export async function createVehicleAction(formData: unknown) {
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
-    const data = formData as any;
+    const data = createVehicleSchema.parse(formData);
     const vehicle = await prisma.vehicle.create({
       data: {
         name: data.name,
-        modelYear: parseInt(data.modelYear || '2024'),
+        modelYear: data.modelYear,
         plateNumber: data.plateNumber,
-        tier: data.tier as VehicleTier,
-        transmission: data.transmission as Transmission,
-        ratePerSession: parseFloat(data.ratePerSession),
+        tier: data.tier,
+        transmission: data.transmission,
+        ratePerSession: data.ratePerSession,
         description: data.description,
         imageUrl: data.imageUrl || '/images/fleet_wagonr_1785513709373.jpg',
-        status: (data.status as VehicleStatus) || VehicleStatus.AVAILABLE,
+        status: data.status || VehicleStatus.AVAILABLE,
       },
     });
 
@@ -589,6 +593,9 @@ export async function createVehicleAction(formData: unknown) {
     return { success: true, message: 'Vehicle created successfully!', vehicle };
   } catch (error) {
     console.error('createVehicleAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid vehicle input parameters.' };
+    }
     return { success: false, error: 'Failed to create vehicle.' };
   }
 }
@@ -598,12 +605,17 @@ export async function deleteVehicleAction(vehicleId: string) {
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
-    await prisma.vehicle.delete({ where: { id: vehicleId } });
+    const validId = entityIdSchema.parse(vehicleId);
+
+    await prisma.vehicle.delete({ where: { id: validId } });
     revalidatePath('/admin/vehicles');
     revalidatePath('/fleet');
     return { success: true, message: 'Vehicle deleted successfully.' };
   } catch (error) {
     console.error('deleteVehicleAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid vehicle ID.' };
+    }
     return { success: false, error: 'Cannot delete vehicle assigned to bookings.' };
   }
 }
@@ -616,16 +628,24 @@ export async function createInstructorAction(formData: unknown) {
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
-    const data = formData as any;
+    const data = createInstructorSchema.parse(formData);
+
+    let normalizedSpecialties: string[] = [];
+    if (typeof data.specialties === 'string') {
+      normalizedSpecialties = data.specialties.split(',').map((s) => s.trim()).filter(Boolean);
+    } else if (Array.isArray(data.specialties)) {
+      normalizedSpecialties = data.specialties.map((s) => String(s).trim()).filter(Boolean);
+    }
+
     const instructor = await prisma.instructor.create({
       data: {
         name: data.name,
         email: data.email,
         phone: data.phone,
-        bio: data.bio,
-        experienceYears: parseInt(data.experienceYears || '5'),
-        rating: parseFloat(data.rating || '5.0'),
-        specialties: typeof data.specialties === 'string' ? data.specialties.split(',').map((s: string) => s.trim()) : data.specialties,
+        bio: data.bio || '',
+        experienceYears: data.experienceYears,
+        rating: data.rating,
+        specialties: normalizedSpecialties,
         role: Role.INSTRUCTOR,
       },
     });
@@ -634,6 +654,9 @@ export async function createInstructorAction(formData: unknown) {
     return { success: true, message: 'Instructor created successfully!', instructor };
   } catch (error) {
     console.error('createInstructorAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid instructor input parameters.' };
+    }
     return { success: false, error: 'Failed to create instructor.' };
   }
 }
@@ -643,11 +666,16 @@ export async function deleteInstructorAction(instructorId: string) {
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
-    await prisma.instructor.delete({ where: { id: instructorId } });
+    const validId = entityIdSchema.parse(instructorId);
+
+    await prisma.instructor.delete({ where: { id: validId } });
     revalidatePath('/admin/instructors');
     return { success: true, message: 'Instructor deleted successfully.' };
   } catch (error) {
     console.error('deleteInstructorAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid instructor ID.' };
+    }
     return { success: false, error: 'Cannot delete instructor with assigned bookings.' };
   }
 }
@@ -681,19 +709,24 @@ export async function updateDocumentStatusAction(documentId: string, status: str
     const admin = await getAdminSession();
     if (!admin) return { success: false, error: 'Admin access denied.' };
 
+    const data = updateDocumentStatusSchema.parse({ documentId, status });
+
     await prisma.studentDocument.update({
-      where: { id: documentId },
+      where: { id: data.documentId },
       data: {
-        status,
+        status: data.status,
         reviewedAt: new Date(),
         reviewedBy: admin.sub,
       },
     });
 
     revalidatePath('/admin/documents');
-    return { success: true, message: `Document status updated to ${status}.` };
+    return { success: true, message: `Document status updated to ${data.status}.` };
   } catch (error) {
     console.error('updateDocumentStatusAction Error:', error);
+    if (error instanceof ZodError) {
+      return { success: false, error: error.errors[0]?.message || 'Invalid document status parameters.' };
+    }
     return { success: false, error: 'Failed to update document status.' };
   }
 }
