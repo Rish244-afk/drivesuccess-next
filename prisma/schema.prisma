@@ -366,3 +366,16 @@ model Availability {
   @@index([dayOfWeek])
   @@map("availabilities")
 }
+
+model WebhookEvent {
+  id        String   @id @default(cuid())
+  eventId   String   @unique
+  eventType String
+  bookingId String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([eventType])
+  @@map("webhook_events")
+}
