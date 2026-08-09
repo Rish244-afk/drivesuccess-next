@@ -140,6 +140,32 @@ export async function middleware(req: NextRequest) {
   try {
     const { payload } = await jwtVerify(token, getMiddlewareJwtSecret());
 
+    // 4b. AUTHVERSION REDIS REVOCATION CHECK
+    const sub = payload.sub as string | undefined;
+    const tokenVer = payload.ver as number | undefined;
+
+    if (sub && tokenVer !== undefined) {
+      const { getStudentAuthVersionRedis } = await import('@/lib/redis');
+      const redisVer = await getStudentAuthVersionRedis(sub);
+
+      if (redisVer !== null && redisVer !== tokenVer) {
+        if (isProtectedApi) {
+          const response = NextResponse.json(
+            { success: false, error: 'Session revoked. Please log in again.' },
+            { status: 401 }
+          );
+          response.cookies.delete(COOKIE_NAME);
+          return response;
+        }
+
+        const loginUrl = new URL('/auth/login', req.url);
+        loginUrl.searchParams.set('error', 'session_revoked');
+        const response = NextResponse.redirect(loginUrl);
+        response.cookies.delete(COOKIE_NAME);
+        return response;
+      }
+    }
+
     let activeToken = token;
     
     // Rolling session: If token was issued more than 7 days ago, issue a fresh 30-day token

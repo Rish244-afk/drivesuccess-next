@@ -48,7 +48,7 @@ async function createVerifiedPhoneSession(phoneInput: string) {
         } else {
           student = await prisma.student.update({
             where: { id: existing.id },
-            data: { phone, phoneVerified: true },
+            data: { phone, phoneVerified: true, authVersion: { increment: 1 } },
           });
           console.log(`🔗 Phone ${phone} linked to existing session account: ${existing.id}`);
         }
@@ -81,6 +81,10 @@ async function createVerifiedPhoneSession(phoneInput: string) {
         data: { phoneVerified: true },
       });
     }
+
+    // Synchronize authVersion to Redis
+    const { setStudentAuthVersionRedis } = await import('@/lib/redis');
+    await setStudentAuthVersionRedis(student.id, student.authVersion);
 
     // Issue 30-Day Rolling JWT Cookie
     const jwtPayload = {
@@ -357,7 +361,7 @@ export async function logoutAction(): Promise<void> {
 }
 
 /**
- * 5. Get Current User Session (Database Validated & Token Version Enforced)
+ * 5. Get Current User Session (Database Validated via getServerSession)
  */
 export async function getCurrentUserAction() {
   const session = await getServerSession();
@@ -365,31 +369,13 @@ export async function getCurrentUserAction() {
     return { success: false, user: null };
   }
 
-  // Verify student record actually exists in Prisma DB
+  // Fetch full student profile attributes for UI display
   const student = await prisma.student.findUnique({
     where: { id: session.sub },
     select: { id: true, role: true, phone: true, email: true, name: true, authVersion: true },
   });
 
   if (!student) {
-    logger.auth({
-      event: 'SESSION_REVOKED',
-      outcome: 'FAILURE',
-      actorId: session.sub,
-      reason: 'Student account missing or deleted in database',
-    });
-    await removeAuthCookie();
-    return { success: false, user: null };
-  }
-
-  // Token Versioning Revocation Check
-  if (session.ver !== undefined && session.ver !== student.authVersion) {
-    logger.auth({
-      event: 'SESSION_REVOKED',
-      outcome: 'FAILURE',
-      actorId: student.id,
-      reason: `Token version mismatch: session ver (${session.ver}) != DB authVersion (${student.authVersion})`,
-    });
     await removeAuthCookie();
     return { success: false, user: null };
   }

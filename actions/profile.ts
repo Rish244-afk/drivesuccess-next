@@ -197,7 +197,7 @@ export async function deleteStudentAccountAction() {
       });
 
       // Anonymize student PII while preserving student record ID for booking relations
-      await tx.student.update({
+      const updatedStudent = await tx.student.update({
         where: { id: studentId },
         data: {
           name: 'Anonymized Student',
@@ -214,7 +214,11 @@ export async function deleteStudentAccountAction() {
           phoneVerified: false,
           authVersion: { increment: 1 },
         },
+        select: { id: true, authVersion: true },
       });
+
+      const { setStudentAuthVersionRedis } = await import('@/lib/redis');
+      await setStudentAuthVersionRedis(studentId, updatedStudent.authVersion);
     });
 
     await removeAuthCookie();

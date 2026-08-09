@@ -469,7 +469,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 4. Issue Unified 30-Day Session JWT Cookie
+    // 4. Synchronize authVersion to Upstash Redis & Issue Unified 30-Day Session JWT Cookie
+    const { setStudentAuthVersionRedis } = await import('@/lib/redis');
+    await setStudentAuthVersionRedis(student.id, student.authVersion);
+
     const token = await signSessionToken({
       sub: student.id,
       phone: student.phone || '',

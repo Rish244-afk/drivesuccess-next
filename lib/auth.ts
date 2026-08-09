@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
 /**
  * Returns the JWT signing secret as a Uint8Array.
@@ -52,13 +53,49 @@ export async function signSessionToken(payload: JWTPayload): Promise<string> {
 }
 
 /**
- * Verify JWT token
+ * Verify JWT token cryptographically (signature and expiration)
  */
 export async function verifySessionToken(token: string): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getJwtSecret());
     return payload as unknown as JWTPayload;
   } catch {
+    return null;
+  }
+}
+
+/**
+ * Authoritatively validates a session token against JWT signature/expiration AND PostgreSQL Student.authVersion.
+ * Fails closed (returns null) on missing claims, missing student, version mismatch, or database errors.
+ */
+export async function validateSessionToken(token: string): Promise<JWTPayload | null> {
+  try {
+    const payload = await verifySessionToken(token);
+    if (!payload || !payload.sub || payload.ver === undefined) {
+      return null;
+    }
+
+    // Authoritative PostgreSQL Student.authVersion lookup
+    const student = await prisma.student.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        authVersion: true,
+      },
+    });
+
+    if (!student) {
+      return null;
+    }
+
+    if (payload.ver !== student.authVersion) {
+      return null;
+    }
+
+    return payload;
+  } catch (error) {
+    // Fail closed on database or execution errors
+    console.error('[auth] validateSessionToken error:', error);
     return null;
   }
 }
@@ -87,14 +124,17 @@ export async function removeAuthCookie() {
 
 /**
  * Get Current Authenticated Session Payload from Server Context
+ * Validates JWT cryptographic integrity AND performs authoritative PostgreSQL Student.authVersion check.
+ * Safe for Server Components (does NOT mutate cookies during render).
  */
 export async function getServerSession(): Promise<JWTPayload | null> {
   try {
     const cookieStore = cookies();
     const token = cookieStore.get(COOKIE_NAME)?.value;
     if (!token) return null;
-    return await verifySessionToken(token);
-  } catch {
+    return await validateSessionToken(token);
+  } catch (error) {
+    console.error('[auth] getServerSession error:', error);
     return null;
   }
 }
