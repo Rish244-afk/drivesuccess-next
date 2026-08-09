@@ -101,9 +101,10 @@ export function GoogleSignInButton({
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('code') || urlParams.has('id_token')) return;
 
-    const clientId =
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-      '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      throw new Error('NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is not configured.');
+    }
 
     const initGsi = () => {
       if (window.google?.accounts?.id && !promptAttempted.current) {
@@ -203,9 +204,10 @@ export function GoogleSignInButton({
   //    sessionStorage persists within the same browser tab across same-origin redirects.
   const handleGoogleClick = async () => {
     setLoading(true);
-    const clientId =
-      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-      '171317905309-27echg3im1efm2861gl98us0p14uj8m2.apps.googleusercontent.com';
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      throw new Error('NEXT_PUBLIC_GOOGLE_CLIENT_ID environment variable is not configured.');
+    }
 
     const appUrl =
       process.env.NEXT_PUBLIC_APP_URL ||
