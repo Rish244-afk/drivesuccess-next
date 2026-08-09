@@ -115,25 +115,27 @@ export async function adminLoginAction(formData: FormData) {
  */
 export async function getAdminSession() {
   try {
-    // TEST_ADMIN_SESSION is a local-development / CI testing aid ONLY.
-    // It is unconditionally blocked in production to prevent authentication bypass.
-    // SECURITY: Never set this variable in a Vercel production environment.
-    if (process.env.NODE_ENV !== 'production' && process.env.TEST_ADMIN_SESSION) {
-      try {
-        return JSON.parse(process.env.TEST_ADMIN_SESSION);
-      } catch {}
-    }
     const cookieStore = cookies();
     const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value;
+
     if (!token) {
-      // Fallback to standard session if role === ADMIN
       const stdSession = await getServerSession();
-      if (stdSession && stdSession.role === Role.ADMIN) return stdSession;
+
+      if (stdSession && stdSession.role === Role.ADMIN) {
+        return stdSession;
+      }
+
       return null;
     }
+
     const { verifySessionToken } = await import('@/lib/auth');
+
     const session = await verifySessionToken(token);
-    if (!session || session.role !== Role.ADMIN) return null;
+
+    if (!session || session.role !== Role.ADMIN) {
+      return null;
+    }
+
     return session;
   } catch (error) {
     return null;
