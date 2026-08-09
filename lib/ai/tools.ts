@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { getAvailableSlotsAction } from '@/actions/bookingSystem';
 import { getServerSession, JWTPayload } from '@/lib/auth';
 import { PackageType } from '@prisma/client';
+import { getISTDateString } from '@/lib/dateUtils';
 
 export interface ToolExecutionResult {
   toolName: string;
@@ -56,7 +57,7 @@ export async function getPackagesTool(params: { category?: string; type?: string
  */
 export async function checkAvailabilityTool(params: { date?: string; packageType?: string }) {
   try {
-    const targetDate = params.date || new Date().toISOString().split('T')[0];
+    const targetDate = params.date || getISTDateString();
 
     const pkg = await prisma.package.findFirst({
       where: params.packageType ? { type: params.packageType as PackageType } : undefined,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth';
+import { formatISTDate, formatISTTime } from '@/lib/dateUtils';
 
 export async function GET(
   req: NextRequest,
@@ -37,7 +38,7 @@ export async function GET(
 
     const firstSession = booking.sessions[0];
     const scheduledStr = firstSession
-      ? `${new Date(firstSession.scheduledAt).toLocaleDateString()} at ${new Date(firstSession.scheduledAt).toLocaleTimeString()}`
+      ? `${formatISTDate(firstSession.scheduledAt)} at ${formatISTTime(firstSession.scheduledAt)}`
       : 'Pending Schedule';
 
     const htmlContent = `

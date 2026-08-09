@@ -26,6 +26,7 @@ import {
   markBookingNoShowAction,
   cancelBookingWithReasonAction,
 } from '@/actions/admin';
+import { formatISTDateTime } from '@/lib/dateUtils';
 
 interface AdminTodaysBookingsWidgetProps {
   initialBookings: any[];
@@ -128,18 +129,13 @@ export function AdminTodaysBookingsWidget({
 
   const formatDate = (dateInput?: any) => {
     if (!dateInput) return 'N/A';
-    try {
-      const d = new Date(dateInput);
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return 'N/A';
-    }
+    return formatISTDateTime(dateInput, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const cleanPhoneForWa = (phoneStr?: string) => {

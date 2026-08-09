@@ -4,6 +4,7 @@ import { SessionStatus, NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { dispatchNotificationEvent } from '@/lib/notification';
 import { sendSessionReminderEmail } from '@/lib/email';
+import { formatISTDate, formatISTTime } from '@/lib/dateUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -78,12 +79,9 @@ export async function GET(req: NextRequest) {
         continue;
       }
 
-      const formattedTime = new Date(sessionRecord.scheduledAt).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      const formattedTime = formatISTTime(sessionRecord.scheduledAt);
 
-      const formattedDate = new Date(sessionRecord.scheduledAt).toLocaleDateString('en-US', {
+      const formattedDate = formatISTDate(sessionRecord.scheduledAt, {
         weekday: 'short',
         month: 'short',
         day: 'numeric',

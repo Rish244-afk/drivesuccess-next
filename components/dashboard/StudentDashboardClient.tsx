@@ -28,6 +28,7 @@ import {
   rescheduleStudentSessionAction,
   getAvailableSlotsAction,
 } from '@/actions/bookingSystem';
+import { getFutureISTDateString, formatISTDateTime } from '@/lib/dateUtils';
 import { AvatarGenerator } from './AvatarGenerator';
 import { ProfileSettingsView } from './ProfileSettingsView';
 import { InvoiceModal } from './InvoiceModal';
@@ -64,7 +65,7 @@ export function StudentDashboardClient({
   // Rescheduling Modal State
   const [reschedulingSession, setReschedulingSession] = useState<any | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState<string>(
-    new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
+    getFutureISTDateString(2)
   );
   const [rescheduleSlots, setRescheduleSlots] = useState<{ time: string; available: boolean; reason: string }[]>([]);
   const [rescheduleTimeSlot, setRescheduleTimeSlot] = useState<string | null>(null);
@@ -327,7 +328,7 @@ export function StudentDashboardClient({
                     <Clock className="w-4 h-4 text-[#7E8466]" />
                     <span>
                       {upcomingSession?.scheduledAt
-                        ? new Date(upcomingSession.scheduledAt).toLocaleString('en-US', {
+                        ? formatISTDateTime(upcomingSession.scheduledAt, {
                             weekday: 'short',
                             hour: '2-digit',
                             minute: '2-digit',
@@ -520,7 +521,7 @@ export function StudentDashboardClient({
                           </span>
                         </div>
                         <p className="text-xs text-[#7E8466] font-light">
-                          Date: <strong>{new Date(sess.scheduledAt).toLocaleString()}</strong>
+                          Date: <strong>{formatISTDateTime(sess.scheduledAt)}</strong>
                         </p>
                         <p className="text-xs text-[#7E8466] font-light">
                           Instructor: <strong>{sess.instructor?.name || 'Assigned Instructor'}</strong> • Vehicle: <strong>{sess.vehicle?.name || 'Dual-Control Fleet'}</strong>
@@ -649,7 +650,7 @@ export function StudentDashboardClient({
                 </label>
                 <input
                   type="date"
-                  min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                  min={getFutureISTDateString(1)}
                   value={rescheduleDate}
                   onChange={(e) => {
                     setRescheduleDate(e.target.value);

@@ -5,6 +5,7 @@ import { getServerSession } from '@/lib/auth';
 import { CheckCircle2, Download, Calendar, User, Car, ArrowRight, ShieldCheck, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { ConfirmationCleanup } from '@/components/booking/ConfirmationCleanup';
+import { formatISTDate, formatISTTime } from '@/lib/dateUtils';
 
 export default async function BookingConfirmationPage({ params }: { params: { bookingId: string } }) {
   const session = await getServerSession();
@@ -37,8 +38,8 @@ export default async function BookingConfirmationPage({ params }: { params: { bo
   }
 
   const firstSession = booking.sessions[0];
-  const scheduledDate = firstSession ? firstSession.scheduledAt.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Pending Schedule';
-  const scheduledTime = firstSession ? firstSession.scheduledAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+  const scheduledDate = firstSession ? formatISTDate(firstSession.scheduledAt, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Pending Schedule';
+  const scheduledTime = firstSession ? formatISTTime(firstSession.scheduledAt) : '';
 
   return (
     <div className="min-h-screen bg-[#02040A] py-20 px-4 flex items-center justify-center">

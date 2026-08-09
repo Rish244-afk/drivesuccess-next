@@ -5,6 +5,13 @@ import { getServerSession } from '@/lib/auth';
 import { DayOfWeek, BookingStatus, SessionStatus, PaymentStatus, NotificationType } from '@prisma/client';
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
+import {
+  parseSlotToUTC,
+  getISTDayRangeUTC,
+  formatISTTime,
+  formatISTDate,
+  formatISTDateTime,
+} from '@/lib/dateUtils';
 
 const TIME_SLOTS = [
   '09:00 AM',
@@ -71,14 +78,8 @@ export async function getAvailableSlotsAction({
   dateStr: string;
 }) {
   try {
-    const selectedDate = new Date(dateStr);
-
-    // 2. Fetch existing sessions for this date (start of day to end of day)
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    // 2. Fetch existing sessions for this date (start of day to end of day in Asia/Kolkata)
+    const { startOfDay, endOfDay } = getISTDayRangeUTC(dateStr);
 
     const fifteenMinsAgo = new Date(Date.now() - 15 * 60 * 1000);
 
@@ -120,11 +121,7 @@ export async function getAvailableSlotsAction({
           return false; // Reservation expired — slot available!
         }
 
-        const sessionTime = session.scheduledAt.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true,
-        });
+        const sessionTime = formatISTTime(session.scheduledAt);
         return sessionTime === slotTime;
       });
 
@@ -230,14 +227,8 @@ export async function createBookingTransactionAction(inputData: unknown) {
       }
     }
 
-    // Parse scheduled datetime
-    const [timeStr, period] = data.timeSlot.split(' ');
-    let [hours, minutes] = timeStr.split(':').map(Number);
-    if (period === 'PM' && hours < 12) hours += 12;
-    if (period === 'AM' && hours === 12) hours = 0;
-
-    const scheduledAt = new Date(data.dateStr);
-    scheduledAt.setHours(hours, minutes, 0, 0);
+    // Parse scheduled datetime explicitly as Asia/Kolkata (IST)
+    const scheduledAt = parseSlotToUTC(data.dateStr, data.timeSlot);
 
     // Fetch package price
     const pkg = await prisma.package.findUnique({
@@ -662,14 +653,8 @@ export async function rescheduleStudentSessionAction({
       };
     }
 
-    // 5. Parse target datetime
-    const [timeStr, period] = newTimeSlot.split(' ');
-    let [hours, minutes] = timeStr.split(':').map(Number);
-    if (period === 'PM' && hours < 12) hours += 12;
-    if (period === 'AM' && hours === 12) hours = 0;
-
-    const newScheduledAt = new Date(newDateStr);
-    newScheduledAt.setHours(hours, minutes, 0, 0);
+    // 5. Parse target datetime explicitly as Asia/Kolkata (IST)
+    const newScheduledAt = parseSlotToUTC(newDateStr, newTimeSlot);
 
     if (newScheduledAt.getTime() <= now.getTime()) {
       return { success: false, error: 'Rescheduled time slot must be in the future.' };
@@ -703,7 +688,7 @@ export async function rescheduleStudentSessionAction({
         where: { id: sessionId },
         data: {
           scheduledAt: newScheduledAt,
-          notes: `Rescheduled from ${currentScheduledAt.toLocaleString()} to ${newScheduledAt.toLocaleString()}.`,
+          notes: `Rescheduled from ${formatISTDateTime(currentScheduledAt)} to ${formatISTDateTime(newScheduledAt)}.`,
         },
       });
     });
@@ -712,7 +697,7 @@ export async function rescheduleStudentSessionAction({
     try {
       const { dispatchNotificationEvent } = await import('@/lib/notification');
       const { sendSessionRescheduledEmail } = await import('@/lib/email');
-      const formattedDate = newScheduledAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ' + newTimeSlot;
+      const formattedDate = formatISTDate(newScheduledAt, { weekday: 'short', month: 'short', day: 'numeric' }) + ' at ' + newTimeSlot;
 
       let emailHtml = '';
       if (sessionRecord.student?.email) {
@@ -759,7 +744,7 @@ export async function rescheduleStudentSessionAction({
     revalidatePath('/dashboard');
     return {
       success: true,
-      message: `Session rescheduled successfully to ${newScheduledAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at ${newTimeSlot}.`,
+      message: `Session rescheduled successfully to ${formatISTDate(newScheduledAt, { weekday: 'short', month: 'short', day: 'numeric' })} at ${newTimeSlot}.`,
     };
   } catch (error: any) {
     console.error('rescheduleStudentSessionAction Error:', error);

@@ -16,6 +16,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { AvatarGenerator } from './AvatarGenerator';
+import { formatISTDate, formatISTTime } from '@/lib/dateUtils';
 
 interface NextLessonCardProps {
   session?: {
@@ -82,17 +83,13 @@ export function NextLessonCard({ session }: NextLessonCardProps) {
     );
   }
 
-  const sessionDate = new Date(session.scheduledAt);
-  const formattedDate = sessionDate.toLocaleDateString('en-US', {
+  const formattedDate = formatISTDate(session.scheduledAt, {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   });
-  const formattedTime = sessionDate.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedTime = formatISTTime(session.scheduledAt);
 
   return (
     <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white border border-slate-700/60 rounded-3xl p-6 sm:p-10 shadow-xl relative overflow-hidden space-y-6">

@@ -31,6 +31,7 @@ import { GoogleAuthProvider } from '@/components/auth/GoogleAuthProvider';
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
 import { auth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from '@/lib/firebase';
 import { useRazorpayCheckout } from '@/hooks/useRazorpayCheckout';
+import { getISTDateString, getFutureISTDateString } from '@/lib/dateUtils';
 
 interface WizardPackage {
   id: string;
@@ -128,7 +129,7 @@ export function BookingWizard() {
     }
   };
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
+    getFutureISTDateString(2)
   );
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [notes, setNotes] = useState<string>('');
@@ -1238,7 +1239,7 @@ export function BookingWizard() {
                 setSelectedDate(e.target.value);
                 setSelectedTimeSlot(null);
               }}
-              min={new Date().toISOString().split('T')[0]}
+              min={getISTDateString()}
               className="w-full bg-[#F4F0E8] border border-[#384633]/20 text-[#384633] px-4 py-3.5 rounded-2xl text-sm font-medium outline-none focus:border-[#384633]"
             />
           </div>
