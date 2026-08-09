@@ -247,17 +247,13 @@ export async function verifyPaymentSignatureAction({
     }
 
     // 1. Strict Cryptographic HMAC SHA256 Verification on Backend
-    let isValidSignature = verifyRazorpaySignature({
+    const isValidSignature = verifyRazorpaySignature({
       orderId: razorpayOrderId,
       paymentId: razorpayPaymentId,
       signature: razorpaySignature,
     });
 
-    // Development/Test mock fallback — strictly disabled in production
-    if (!isValidSignature && process.env.NODE_ENV !== 'production' && process.env.ALLOW_MOCK_PAYMENTS === 'true') {
-      isValidSignature = razorpayPaymentId.startsWith('pay_test_') || razorpayOrderId.startsWith('test_order_');
-    }
-
+    // STRICT: No mock bypasses in any environment.
     if (!isValidSignature) {
       logger.payment({
         event: 'PAYMENT_VERIFY_FAILED',
