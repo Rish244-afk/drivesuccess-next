@@ -3,6 +3,8 @@
 import { runDriveAIEngine } from '@/lib/ai/engine';
 import { prisma } from '@/lib/prisma';
 import { headers } from 'next/headers';
+import { getServerSession } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export interface AIOption {
   label: string;
@@ -37,6 +39,33 @@ export interface AIMessage {
  */
 export async function processAIChatAction(userMessage: string, history: AIMessage[] = []) {
   try {
+    // ── GATE 1: Authentication ────────────────────────────────────────────────
+    // Must happen before any DB query, rate-limit consumption, or AI call.
+    const session = await getServerSession();
+    if (!session || !session.sub) {
+      return {
+        success: false,
+        message: 'Please log in to use the AI assistant.',
+        options: [
+          { label: 'Log In', value: 'login' },
+          { label: 'Sign Up', value: 'signup' },
+        ],
+      };
+    }
+
+    // ── GATE 2: Per-User Rate Limiting (20 req / 5 min) ──────────────────────
+    // Keyed on the stable server-side identifier — never on client-supplied data.
+    const rateCheck = await checkRateLimit(`ai_chat_${session.sub}`, {
+      limit: 20,
+      windowMs: 5 * 60 * 1000,
+    });
+    if (!rateCheck.allowed) {
+      return {
+        success: false,
+        message: 'You have sent too many messages. Please wait a moment before trying again.',
+      };
+    }
+
     const text = userMessage.toLowerCase().trim();
 
     // 1. Handshake Trigger: Package Selection via Card Button ("Select <Package Name>")
